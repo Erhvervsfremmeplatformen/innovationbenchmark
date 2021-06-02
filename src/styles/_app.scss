@@ -1,0 +1,14 @@
+.footer {
+  align-items: flex-end;
+}
+
+.app-flex {
+  min-height: 100vh;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.flexgrow {
+  flex: 1 0 auto;
+}
