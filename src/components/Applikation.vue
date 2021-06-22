@@ -2,7 +2,6 @@
   <div class="applikation-container">
     <div class="innovationtest">
       <h1>Tag innovationstesten</h1>
-      nu på: {{ currentStep }}
       <div class="spinner" v-if="loadingResponse" aria-label="Henter indhold" />
 
       <nav>
@@ -21,68 +20,84 @@
         </ul>
       </nav>
 
-      <div v-for="(step, index) in response" v-bind:key="index">
-        <div class="row" v-if="currentStep === index + 1">
-          <div class="col-md-6 col-xs-12">
-            <div class="card">
-              <div class="card-header">
-                <h2 class="">{{ response[index].headline }}</h2>
-              </div>
-              <div class="card-text" v-html="sanityBlocks(response[index].text)"></div>
-            </div>
-          </div>
-          <div class="col-md-6 col-xs-12">
-            <fieldset class="row">
-              <div v-for="field in response[index].fields" v-bind:key="field._id" :class="['formWrapper', field.width == 50 ? 'col-6' : 'col-12']">
-                <div class="form-group" v-if="field._type === 'textinput'">
-                  <label class="form-label" :for="field.name">
-                    {{ field.label }}
-                  </label>
+      <SimpleForm :value="initialValues" :validate="validate" @submit="handleSubmit">
+        <template slot-scope="{ values, errors, touched, input, blur, setValue, setTouched, handleSubmit, submitted, submitting }">
+          {{ values }}
+          <form>
+            <input type="email" v-on="{ input, blur }" name="email" :value="values.email" />
+            <span class="error" v-if="touched('email') && errors('email')">{{ errors('email') }}</span>
 
-                  <input class="form-input" :id="field.name" value="" :name="field.name" type="text" />
-                </div>
+            <button @click.prevent="handleSubmit">Submit</button>
 
-                <div class="form-group" v-else-if="field._type === 'select'">
-                  <label class="form-label" for="options">{{ field.label }}</label>
-                  <select class="form-select" :name="field.name" id="options">
-                    <option disabled value="0">Vælg</option>
-                    <option v-for="option in field.options" :value="option" :key="option">{{ option }}</option>
-                  </select>
-                </div>
-
-                <div class="form-group" v-else-if="field._type === 'radiobuttons'">
-                  <fieldset>
-                    <legend class="h5">{{ field.label }}</legend>
-                    <p>{{ field.description }}</p>
-                    <ul class="nobullet-list">
-                      <li v-for="(option, index) in field.options" :key="index">
-                        <input :id="field.name + '_' + index" type="radio" :name="field.name" :value="option" class="form-radio radio-large" />
-                        <label :for="field.name + '_' + index" id="form-label-radio-1" class="">{{ option }}</label>
-                      </li>
-                    </ul>
-                  </fieldset>
-                </div>
-
-                <div class="form-group" v-else-if="field._type === 'slider'">
-                  <label class="form-label" :for="field.name">{{ field.label }}</label>
-                  <p class="formWrapper_description">{{ field.description }}</p>
-                  <input type="range" class="slider" :id="field.name" :max="field.options.length" min="1" />
-                  <div class="sliderOptions active">
-                    <div class="sliderBackground" />
-                    <div v-for="(option, index) in field.options" class="selected" :key="option">
-                      {{ option }}
+            <template v-for="(step, index) in response">
+              <div class="row" v-if="currentStep === index + 1" :key="index">
+                <div class="col-md-6 col-xs-12">
+                  <div class="card">
+                    <div class="card-header">
+                      <h2 class="">{{ response[index].headline }}</h2>
                     </div>
+                    <div class="card-text" v-html="sanityBlocks(response[index].text)"></div>
                   </div>
                 </div>
+                <div class="col-md-6 col-xs-12">
+                  <fieldset class="row">
+                    <div
+                      v-for="field in response[index].fields"
+                      v-bind:key="field._id"
+                      :class="['formWrapper', field.width == 50 ? 'col-6' : 'col-12']"
+                    >
+                      <div class="form-group" v-if="field._type === 'textinput'">
+                        <label class="form-label" :for="field.key">
+                          {{ field.label }}
+                        </label>
 
-                <div class="form-group" v-else="field._type === 'radio'">
-                  {{ field.type }}
+                        <input class="form-input" v-on="{ input, blur }" :id="field.key" :value="values[field.key]" :name="field.key" type="text" />
+                      </div>
+
+                      <div class="form-group" v-else-if="field._type === 'select'">
+                        <label class="form-label" for="options">{{ field.label }}</label>
+                        <select class="form-select" :name="field.key" id="options">
+                          <option disabled value="0">Vælg</option>
+                          <option v-for="option in field.options" :value="option" :key="option">{{ option }}</option>
+                        </select>
+                      </div>
+
+                      <div class="form-group" v-else-if="field._type === 'radiobuttons'">
+                        <fieldset>
+                          <legend class="h5">{{ field.label }}</legend>
+                          <p>{{ field.description }}</p>
+                          <ul class="nobullet-list">
+                            <li v-for="(option, index) in field.options" :key="index">
+                              <input :id="field.key + '_' + index" type="radio" :name="field.key" :value="option" class="form-radio radio-large" />
+                              <label :for="field.key + '_' + index" id="form-label-radio-1" class="">{{ option }}</label>
+                            </li>
+                          </ul>
+                        </fieldset>
+                      </div>
+
+                      <div class="form-group" v-else-if="field._type === 'slider'">
+                        <label class="form-label" :for="field.key">{{ field.label }}</label>
+                        <p class="formWrapper_description">{{ field.description }}</p>
+                        <input type="range" class="slider" :id="field.key" :max="field.options.length" min="1" />
+                        <div class="sliderOptions active">
+                          <div class="sliderBackground" />
+                          <div v-for="(option, index) in field.options" class="sliderOptions_item" :key="option">
+                            {{ option }}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="form-group" v-else="field._type === 'radio'">
+                        {{ field.type }}
+                      </div>
+                    </div>
+                  </fieldset>
                 </div>
               </div>
-            </fieldset>
-          </div>
-        </div>
-      </div>
+            </template>
+          </form>
+        </template>
+      </SimpleForm>
     </div>
   </div>
 </template>
@@ -91,7 +106,8 @@
 import { Component, Vue } from 'vue-property-decorator';
 import axios from 'axios';
 import sanityClient from '@sanity/client';
-const blocksToHtml = require('@sanity/block-content-to-html');
+import blocksToHtml from '@sanity/block-content-to-html';
+import SimpleForm from 'vue-simpleform';
 
 const client = sanityClient({
   projectId: 'gu31rtaa',
@@ -101,53 +117,144 @@ const client = sanityClient({
   useCdn: true // `false` if you want to ensure fresh data
 });
 
-@Component({
-  name: 'Applikation',
+export default {
+  components: { SimpleForm },
+  data() {
+    return {
+      currentStep: 1,
+      loadingResponse: false,
+      error: {},
+      response: {},
+      initialValues: {
+        virk_navn: 'Test',
+        industri: 0,
+        navn: '',
+        stilling: '',
+        prod_vurd: 1,
+        prcs_vurd: 1,
+        org_vurd: 1,
+        mar_vurd: 1,
+        prod1: 1,
+        prod2: 1,
+        prod3: 1,
+        prcs1: 0,
+        prcs2: 0,
+        prcs3: 0,
+        org1: 0,
+        org2: 0,
+        org3: 0,
+        mar1: 0,
+        mar2: 0,
+        mar3: 0,
+        mar4: 0,
+        mar5: 0,
+        mar6: 0
+      }
+    };
+  },
+  created() {
+    // fetch the data when the view is created and the data is
+    // already being observed
+    this.fetchData();
+  },
   methods: {
+    handleSubmit({ values, errors, setSubmitting, setSubmitted }) {
+      // if form is valid, errors will be undefined
+    },
+    validate(values) {
+      console.log(values);
+      return {
+        email: 'Email is invalid'
+      };
+    },
     sanityBlocks: function (blocks) {
       return blocksToHtml({
         blocks: blocks
       });
+    },
+    fetchData() {
+      // this.error = this.post = null;
+      this.loadingResponse = true;
+      // replace `getPost` with your data fetching util / API wrapper
+      const query = `*[_type == "test1"] | order(order asc)`;
+
+      client
+        .fetch(query)
+        .then(response => {
+          console.log(response);
+          this.loadingResponse = false;
+          this.response = response;
+        })
+        .catch((error: any) => {
+          this.error = error;
+        });
     }
   }
-})
-export default class Applikation extends Vue {
-  private currentStep = 1;
-  private response = {};
-  private error = {};
+};
 
-  private loadingResponse = false;
+// @Component({
+//   name: 'Applikation',
+//   data() {
+//     return {
+//       initialValues: {
+//         email: null
+//       }
+//     };
+//   },
+//   methods: {
+//     sanityBlocks: function (blocks) {
+//       return blocksToHtml({
+//         blocks: blocks
+//       });
+//     },
+//     handleSubmit({ values, errors, setSubmitting, setSubmitted }) {
+//       // if form is valid, errors will be undefined
+//     },
+//     validate(values) {
+//       return {
+//         email: 'Email is invalid'
+//       };
+//     }
+//   },
+//   components: { SimpleForm }
+// })
+// export default class Applikation extends Vue {
+//   private currentStep = 1;
+//   private response = {};
+//   private error = {};
 
-  mounted() {
-    this.loadingResponse = true;
-    this.callExternalApi();
-  }
+//   private loadingResponse = false;
 
-  private async callExternalApi() {
-    const query = `*[_type == "test1"] | order(order asc)`;
+//   mounted() {
+//     this.loadingResponse = true;
+//     this.callExternalApi();
+//   }
 
-    client
-      .fetch(query)
-      .then(response => {
-        console.log(response);
-        this.loadingResponse = false;
-        this.response = response;
-      })
-      .catch((error: any) => {
-        this.error = error;
-      });
+//   private async callExternalApi() {
+//     const query = `*[_type == "test1"] | order(order asc)`;
 
-    // axios
-    //   .get('https://httpbin.org/get')
-    //   .then((rsp: any) => {
-    //     this.response = rsp;
-    //     this.loadingResponse = false;
-    //   })
-    //   .catch((error: any) => {
-    //     this.error = error;
-    //   });
-  }
-}
+//     client
+//       .fetch(query)
+//       .then(response => {
+//         console.log(response);
+//         this.loadingResponse = false;
+//         this.response = response;
+//       })
+//       .catch((error: any) => {
+//         this.error = error;
+//       });
+
+//     // axios
+//     //   .get('https://httpbin.org/get')
+//     //   .then((rsp: any) => {
+//     //     this.response = rsp;
+//     //     this.loadingResponse = false;
+//     //   })
+//     //   .catch((error: any) => {
+//     //     this.error = error;
+//     //   });
+//   }
+// }
 </script>
 <style lang="scss" scoped>
 $colorOrange: #d23f1e;
@@ -160,10 +267,6 @@ $colorWhite: #ffffff;
 $colorBlack: #292929;
 
 $baseFontSize: 16;
-
-@function rem($pixels) {
-  @return $pixels / $baseFontSize * 1rem;
-}
 
 ul.nav-list {
   margin: 0;
@@ -278,7 +381,7 @@ ul.nav-list {
     background-color: $colorGrey_dark;
     display: block;
     position: absolute;
-    top: calc(-0.5rem - 2px);
+    top: -10px;
     // left: 25%;
     pointer-events: none;
 
@@ -289,12 +392,12 @@ ul.nav-list {
   }
 
   .thumbBackground {
-    width: rem(20);
+    width: 20px;
     height: 4px;
     background-color: $colorWhite;
     display: block;
     position: absolute;
-    top: calc(-0.5rem - 2px);
+    top: calc(-10px);
     left: calc(75% - 13px);
     pointer-events: none;
   }
@@ -304,11 +407,11 @@ ul.nav-list {
     justify-content: center;
     text-align: center;
     width: 1px;
-    margin-top: 0.5rem;
+    margin-top: 8px;
     white-space: nowrap;
     position: relative;
     visibility: hidden;
-    font-size: rem(14);
+    font-size: 14px;
 
     &:nth-of-type(2) {
       justify-content: flex-start;
@@ -327,12 +430,12 @@ ul.nav-list {
       background-color: $colorGrey;
       position: absolute;
       visibility: visible;
-      top: calc(-0.5rem - 10px);
+      top: -20px;
       z-index: 0;
 
       @-moz-document url-prefix() {
         // Target Firefox
-        top: calc(-0.5rem - 12px);
+        top: calc(-8px - 12px);
       }
     }
 
@@ -377,8 +480,8 @@ input[type='range'] {
 
   &::-webkit-slider-thumb {
     appearance: none;
-    height: rem(20);
-    width: rem(20);
+    height: 20px;
+    width: 20px;
     border-radius: 50%;
     background: $colorWhite;
     cursor: ew-resize;
@@ -388,8 +491,8 @@ input[type='range'] {
 
   &::-moz-range-thumb {
     appearance: none;
-    height: rem(20);
-    width: rem(20);
+    height: 20px;
+    width: 20px;
     border-radius: 50%;
     background: $colorWhite;
     cursor: ew-resize;
@@ -413,13 +516,107 @@ input[type='range'] {
   @at-root .calculatingSliders & {
     &:after {
       content: '';
-      width: rem(40);
+      width: 40px;
       display: block;
       position: absolute;
       background-color: $colorGrey;
       left: 12px;
       height: 2px;
     }
+  }
+}
+
+input[type='range'] {
+  width: 100%;
+  margin: 8px 0;
+  background-color: transparent;
+  -webkit-appearance: none;
+}
+input[type='range']:focus {
+  outline: none;
+}
+input[type='range']::-webkit-slider-runnable-track {
+  background: #d23f1e;
+  border: 1px solid #d23f1e;
+  border-radius: 2px;
+  width: 100%;
+  height: 4px;
+  cursor: pointer;
+}
+input[type='range']::-webkit-slider-thumb {
+  margin-top: -9px;
+  width: 20px;
+  height: 20px;
+  background: #ffffff;
+  border: 0px solid rgba(255, 255, 255, 0);
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+  -webkit-appearance: none;
+}
+input[type='range']:focus::-webkit-slider-runnable-track {
+  background: #df4320;
+}
+input[type='range']::-moz-range-track {
+  background: #d23f1e;
+  border: 1px solid #d23f1e;
+  border-radius: 2px;
+  width: 100%;
+  height: 4px;
+  cursor: pointer;
+}
+input[type='range']::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: #ffffff;
+  border: 0px solid rgba(255, 255, 255, 0);
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+}
+input[type='range']::-ms-track {
+  background: transparent;
+  border-color: transparent;
+  border-width: 9px 0;
+  color: transparent;
+  width: 100%;
+  height: 4px;
+  cursor: pointer;
+}
+input[type='range']::-ms-fill-lower {
+  background: #c53b1c;
+  border: 1px solid #d23f1e;
+  border-radius: 4px;
+}
+input[type='range']::-ms-fill-upper {
+  background: #d23f1e;
+  border: 1px solid #d23f1e;
+  border-radius: 4px;
+}
+input[type='range']::-ms-thumb {
+  width: 20px;
+  height: 20px;
+  background: #ffffff;
+  border: 0px solid rgba(255, 255, 255, 0);
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-top: 0px;
+  /*Needed to keep the Edge thumb centred*/
+}
+input[type='range']:focus::-ms-fill-lower {
+  background: #d23f1e;
+}
+input[type='range']:focus::-ms-fill-upper {
+  background: #df4320;
+}
+/*TODO: Use one of the selectors from https://stackoverflow.com/a/20541859/7077589 and figure out
+how to remove the virtical space around the range input in IE*/
+@supports (-ms-ime-align: auto) {
+  /* Pre-Chromium Edge only styles, selector taken from hhttps://stackoverflow.com/a/32202953/7077589 */
+  input[type='range'] {
+    margin: 0;
+    /*Edge starts the margin from the thumb, not the track as other browsers do*/
   }
 }
 </style>
