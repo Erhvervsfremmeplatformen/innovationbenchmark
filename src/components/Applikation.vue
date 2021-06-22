@@ -1,87 +1,86 @@
 <template>
   <div class="applikation-container">
     <div class="innovationtest">
-      <!-- <h1>Jeg er en h1</h1>
-    <h2>Jeg er en h2</h2>
-    <h3>Jeg er en h3</h3>
-    <h4>Jeg er en h4</h4>
-    <h5>Jeg er en h5</h5>
-    <hr />
-    Tid lige nu: {{ currentTime }}
-    <hr />
-    Dynamisk komponent:
-    <dynamic-component text="Jeg er en dynamisk komponent"></dynamic-component>
-    <hr />
-    <a href="http://www.google.com" target="_blank">Link til Google</a>
-    <hr />
-    <hr />
-    <button class="button button-primary">Jeg er en knap</button>
-    <p id="tester">Blabla dupidup</p>
-    <hr />
-    <div>Datovælger</div>
-    <div id="datepicker"><input ref="input" /></div>
-    <hr /> -->
+      <h1>Tag innovationstesten</h1>
+      nu på: {{ currentStep }}
+      <div class="spinner" v-if="loadingResponse" aria-label="Henter indhold" />
+
       <nav>
         <ul class="nav-list">
-          <li v-for="(page, index) in testPages" v-bind:key="index">
-            <button class="nav-button" disabled="{1 < index : true}" type="button">
-              {{ page.title }}
-            </button>
-          </li>
-          <!-- {testPages.map((page, index) => (
-          <li key={index}>
+          <li v-for="(page, index) in response" v-bind:key="index">
             <button
-              className={classNames(
-                styles.button,
-                { [styles.button_current]: currentPage === index + 1 },
-                { [styles.button_past]: currentPage > index + 1 },
-                { [styles.button_disabled]: currentPage < index },
-              )}
-              disabled={currentPage < index}
+              :class="currentStep === index + 1 ? 'nav-button_current' : ''"
+              class="nav-button"
+              :disabled="currentStep < index"
               type="button"
-              onClick={() => handleClick(index)}
+              v-on:click="currentStep = index + 1"
             >
-              {page.title}
+              {{ page.shortTitle }}
             </button>
           </li>
-        ))} -->
         </ul>
       </nav>
-      <div>Response fra Sanity</div>
-      <div class="spinner" v-if="loadingResponse" aria-label="Henter indhold" />
-      {{ response }}
 
-      <div class="row">
-        <div class="col-md-6 col-xs-12">
-          <div class="card">
-            <div class="card-header">
-              <h2 class="">Inden du går i gang</h2>
-            </div>
-            <div class="card-text">
-              <p>
-                <strong>Vi behandler dine data fortroligt.</strong> Vi bruger dem til at vurdere innovationsindsatsen i din virksomhed, og dine
-                resultater bliver udelukkende vist på din skærm og via de rapporter, du kan downloade. Du behøver ikke engang oplyse virksomheden navn
-                mv.
-              </p>
-              <p>
-                <strong>Dine data bliver anonymiserede</strong>, og vi vil på baggrund af disse have mulighed for at lave forskningsmæssige analyser,
-                der gør innovationsværktøjet endnu bedre i fremtiden.
-              </p>
-              <p>Testen vil afdække virksomhedens innovationsniveau på følgende fire områder:</p>
-              <ul>
-                <li>Produkt</li>
-                <li>Proces</li>
-                <li>Organisation</li>
-                <li>Markedsføring</li>
-              </ul>
-              <p>
-                Efter du har vurderet indsatsen på de forskellige områder, vil du modtage et samlet resultat over innovationsindsatsen i virksomheden.
-              </p>
+      <div v-for="(step, index) in response" v-bind:key="index">
+        <div class="row" v-if="currentStep === index + 1">
+          <div class="col-md-6 col-xs-12">
+            <div class="card">
+              <div class="card-header">
+                <h2 class="">{{ response[index].headline }}</h2>
+              </div>
+              <div class="card-text" v-html="sanityBlocks(response[index].text)"></div>
             </div>
           </div>
-        </div>
-        <div class="col-md-6 col-xs-12">
-          Eksempel på grid: Højre kolonne
+          <div class="col-md-6 col-xs-12">
+            <fieldset class="row">
+              <div v-for="field in response[index].fields" v-bind:key="field._id" :class="['formWrapper', field.width == 50 ? 'col-6' : 'col-12']">
+                <div class="form-group" v-if="field._type === 'textinput'">
+                  <label class="form-label" :for="field.name">
+                    {{ field.label }}
+                  </label>
+
+                  <input class="form-input" :id="field.name" value="" :name="field.name" type="text" />
+                </div>
+
+                <div class="form-group" v-else-if="field._type === 'select'">
+                  <label class="form-label" for="options">{{ field.label }}</label>
+                  <select class="form-select" :name="field.name" id="options">
+                    <option disabled value="0">Vælg</option>
+                    <option v-for="option in field.options" :value="option" :key="option">{{ option }}</option>
+                  </select>
+                </div>
+
+                <div class="form-group" v-else-if="field._type === 'radiobuttons'">
+                  <fieldset>
+                    <legend class="h5">{{ field.label }}</legend>
+                    <p>{{ field.description }}</p>
+                    <ul class="nobullet-list">
+                      <li v-for="(option, index) in field.options" :key="index">
+                        <input :id="field.name + '_' + index" type="radio" :name="field.name" :value="option" class="form-radio radio-large" />
+                        <label :for="field.name + '_' + index" id="form-label-radio-1" class="">{{ option }}</label>
+                      </li>
+                    </ul>
+                  </fieldset>
+                </div>
+
+                <div class="form-group" v-else-if="field._type === 'slider'">
+                  <label class="form-label" :for="field.name">{{ field.label }}</label>
+                  <p class="formWrapper_description">{{ field.description }}</p>
+                  <input type="range" class="slider" :id="field.name" :max="field.options.length" min="1" />
+                  <div class="sliderOptions active">
+                    <div class="sliderBackground" />
+                    <div v-for="(option, index) in field.options" class="selected" :key="option">
+                      {{ option }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-group" v-else="field._type === 'radio'">
+                  {{ field.type }}
+                </div>
+              </div>
+            </fieldset>
+          </div>
         </div>
       </div>
     </div>
@@ -91,9 +90,9 @@
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
 import axios from 'axios';
-import { DateTime } from 'luxon';
-import Pikaday from 'pikaday';
 import sanityClient from '@sanity/client';
+const blocksToHtml = require('@sanity/block-content-to-html');
+
 const client = sanityClient({
   projectId: 'gu31rtaa',
   dataset: 'production',
@@ -102,70 +101,37 @@ const client = sanityClient({
   useCdn: true // `false` if you want to ensure fresh data
 });
 
-var dynamicComponent = {
-  template: '<div>{{text}}</div>',
-  props: ['text']
-};
-
 @Component({
   name: 'Applikation',
-  components: {
-    dynamicComponent
+  methods: {
+    sanityBlocks: function (blocks) {
+      return blocksToHtml({
+        blocks: blocks
+      });
+    }
   }
 })
 export default class Applikation extends Vue {
-  private currentTime = '';
+  private currentStep = 1;
   private response = {};
   private error = {};
-  private testPages = [
-    { title: 'Start' },
-    { title: 'Produkt' },
-    { title: 'Proces' },
-    { title: 'Organisation' },
-    { title: 'Markedsføring' },
-    { title: 'Resultat' }
-  ];
+
   private loadingResponse = false;
-  private datePicker!: Pikaday;
 
   mounted() {
-    this.currentTime = DateTime.local().toISO();
     this.loadingResponse = true;
     this.callExternalApi();
-
-    this.datePicker = new Pikaday({
-      field: this.$refs.input as HTMLElement,
-      format: 'DD/MM/YYYY',
-      firstDay: 1, // mandag
-      minDate: new Date(),
-      container: document.getElementById('datepicker'),
-      i18n: {
-        previousMonth: 'Forrige måned',
-        nextMonth: 'Næste måned',
-        months: ['Januar', 'Februar', 'Marts', 'April', 'Maj', 'Juni', 'July', 'August', 'September', 'Oktober', 'November', 'December'],
-        weekdays: ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'],
-        weekdaysShort: ['Søn', 'Man', 'Tir', 'Ons', 'Tor', 'Fre', 'Lør']
-      },
-      onSelect: (date: Date) => this.$emit('select', date)
-    });
-    this.datePicker.setDate(new Date(), true);
   }
 
   private async callExternalApi() {
-    const query = `*[_type == "test1"] {
-  fields
-}[0]`;
-    // const params = {minSeats: 2}
+    const query = `*[_type == "test1"] | order(order asc)`;
 
     client
       .fetch(query)
-      .then(cases => {
-        console.log(cases);
+      .then(response => {
+        console.log(response);
         this.loadingResponse = false;
-        this.response = cases;
-        // bikes.forEach(bike => {
-        //   console.log(`${bike.name} (${bike.seats} seats)`);
-        // });
+        this.response = response;
       })
       .catch((error: any) => {
         this.error = error;
@@ -186,103 +152,273 @@ export default class Applikation extends Vue {
 <style lang="scss" scoped>
 $colorOrange: #d23f1e;
 $colorPrimary: $colorOrange;
+$colorGrey: #d0cfcf;
+$colorBackground: #f5f5f5;
+$colorGrey_light: #fafafa;
+$colorGrey_dark: #797272;
+$colorWhite: #ffffff;
+$colorBlack: #292929;
 
-.innovationtest {
-  ul.nav-list {
-    margin: 0;
-    padding: 24px 0 16px;
-    list-style: none;
+$baseFontSize: 16;
+
+@function rem($pixels) {
+  @return $pixels / $baseFontSize * 1rem;
+}
+
+ul.nav-list {
+  margin: 0;
+  padding: 24px 0 16px;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid $colorGrey;
+  color: #292929;
+  counter-reset: page;
+  position: relative;
+  max-width: none !important;
+  margin-bottom: 48px;
+
+  @include media-breakpoint-up(sm) {
+    padding: 24px 20%;
+  }
+
+  li {
+    flex: 0 1 auto;
+    width: calc(100% / 6);
+    max-width: calc(100% / 6);
+    text-align: center;
     display: flex;
-    justify-content: space-between;
-    border-bottom: 1px solid grey;
-    counter-reset: page;
-    position: relative;
-    max-width: none !important;
+    justify-content: center;
+    margin-top: 0;
 
-    @include media-breakpoint-up(sm) {
-      padding: 24px 20%;
-    }
-
-    li {
-      flex: 0 1 auto;
-      width: calc(100% / 6);
-      max-width: calc(100% / 6);
-      text-align: center;
-      display: flex;
-      justify-content: center;
-
-      &:before {
-        content: none;
-      }
-    }
-
-    &:after {
-      content: '';
-      width: 90%;
-      height: 1px;
-      background-color: $colorPrimary;
-      position: absolute;
-      left: 5%;
-      right: 5%;
-      top: 36px;
-
-      @include media-breakpoint-up(sm) {
-        left: 25%;
-        right: 25%;
-        width: 50%;
-      }
+    &:before {
+      content: none;
     }
   }
 
-  .nav-button {
-    background: transparent;
-    border: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    position: relative;
-    color: transparent;
-    cursor: pointer;
+  &:after {
+    content: '';
+    width: 90%;
+    height: 1px;
+    background-color: $colorPrimary;
+    position: absolute;
+    left: 5%;
+    right: 5%;
+    top: 36px;
 
     @include media-breakpoint-up(sm) {
-      color: inherit;
+      left: 25%;
+      right: 25%;
+      width: 50%;
+    }
+  }
+}
+
+.nav-button {
+  background: transparent;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  position: relative;
+  color: transparent;
+  cursor: pointer;
+  font-family: inherit;
+
+  @include media-breakpoint-up(sm) {
+    color: inherit;
+  }
+
+  &:before {
+    content: counter(page);
+    counter-increment: page;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: block;
+    color: $colorPrimary;
+    line-height: 24px;
+    border: 1px solid $colorPrimary;
+    margin-bottom: 4px;
+    background-color: $colorBackground;
+    z-index: 1;
+  }
+
+  &_current {
+    color: inherit;
+    &:before {
+      background-color: $colorPrimary;
+      color: $colorGrey_light;
+    }
+  }
+
+  &_past {
+    &:before {
+      content: '';
+      // color: $colorGrey_light;
+      // background: $colorPrimary url('../../public/img/check-white.svg') center/16px no-repeat;
+    }
+  }
+
+  &[disabled] {
+    pointer-events: none;
+  }
+}
+
+.sliderOptions {
+  display: flex !important;
+  justify-content: space-between;
+  position: relative;
+
+  .sliderBackground {
+    // width: calc(100% - 25%);
+    height: 4px;
+    background-color: $colorGrey_dark;
+    display: block;
+    position: absolute;
+    top: calc(-0.5rem - 2px);
+    // left: 25%;
+    pointer-events: none;
+
+    @-moz-document url-prefix() {
+      // Target Firefox
+      background: none;
+    }
+  }
+
+  .thumbBackground {
+    width: rem(20);
+    height: 4px;
+    background-color: $colorWhite;
+    display: block;
+    position: absolute;
+    top: calc(-0.5rem - 2px);
+    left: calc(75% - 13px);
+    pointer-events: none;
+  }
+
+  &_item {
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    width: 1px;
+    margin-top: 0.5rem;
+    white-space: nowrap;
+    position: relative;
+    visibility: hidden;
+    font-size: rem(14);
+
+    &:nth-of-type(2) {
+      justify-content: flex-start;
+    }
+
+    &:last-of-type {
+      justify-content: flex-end;
     }
 
     &:before {
-      content: counter(page);
-      counter-increment: page;
-      width: 24px;
-      height: 24px;
+      content: '';
+      width: 4px;
+      height: 4px;
       border-radius: 50%;
       display: block;
-      color: $colorPrimary;
-      line-height: 24px;
-      border: 1px solid $colorPrimary;
-      margin-bottom: 4px;
-      // background-color: $colorBackground;
-      z-index: 1;
-    }
+      background-color: $colorGrey;
+      position: absolute;
+      visibility: visible;
+      top: calc(-0.5rem - 10px);
+      z-index: 0;
 
-    &_current {
-      color: inherit;
-      &:before {
-        background-color: $colorPrimary;
-        // color: $colorGrey_light;
+      @-moz-document url-prefix() {
+        // Target Firefox
+        top: calc(-0.5rem - 12px);
       }
     }
 
-    &_past {
+    &.selected {
+      visibility: visible;
+
       &:before {
-        content: '';
-        // color: $colorGrey_light;
-        // background: $colorPrimary url('../../public/img/check-white.svg') center/16px no-repeat;
+        visibility: hidden !important;
       }
     }
+  }
+}
 
-    &_disabled {
-      pointer-events: none;
+input[type='range'] {
+  appearance: none;
+  width: 100%;
+  border-radius: 2px;
+  height: 4px;
+  cursor: pointer;
+  background: $colorPrimary;
+  z-index: 0;
+
+  &:focus {
+    box-shadow: none;
+  }
+
+  &::-webkit-slider-runnable-track {
+    cursor: pointer;
+  }
+
+  &::-moz-range-track {
+    background-color: $colorGrey_dark;
+    height: 4px;
+    border-radius: 2px;
+  }
+
+  &::-moz-range-progress {
+    background-color: $colorPrimary;
+    height: 4px;
+    border-radius: 2px;
+  }
+
+  &::-webkit-slider-thumb {
+    appearance: none;
+    height: rem(20);
+    width: rem(20);
+    border-radius: 50%;
+    background: $colorWhite;
+    cursor: ew-resize;
+    box-shadow: 0px 0px 8px rgba($colorBlack, 0.4);
+    z-index: 10;
+  }
+
+  &::-moz-range-thumb {
+    appearance: none;
+    height: rem(20);
+    width: rem(20);
+    border-radius: 50%;
+    background: $colorWhite;
+    cursor: ew-resize;
+    box-shadow: 0px 0px 8px rgba($colorBlack, 0.4);
+    z-index: 10;
+    border: none;
+  }
+
+  &:focus {
+    outline: none;
+
+    &::-webkit-slider-thumb {
+      // border: 1px solid $colorFocus;
+    }
+
+    &::-moz-range-thumb {
+      // border: 1px solid $colorFocus;
+    }
+  }
+
+  @at-root .calculatingSliders & {
+    &:after {
+      content: '';
+      width: rem(40);
+      display: block;
+      position: absolute;
+      background-color: $colorGrey;
+      left: 12px;
+      height: 2px;
     }
   }
 }
