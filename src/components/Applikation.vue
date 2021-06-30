@@ -2,26 +2,34 @@
   <div class="applikation-container">
     <div class="innovationtest">
       <h1>Tag innovationstesten</h1>
-      <div class="spinner" v-if="loadingResponse" aria-label="Henter indhold" />
-
-      <nav>
-        <ul class="nav-list">
-          <li v-for="(page, index) in response" v-bind:key="index">
-            <button
-              :class="['nav-button', currentStep > index + 1 ? 'nav-button-past' : '', currentStep === index + 1 ? 'nav-button-current' : '']"
-              :disabled="currentStep < index"
-              type="button"
-              v-on:click="currentStep = index + 1"
-            >
-              <svg v-if="currentStep > index + 1" class="icon-svg" focusable="false" aria-hidden="true"><use xlink:href="#check"></use></svg>
-              {{ page.shortTitle }}
-            </button>
-          </li>
-        </ul>
-      </nav>
 
       <SimpleForm :value="initialValues" :validate="validate" @submit="handleSubmit">
         <template slot-scope="{ values, errors, touched, input, blur, setValue, setTouched, handleSubmit, submitted, submitting }">
+          <nav>
+            <ul class="nav-list">
+              <li v-for="(page, index) in response" v-bind:key="index">
+                <button
+                  :class="['nav-button', currentStep > index + 1 ? 'nav-button-past' : '', currentStep === index + 1 ? 'nav-button-current' : '']"
+                  :disabled="currentStep < index"
+                  type="button"
+                  @click.prevent="index == pageCount ? handleSubmit() : (currentStep = index + 1)"
+                >
+                  <svg v-if="currentStep > index + 1" class="icon-svg" focusable="false" aria-hidden="true"><use xlink:href="#check"></use></svg>
+                  {{ page.shortTitle }}
+                </button>
+              </li>
+            </ul>
+          </nav>
+
+          <div class="spinner" v-if="isLoading" aria-label="Henter indhold" />
+
+          <div class="alert alert-error" role="alert" aria-atomic="true" v-if="error">
+            <div class="alert-body">
+              <p class="alert-heading">Fejl</p>
+              <p class="alert-text">{{ error }}</p>
+            </div>
+          </div>
+
           <form>
             <!-- <input type="email" v-on="{ input, blur }" name="email" :value="values.email" />
             <span class="error" v-if="touched('email') && errors('email')">{{ errors('email') }}</span> -->
@@ -199,6 +207,7 @@ import sanityClient from '@sanity/client';
 const blocksToHtml = require('@sanity/block-content-to-html');
 import SimpleForm from 'vue-simpleform';
 import VueApexCharts from 'vue-apexcharts';
+import * as DKFDS from 'dkfds';
 
 // Vue.use(VueApexCharts);
 
@@ -220,11 +229,11 @@ export default class Applikation extends Vue {
   // private currentStep = 1;
   // private response = {};
   // private error = {};
-  // private loadingResponse = false;
-
-  currentStep = 6;
-  loadingResponse = false;
-  error = {};
+  // private isLoading = false;
+  apiBaseUrl = 'https://innovation-benchmark-git-dev-innovationbenchmark.vercel.app';
+  currentStep = 5;
+  isLoading = false;
+  error = '';
   pageCount = 5;
   response = {};
   initialValues = {
@@ -332,38 +341,70 @@ export default class Applikation extends Vue {
   }
   handleSubmit({ values, errors, setSubmitting, setSubmitted }: any) {
     console.log(values);
-    this.loadingResponse = true;
-    try {
-      const url = 'https://api.ibenweb.com/api/DS/3';
-      axios
-        .post('https://innovationbenchmark.dk/api/put', {
-          method: 'PUT',
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ ...values, url })
-        })
-        .then(response => {
-          console.log(response);
-          // if (!response.data.error) {
-          //   setResults(response.data);
-          //   this.currentStep = this.pageCount + 1;
-          //   this.loadingResponse = false;
-          // }
-        });
-    } catch (error) {
-      console.log(error);
-      this.loadingResponse = false;
-      // const notify = () =>
-      //   toast.info('Noget gik galt. Prøv venligst igen.', {
-      //     hideProgressBar: false,
-      //     pauseOnFocusLoss: true,
-      //     autoClose: false,
-      //     toastId: 'alert'
-      //   });
-      // notify();
-    }
+    this.isLoading = true;
+    // try {
+    const url = 'https://api.ibenweb.com/api/DS/3';
+    console.log(JSON.stringify({ ...values, url }));
+    axios
+      .post(`${this.apiBaseUrl}/api/put`, {
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json'
+        },
+        data: JSON.stringify({ ...values, sessionId: '1234', url })
+      })
+      .then((rsp: any) => {
+        // this.response = rsp;
+        console.log(rsp);
+        this.error = '';
+        this.isLoading = false;
+        if (!rsp.data.error) {
+          // setResults(rsp.data);
+          this.currentStep = this.pageCount + 1;
+          this.isLoading = false;
+        }
+      })
+      .catch((error: any) => {
+        console.log(error);
+        this.isLoading = false;
+        this.error = 'Noget gik galt. Prøv venligst igen.';
+      });
+
+    //   axios
+    //     .post(`${this.apiBaseUrl}/api/put`, {
+    //       headers: {
+    //         Accept: 'application/json',
+    //         'Content-Type': 'application/json'
+    //       },
+    //       data: JSON.stringify({ ...values, url })
+    //     })
+    //     .catch(error => {
+    //       // handle error
+    //       console.log(error);
+    //       this.isLoading = false;
+    //       this.error = 'Noget gik galt. Prøv venligst igen.';
+    //       // this.isLoading = false;
+    //     })
+    //     .then(response: any => {
+    //       this.error = '';
+    //       this.isLoading = false;
+    //       console.log(response);
+    //       if (!response.data.error) {
+    //         setResults(response.data);
+    //         this.currentStep = this.pageCount + 1;
+    //         this.isLoading = false;
+    //       }
+    //     });
+    // } catch (error) {
+    //   // const notify = () =>
+    //   //   toast.info('Noget gik galt. Prøv venligst igen.', {
+    //   //     hideProgressBar: false,
+    //   //     pauseOnFocusLoss: true,
+    //   //     autoClose: false,
+    //   //     toastId: 'alert'
+    //   //   });
+    //   // notify();
+    // }
 
     // if form is valid, errors will be undefined
   }
@@ -374,14 +415,13 @@ export default class Applikation extends Vue {
     };
   }
   sanityBlocks(blocks: Array<any>) {
-    console.log(typeof blocks);
     return blocksToHtml({
       blocks: blocks
     });
   }
   fetchData() {
     // this.error = this.post = null;
-    this.loadingResponse = true;
+    this.isLoading = true;
     // replace `getPost` with your data fetching util / API wrapper
     const query = `*[_type == "test1"] | order(order asc)`;
 
@@ -389,7 +429,7 @@ export default class Applikation extends Vue {
       .fetch(query)
       .then(response => {
         console.log(response);
-        this.loadingResponse = false;
+        this.isLoading = false;
         this.response = response;
       })
       .catch((error: any) => {
