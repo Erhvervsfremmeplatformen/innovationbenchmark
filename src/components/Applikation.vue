@@ -214,7 +214,7 @@ export default class Applikation extends Vue {
   // private error = {};
   // private isLoading = false;
   apiBaseUrl = 'https://innovation-benchmark-git-dev-innovationbenchmark.vercel.app';
-  currentStep = 5;
+  currentStep = 1;
   isLoading = false;
   error = '';
   pageCount = 5;
