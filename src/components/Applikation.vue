@@ -145,19 +145,7 @@
                       </div>
                     </div>
                   </fieldset>
-                  <div v-else>
-                    <apexchart
-                      width="500"
-                      type="radar"
-                      :options="radarOptions"
-                      :series="[
-                        {
-                          name: 'series-1',
-                          data: [30, 40, 45, 50]
-                        }
-                      ]"
-                    ></apexchart>
-                  </div>
+                  <div v-else></div>
                 </div>
               </div>
             </template>
@@ -206,12 +194,7 @@ import axios from 'axios';
 import sanityClient from '@sanity/client';
 const blocksToHtml = require('@sanity/block-content-to-html');
 import SimpleForm from 'vue-simpleform';
-import VueApexCharts from 'vue-apexcharts';
 import * as DKFDS from 'dkfds';
-
-// Vue.use(VueApexCharts);
-
-// Vue.component('apexchart', VueApexCharts);
 
 const client = sanityClient({
   projectId: 'gu31rtaa',
@@ -223,7 +206,7 @@ const client = sanityClient({
 
 @Component({
   name: 'Applikation',
-  components: { SimpleForm, apexchart: VueApexCharts }
+  components: { SimpleForm }
 })
 export default class Applikation extends Vue {
   // private currentStep = 1;
