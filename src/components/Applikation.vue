@@ -32,13 +32,26 @@
         </template>
         <div class="hero-padding mb-8"></div>
         <div class="row">
-          <div class="col-md-6" v-if="frontPageMatter.cards" v-html="sanityBlocks(frontPageMatter.cards[0].cardBody)"></div>
-          <div class="col-md-6" v-if="frontPageMatter.cards">
-            <div class="card">
+          <div class="col-md-6" v-for="(card, index) of frontPageMatter.cards" :key="index">
+            <div :class="['card', [0, 3, 4, 5, 6].includes(index) ? 'card-transparent' : '']">
               <div class="card-header">
-                <h2>{{ frontPageMatter.cards[1].cardHeadline }}</h2>
+                <h2>{{ card.cardHeadline }}</h2>
               </div>
-              <div class="card-text" v-html="sanityBlocks(frontPageMatter.cards[1].cardBody)"></div>
+              <div class="card-text" v-html="sanityBlocks(card.cardBody)"></div>
+              <div class="card-footer card-action" v-if="card.cardButtonText">
+                <a
+                  :href="card.cardButtonUrl.includes('http') || card.cardButtonUrl == '/test' ? card.cardButtonUrl : apiBaseUrl + card.cardButtonUrl"
+                  :data-url="card.cardButtonUrl"
+                  :target="card.cardButtonUrl.includes('http') || card.cardButtonUrl !== '/test' ? '_blank' : ''"
+                  @click="resolveUrl"
+                  :class="[
+                    'button',
+                    'custom-button',
+                    [0].includes(index) ? ['button-primary', 'custom-button-primary'] : ['button-secondary', 'custom-button-secondary']
+                  ]"
+                  >{{ card.cardButtonText }}</a
+                >
+              </div>
             </div>
           </div>
         </div>
@@ -66,7 +79,7 @@
               </ul>
             </nav>
 
-            <div class="spinner" v-if="isLoading" aria-label="Henter indhold" />
+            <!-- <div class="spinner" v-if="isLoading" aria-label="Henter indhold" /> -->
 
             <div class="alert alert-error" role="alert" aria-atomic="true" v-if="error">
               <div class="alert-body">
@@ -420,6 +433,22 @@ export default class Applikation extends Vue {
     console.log('updated');
   }
 
+  resolveUrl(event: Event) {
+    const url = event.target.getAttribute('data-url');
+    if (url.includes('http')) {
+      return;
+    }
+
+    if (url === '/test') {
+      event.preventDefault();
+      this.currentSection = 'test1';
+      return;
+    }
+
+    // if (event.target.href) {
+    // event.target.href = this.apiBaseUrl + url;
+    // }
+  }
   handleNextClick(event: Event) {
     event.preventDefault();
     this.currentStep++;
@@ -1029,6 +1058,7 @@ how to remove the virtical space around the range input in IE*/
 }
 
 .button.custom-button {
+  font-weight: 500;
   &[disabled] {
     cursor: wait;
   }
@@ -1043,7 +1073,8 @@ how to remove the virtical space around the range input in IE*/
     border: none;
     color: $colorWhite;
 
-    &:hover {
+    &:hover,
+    &:active {
       background-color: $colorHover;
       color: $colorWhite;
       box-shadow: 0 0 0 1px $colorHover;
@@ -1057,12 +1088,15 @@ how to remove the virtical space around the range input in IE*/
   }
 
   &-secondary {
-    background-color: $colorBackground;
-    color: $colorBlack;
+    background-color: transparent;
+    color: $colorPrimary !important;
+    border-color: $colorPrimary;
+    transition: all 220ms ease-in-out;
 
-    &:hover {
+    &:hover,
+    &:active {
       background-color: $colorPrimary;
-      color: $colorWhite;
+      color: $colorWhite !important;
       border-color: $colorPrimary;
     }
 
@@ -1080,11 +1114,43 @@ how to remove the virtical space around the range input in IE*/
 .card {
   box-shadow: none;
   border-color: #d7dadf;
+
   &-text {
     padding: 0 32px 32px;
+
+    h2 {
+      padding-top: 16px;
+    }
+
+    @at-root .card-transparent & {
+      background-color: transparent;
+      padding-left: 0;
+      padding-right: 0;
+    }
+  }
+
+  &-footer {
+    padding: 0 32px 32px;
+
+    @at-root .card-transparent & {
+      background-color: transparent;
+      padding-left: 0;
+      padding-right: 0;
+    }
   }
   &-header {
     padding: 32px 32px 0;
+
+    @at-root .card-transparent & {
+      background-color: transparent;
+      padding-left: 0;
+      padding-right: 0;
+    }
+  }
+
+  &-transparent {
+    background-color: transparent;
+    border: none;
   }
 }
 
