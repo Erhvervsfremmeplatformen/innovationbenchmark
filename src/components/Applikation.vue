@@ -715,7 +715,7 @@ ul.nav-bottom {
     justify-content: center;
     text-align: center;
     width: 1px;
-    margin-top: 8px;
+    margin-top: -8px;
     white-space: nowrap;
     position: relative;
     visibility: hidden;
@@ -738,7 +738,7 @@ ul.nav-bottom {
       background-color: $colorGrey;
       position: absolute;
       visibility: visible;
-      top: -36px;
+      top: -28px;
       z-index: 0;
 
       @-moz-document url-prefix() {
@@ -1029,28 +1029,6 @@ how to remove the virtical space around the range input in IE*/
 }
 
 .button.custom-button {
-  // background-color: inherit;
-  // box-shadow: 0 0 0 1px $colorPrimary;
-  // color: inherit;
-  // display: inline-block;
-  // line-height: 32px;
-  // padding: 4px 1rem;
-  // text-align: center;
-  // transition: all 220ms ease-in-out;
-  // margin: 0 auto 0 0;
-  // width: 100%;
-  // position: relative;
-  // max-height: 48px;
-
-  // @include media-breakpoint-up(sm) {
-  //   width: auto;
-  //   padding: 8px 48px;
-  // }
-
-  // @include media-breakpoint-up(md) {
-  //   min-width: 288px;
-  // }
-
   &[disabled] {
     cursor: wait;
   }
@@ -1118,19 +1096,30 @@ how to remove the virtical space around the range input in IE*/
   margin-right: 0.5rem !important;
 }
 
-.hero-element {
-  margin-left: calc(50% - 50vw);
-  margin-right: calc(50% - 50vw);
-}
+.hero {
+  height: 65vh;
+  min-height: 304px;
+  background-position: 50%;
+  background-repeat: no-repeat;
+  background-size: cover;
+  position: relative;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
 
-.hero-boks {
-  border: 1px solid #d7dadf;
-  position: absolute;
-  background-color: #fff;
-  padding: 40px;
-  bottom: -40px;
-  margin-right: 16px;
-  width: calc(100% - 32px);
+  &-element {
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+  }
+  &-boks {
+    border: 1px solid #d7dadf;
+    position: absolute;
+    background-color: #fff;
+    padding: 40px;
+    bottom: -40px;
+    margin-right: 16px;
+    width: calc(100% - 32px);
+  }
 }
 
 .arrowLink {
