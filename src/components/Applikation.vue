@@ -434,8 +434,10 @@ export default class Applikation extends Vue {
   }
 
   resolveUrl(event: Event) {
-    const url = event.target.getAttribute('data-url');
-    if (url.includes('http')) {
+    console.log(event.target);
+    const target = event.target as HTMLTextAreaElement;
+    const url = target.getAttribute('data-url');
+    if (url && url.includes('http')) {
       return;
     }
 
