@@ -67,7 +67,7 @@
                 <li v-for="(page, index) in response" v-bind:key="index">
                   <button
                     :class="['nav-button', currentStep > index + 1 ? 'nav-button-past' : '', currentStep === index + 1 ? 'nav-button-current' : '']"
-                    :disabled="currentStep < index"
+                    :disabled="currentStep < index && currentStep > maxStep"
                     type="button"
                     :data-step="currentStep"
                     @click.prevent="index == pageCount ? handleSubmit() : (currentStep = index + 1)"
@@ -79,12 +79,12 @@
               </ul>
             </nav>
 
-            <!-- <div class="spinner" v-if="isLoading" aria-label="Henter indhold" /> -->
+            <div class="spinner" v-if="isLoading" aria-label="Henter indhold" />
 
             <div class="alert alert-error" role="alert" aria-atomic="true" v-if="error">
               <div class="alert-body">
-                <p class="alert-heading">Fejl</p>
-                <p class="alert-text">{{ error }}</p>
+                <p class="alert-heading">{{ errorHeading }}</p>
+                <p class="alert-text" v-html="error" />
               </div>
             </div>
 
@@ -93,153 +93,162 @@
             <span class="error" v-if="touched('email') && errors('email')">{{ errors('email') }}</span> -->
 
               <template v-for="(step, index) in response">
-                <div class="row" v-if="currentStep === index + 1" :key="index">
-                  <div class="col-md-6 col-xs-12">
-                    <div class="card">
-                      <div class="card-header">
-                        <h2 class="">{{ response[index].headline }}</h2>
+                <div v-if="currentStep === index + 1" :key="index">
+                  <div class="row">
+                    <div class="col-md-6 col-xs-12">
+                      <div class="card">
+                        <div class="card-header">
+                          <h2 class="">{{ response[index].headline }}</h2>
+                        </div>
+                        <div class="card-text" v-html="sanityBlocks(response[index].text)"></div>
                       </div>
-                      <div class="card-text" v-html="sanityBlocks(response[index].text)"></div>
                     </div>
-                    <pre>
+                    <div class="col-md-6 col-xs-12">
+                      <fieldset :class="['row', step.calculatingSliders ? 'calculatingSliders' : '']" v-if="response[index].fields.length > 0">
+                        <div
+                          v-for="field in response[index].fields"
+                          v-bind:key="field._id"
+                          :class="['formWrapper', field.width == 50 ? 'col-6' : 'col-12']"
+                        >
+                          <div class="form-group" v-if="field._type === 'textinput'">
+                            <label class="form-label" :for="field.key">
+                              {{ field.label }}
+                            </label>
 
-                  <!-- {{ values }} -->
-                  </pre>
-                  </div>
-                  <div class="col-md-6 col-xs-12">
-                    <fieldset class="row" v-if="response[index].fields.length > 0">
-                      <div
-                        v-for="field in response[index].fields"
-                        v-bind:key="field._id"
-                        :class="['formWrapper', field.width == 50 ? 'col-6' : 'col-12']"
-                      >
-                        <div class="form-group" v-if="field._type === 'textinput'">
-                          <label class="form-label" :for="field.key">
-                            {{ field.label }}
-                          </label>
-
-                          <input
-                            class="form-input"
-                            v-on="{ input, blur }"
-                            :id="field.key"
-                            :value="values[field.key]"
-                            :name="field.key"
-                            type="text"
-                            :placeholder="field.placeholder"
-                          />
-                        </div>
-
-                        <div class="form-group" v-else-if="field._type === 'select'">
-                          <label class="form-label" for="options">{{ field.label }}</label>
-                          <select class="form-select" :name="field.key" id="options" v-on="{ input, blur }">
-                            <option disabled selected value="0">{{ field.placeholder }}</option>
-                            <option v-for="(option, index) in field.options" :value="index + 1" :key="index + 1">{{ option }}</option>
-                          </select>
-                        </div>
-
-                        <div class="form-group" v-else-if="field._type === 'radiobuttons'">
-                          <fieldset>
-                            <legend class="h5">{{ field.label }}</legend>
-                            <p>{{ field.description }}</p>
-                            <ul class="nobullet-list">
-                              <li v-for="(option, index) in field.options" :key="index">
-                                <input
-                                  v-on="{ input, blur }"
-                                  :id="field.key + '_' + index"
-                                  type="radio"
-                                  :name="field.key"
-                                  :value="index + 1"
-                                  class="form-radio"
-                                  :checked="values[field.key] === (index + 1).toString()"
-                                />
-                                <label :for="field.key + '_' + index" id="form-label-radio-1" class="">{{ option }}</label>
-                              </li>
-                            </ul>
-                          </fieldset>
-                        </div>
-
-                        <div class="form-group" v-else-if="field._type === 'slider'">
-                          <label class="form-label" :for="field.key">{{ field.label }}</label>
-                          <p class="formWrapper_description">{{ field.description }}</p>
-                          <input
-                            v-on="{ input, blur }"
-                            type="range"
-                            class="slider"
-                            :id="field.key"
-                            :name="field.key"
-                            :value="values[field.key]"
-                            :max="field.options.length"
-                            min="1"
-                          />
-                          <div :class="['sliderOptions', values[field.key] !== 0 ? 'active' : '']">
-                            <div
-                              class="sliderBackground"
-                              :style="{
-                                width:
-                                  values[field.key] === 0
-                                    ? 'calc(100% - 20px)'
-                                    : `calc(100% - ${((values[field.key] - 1) / (field.options.length - 1)) * 100}% - ${
-                                        20 * (1 - (values[field.key] - 1) / (field.options.length - 1))
-                                      }px)`,
-                                left:
-                                  values[field.key] === 0
-                                    ? '20px'
-                                    : `calc(${((values[field.key] - 1) / (field.options.length - 1)) * 100}% + ${
-                                        20 * (1 - (values[field.key] - 1) / (field.options.length - 1))
-                                      }px)`
-                              }"
+                            <input
+                              class="form-input"
+                              v-on="{ input, blur }"
+                              :id="field.key"
+                              :value="values[field.key]"
+                              :name="field.key"
+                              type="text"
+                              :placeholder="field.placeholder"
                             />
-                            <div
-                              v-for="(option, index) in field.options"
-                              :class="['sliderOptions_item', index + 1 == values[field.key] ? 'selected' : '']"
-                              :key="option"
+                          </div>
+
+                          <div class="form-group" v-else-if="field._type === 'select'">
+                            <label class="form-label" for="options">{{ field.label }}</label>
+                            <select
+                              :class="['form-select', values[field.key] !== 0 ? 'active' : '']"
+                              :name="field.key"
+                              id="options"
+                              v-on="{ input, blur }"
                             >
-                              {{ option }}
+                              <option disabled selected value="0">{{ field.placeholder }}</option>
+                              <option v-for="(option, index) in field.options" :value="index + 1" :key="index + 1">{{ option }}</option>
+                            </select>
+                          </div>
+
+                          <div class="form-group" v-else-if="field._type === 'radiobuttons'">
+                            <fieldset>
+                              <legend class="h5">{{ field.label }}</legend>
+                              <p>{{ field.description }}</p>
+                              <ul class="nobullet-list">
+                                <li v-for="(option, index) in field.options" :key="index">
+                                  <input
+                                    v-on="{ input, blur }"
+                                    :id="field.key + '_' + index"
+                                    type="radio"
+                                    :name="field.key"
+                                    :value="index + 1"
+                                    class="form-radio"
+                                    :checked="values[field.key] === (index + 1).toString()"
+                                  />
+                                  <label :for="field.key + '_' + index" id="form-label-radio-1" class="">{{ option }}</label>
+                                </li>
+                              </ul>
+                            </fieldset>
+                          </div>
+
+                          <div class="form-group" v-else-if="field._type === 'slider'">
+                            <label class="form-label" :for="field.key">{{ field.label }}</label>
+                            <p class="formWrapper_description">{{ field.description }}</p>
+                            <input
+                              v-on="{ input, blur }"
+                              type="range"
+                              class="slider"
+                              :id="field.key"
+                              :name="field.key"
+                              :value="values[field.key]"
+                              :max="field.options.length"
+                              min="1"
+                              @change="step.calculatingSliders ? calculateSliders(field.key, values, step.fields, setValue) : null"
+                            />
+                            <div :class="['sliderOptions', values[field.key] !== 0 ? 'active' : '']">
+                              <div
+                                class="sliderBackground"
+                                :style="{
+                                  width:
+                                    values[field.key] === 0
+                                      ? 'calc(100% - 20px)'
+                                      : `calc(100% - ${((values[field.key] - 1) / (field.options.length - 1)) * 100}% - ${
+                                          20 * (1 - (values[field.key] - 1) / (field.options.length - 1))
+                                        }px)`,
+                                  left:
+                                    values[field.key] === 0
+                                      ? '20px'
+                                      : `calc(${((values[field.key] - 1) / (field.options.length - 1)) * 100}% + ${
+                                          20 * (1 - (values[field.key] - 1) / (field.options.length - 1))
+                                        }px)`
+                                }"
+                              />
+                              <div
+                                v-for="(option, index) in field.options"
+                                :class="['sliderOptions_item', index + 1 == values[field.key] ? 'selected' : '']"
+                                :key="option"
+                              >
+                                {{ option }}
+                              </div>
                             </div>
                           </div>
-                        </div>
 
-                        <div class="form-group" v-else>
-                          {{ field.type }}
+                          <div class="form-group" v-else>
+                            {{ field.type }}
+                          </div>
                         </div>
+                      </fieldset>
+                      <div v-else>
+                        <apexchart
+                          v-if="results.simpleList"
+                          height="500px"
+                          type="radar"
+                          :options="radarOptions"
+                          :series="[
+                            {
+                              name: 'Din vurdering',
+                              data: [
+                                results.simpleList.prod_vurd,
+                                results.simpleList.mar_vurd,
+                                results.simpleList.org_vurd,
+                                results.simpleList.prcs_vurd
+                              ]
+                            },
+                            {
+                              name: 'Dit resultat',
+                              data: [
+                                results.simpleList.prod_gruppe,
+                                results.simpleList.mar_gruppe,
+                                results.simpleList.org_gruppe,
+                                results.simpleList.prcs_gruppe
+                              ]
+                            },
+                            {
+                              name: 'Andre virksomheder',
+                              data: [
+                                results.simpleList.prod_andre,
+                                results.simpleList.mar_andre,
+                                results.simpleList.org_andre,
+                                results.simpleList.prcs_andre
+                              ]
+                            }
+                          ]"
+                        ></apexchart>
                       </div>
-                    </fieldset>
-                    <div v-else>
-                      <!-- <apexchart
-                        v-if="results.simpleList"
-                        height="500px"
-                        type="radar"
-                        :options="radarOptions"
-                        :series="[
-                          {
-                            name: 'Din vurdering',
-                            data: [
-                              results.simpleList.prod_vurd,
-                              results.simpleList.mar_vurd,
-                              results.simpleList.org_vurd,
-                              results.simpleList.prcs_vurd
-                            ]
-                          },
-                          {
-                            name: 'Dit resultat',
-                            data: [
-                              results.simpleList.prod_gruppe,
-                              results.simpleList.mar_gruppe,
-                              results.simpleList.org_gruppe,
-                              results.simpleList.prcs_gruppe
-                            ]
-                          },
-                          {
-                            name: 'Andre virksomheder',
-                            data: [
-                              results.simpleList.prod_andre,
-                              results.simpleList.mar_andre,
-                              results.simpleList.org_andre,
-                              results.simpleList.prcs_andre
-                            ]
-                          }
-                        ]"
-                      ></apexchart> -->
+                    </div>
+                  </div>
+                  <div class="row" v-if="currentStep === pageCount + 1 && results.simpleList" :key="index">
+                    <div class="col-sm-3" v-for="(chart, index) of barCharts" :key="index">
+                      <apexchart height="200px" type="bar" :options="chart.options" :series="chart.series"></apexchart>
                     </div>
                   </div>
                 </div>
@@ -294,12 +303,8 @@ import axios from 'axios';
 import sanityClient from '@sanity/client';
 const blocksToHtml = require('@sanity/block-content-to-html');
 import SimpleForm from 'vue-simpleform';
-// import VueApexCharts from 'vue-apexcharts';
+import VueApexCharts from 'vue-apexcharts';
 import * as DKFDS from 'dkfds';
-
-// Vue.use(VueApexCharts);
-
-// Vue.component('apexchart', VueApexCharts);
 
 const client = sanityClient({
   projectId: 'gu31rtaa',
@@ -312,21 +317,25 @@ const client = sanityClient({
 @Component({
   name: 'Applikation',
   components: {
-    SimpleForm
-    //  apexchart: VueApexCharts
+    SimpleForm,
+    apexchart: VueApexCharts
   }
 })
 export default class Applikation extends Vue {
-  currentSection = 'frontpage'; // frontpage, test1, test2
-  currentStep = 1;
-  apiBaseUrl = 'https://innovation-benchmark-git-dev-innovationbenchmark.vercel.app';
+  currentSection = 'test1'; // frontpage, test1, test2
+  currentStep = 5;
+  maxStep = 1;
+  // apiBaseUrl = 'https://innovation-benchmark-git-dev-innovationbenchmark.vercel.app';
+  apiBaseUrl = 'http://localhost:3002';
   isLoading = false;
   error = '';
+  errorHeading = '';
   sessionId = this.generateId(32);
   pageCount = 5;
-  response = {};
+  response = [];
+  values = [];
   frontPageMatter = {};
-  results = {};
+  results = {} as any;
   initialValues = {
     virk_navn: '',
     industri: 0,
@@ -356,8 +365,10 @@ export default class Applikation extends Vue {
     colors: ['rgba(13, 66, 255, 0.2)', 'rgba(251, 162, 28, 0.2)', 'rgba(26, 183, 89, 0.2)'],
     chart: {
       id: 'radar',
+      // background: '#fff',
       foreColor: '#292929',
-      fontFamily: 'Helvetica Neue, Helvetica, sans-serif',
+      // fontFamily: 'Helvetica Neue, Helvetica, sans-serif',
+      fontFamily: 'IBMPlexSans, system',
       offsetY: -25,
       toolbar: {
         show: false
@@ -400,12 +411,296 @@ export default class Applikation extends Vue {
       markers: {
         width: 20,
         height: 20,
-        radius: 5,
-        strokeWidth: 1,
-        strokeColor: ['#0D42FF', '#FBA21C', '#1AB759']
+        radius: 5
+        // strokeWidth: 1,
+        // strokeColor: ['#0D42FF', '#FBA21C', '#1AB759']
       }
     }
   };
+
+  barOptions(
+    animationsEnabled = true,
+    annotation = [],
+    categories = [] as any,
+    colors = [] as any,
+    max = 5,
+    showXLabels = true,
+    strokes = [] as any,
+    title = '',
+    tooltipEnabled = false,
+    tooltips = '',
+    types = [] as any,
+    xaxis = ''
+  ) {
+    return {
+      chart: {
+        id: 'basic-bar',
+        fontFamily: 'IBMPlexSans, system',
+        toolbar: {
+          show: false
+        },
+        animations: {
+          enabled: animationsEnabled
+        }
+      },
+      plotOptions: {
+        bar: {
+          barHeight: '70%',
+          dataLabels: {
+            // position: 'top',
+          },
+          distributed: true
+        }
+      },
+      fill: {
+        opacity: 1,
+        type: types,
+        pattern: {
+          style: 'slantedLines',
+          // width: '100%',
+          height: 8,
+          strokeWidth: 1
+        },
+        colors: colors
+      },
+      stroke: {
+        width: 1,
+        colors: strokes
+      },
+      legend: {
+        show: false
+      },
+      dataLabels: {
+        style: {
+          colors: ['#292929'],
+          fontWeight: 'normal'
+        }
+      },
+      yaxis: {
+        min: 0,
+        max: max,
+        tickAmount: 6,
+        forceNiceScale: true,
+        decimalsInFloat: 0,
+        axisBorder: {
+          show: true,
+          color: '#D0CFCF',
+          offsetY: -2
+        },
+        title: {
+          text: title ? title : '',
+          style: {
+            fontWeight: 400
+          }
+        },
+        axisTicks: {
+          show: true,
+          borderType: 'solid',
+          color: '#D0CFCF',
+          width: 6,
+          offsetX: 0,
+          offsetY: 0
+        },
+        labels: {
+          style: {
+            colors: ['#5F5F5F']
+          },
+          formatter: function (value: any) {
+            if (max || max !== 100) return value;
+
+            return !tooltipEnabled ? value + '%' : value;
+          }
+        }
+      },
+      grid: {
+        show: false
+      },
+      title: {
+        text: title
+      },
+      annotations: {
+        position: 'back',
+        xaxis: [
+          {
+            x: annotation && annotation[0] ? annotation[0] : '',
+            borderColor: '#0D42FF',
+            // offsetX: -16,
+            // offsetY: -12,
+            label: {
+              text: 'Din vurdering',
+              offsetY: 16,
+              orientation: 'horizontal',
+              borderColor: 'transparent',
+              style: {
+                background: '#fafafa',
+                padding: {
+                  top: 24,
+                  right: 12
+                }
+              }
+            }
+          },
+          {
+            x: annotation && annotation[1] ? annotation[1] : '',
+            borderColor: '#FBA21C',
+            // offsetX: 8,
+            // offsetY: 24,
+            label: {
+              text: annotation && annotation[1] === annotation[0] ? 'Dit resultat &' : 'Dit resultat',
+              orientation: 'horizontal',
+              borderColor: 'transparent',
+              style: {
+                background: '#fafafa',
+                padding: {
+                  top: 24,
+                  right: 12
+                }
+              }
+            }
+          }
+        ]
+      },
+      xaxis: {
+        labels: {
+          show: showXLabels
+        },
+        axisBorder: {
+          show: true,
+          color: '#D0CFCF',
+          offsetY: -1
+        },
+        title: {
+          text: xaxis ? xaxis : '',
+          style: {
+            fontWeight: 400
+          }
+        },
+        // title: {
+        //   text: !tooltipEnabled ? 'Du er en del af den orange søjle' : '',
+        //   offsetX: -120
+        // },
+        // tickAmount: 0,
+        categories: categories,
+        axisTicks: {
+          show: false
+        }
+      },
+      tooltip: {
+        enabled: tooltipEnabled,
+        followCursor: false,
+        y: {
+          title: {
+            formatter: (value: any) => {
+              if (title) return title;
+
+              return value;
+            }
+          }
+        },
+        x: {
+          formatter: (value: any, { dataPointIndex }: any) => {
+            if (tooltips) {
+              if (value === tooltips[dataPointIndex]) return tooltips[dataPointIndex];
+
+              return tooltips && value + ': ' + tooltips[dataPointIndex];
+            }
+
+            return value;
+          }
+        }
+      }
+    };
+  }
+
+  get barCharts() {
+    if (!this.results) return null;
+    return [
+      {
+        series: [
+          {
+            name: 'Produkt',
+            data: [this.results.simpleList.prod_vurd, this.results.simpleList.prod_gruppe, this.results.simpleList.prod_andre]
+          }
+        ],
+        options: this.barOptions(
+          true,
+          undefined,
+          ['Din vurdering', 'Dit resultat', 'Andre virksomheder'],
+          ['rgba(13, 66, 255, 0.2)', 'rgba(251, 162, 28, 0.2)', 'rgba(26, 183, 89, 0.2)'],
+          5,
+          false,
+          ['#0D42FF', '#FBA21C', '#1AB759'],
+          '',
+          true,
+          undefined,
+          'Produkt'
+        )
+      },
+      {
+        series: [
+          {
+            name: 'Proces',
+            data: [this.results.simpleList.prcs_vurd, this.results.simpleList.prcs_gruppe, this.results.simpleList.prcs_andre]
+          }
+        ],
+        options: this.barOptions(
+          true,
+          undefined,
+          ['Din vurdering', 'Dit resultat', 'Andre virksomheder'],
+          ['rgba(13, 66, 255, 0.2)', 'rgba(251, 162, 28, 0.2)', 'rgba(26, 183, 89, 0.2)'],
+          5,
+          false,
+          ['#0D42FF', '#FBA21C', '#1AB759'],
+          '',
+          true,
+          undefined,
+          'Proces'
+        )
+      },
+      {
+        series: [
+          {
+            name: 'Organisatorisk',
+            data: [this.results.simpleList.org_vurd, this.results.simpleList.org_gruppe, this.results.simpleList.org_andre]
+          }
+        ],
+        options: this.barOptions(
+          true,
+          undefined,
+          ['Din vurdering', 'Dit resultat', 'Andre virksomheder'],
+          ['rgba(13, 66, 255, 0.2)', 'rgba(251, 162, 28, 0.2)', 'rgba(26, 183, 89, 0.2)'],
+          5,
+          false,
+          ['#0D42FF', '#FBA21C', '#1AB759'],
+          '',
+          true,
+          undefined,
+          'Organisatorisk'
+        )
+      },
+      {
+        series: [
+          {
+            name: 'Markedsføring',
+            data: [this.results.simpleList.mar_vurd, this.results.simpleList.mar_gruppe, this.results.simpleList.mar_andre]
+          }
+        ],
+        options: this.barOptions(
+          true,
+          undefined,
+          ['Din vurdering', 'Dit resultat', 'Andre virksomheder'],
+          ['rgba(13, 66, 255, 0.2)', 'rgba(251, 162, 28, 0.2)', 'rgba(26, 183, 89, 0.2)'],
+          5,
+          false,
+          ['#0D42FF', '#FBA21C', '#1AB759'],
+          '',
+          true,
+          undefined,
+          'Markedsføring'
+        )
+      }
+    ];
+  }
 
   generateId(length: number) {
     let result = '';
@@ -429,8 +724,11 @@ export default class Applikation extends Vue {
   @Watch('currentStep')
   @Watch('currentSection')
   onPropertyChanged(value: string, oldValue: string) {
+    // updated
     window.scrollTo(0, 0);
-    console.log('updated');
+    this.maxStep = this.maxStep > this.currentStep ? this.maxStep : this.currentStep;
+    this.error = '';
+    this.errorHeading = '';
   }
 
   resolveUrl(event: Event) {
@@ -446,10 +744,6 @@ export default class Applikation extends Vue {
       this.currentSection = 'test1';
       return;
     }
-
-    // if (event.target.href) {
-    // event.target.href = this.apiBaseUrl + url;
-    // }
   }
   handleNextClick(event: Event) {
     event.preventDefault();
@@ -460,7 +754,7 @@ export default class Applikation extends Vue {
     this.currentStep--;
   }
   handleSubmit({ values, errors, setSubmitting, setSubmitted }: any) {
-    console.log(values);
+    console.log(this.values);
     this.isLoading = true;
     axios
       .post(`${this.apiBaseUrl}/api/put`, {
@@ -468,11 +762,12 @@ export default class Applikation extends Vue {
           Accept: 'application/json',
           'Content-Type': 'application/json'
         },
-        data: JSON.stringify({ ...values, sessionId: this.sessionId })
+        body: JSON.stringify({ ...this.values, session_id: this.sessionId })
       })
       .then((rsp: any) => {
         // this.response = rsp;
         console.log(rsp);
+        this.errorHeading = '';
         this.error = '';
         this.isLoading = false;
         if (!rsp.data.error) {
@@ -485,58 +780,27 @@ export default class Applikation extends Vue {
       .catch((error: any) => {
         console.log(error);
         this.isLoading = false;
+        this.errorHeading = 'Fejl';
         this.error = 'Noget gik galt. Prøv venligst igen.';
       });
 
-    //   axios
-    //     .post(`${this.apiBaseUrl}/api/put`, {
-    //       headers: {
-    //         Accept: 'application/json',
-    //         'Content-Type': 'application/json'
-    //       },
-    //       data: JSON.stringify({ ...values, url })
-    //     })
-    //     .catch(error => {
-    //       // handle error
-    //       console.log(error);
-    //       this.isLoading = false;
-    //       this.error = 'Noget gik galt. Prøv venligst igen.';
-    //       // this.isLoading = false;
-    //     })
-    //     .then(response: any => {
-    //       this.error = '';
-    //       this.isLoading = false;
-    //       console.log(response);
-    //       if (!response.data.error) {
-    //         setResults(response.data);
-    //         this.currentStep = this.pageCount + 1;
-    //         this.isLoading = false;
-    //       }
-    //     });
-    // } catch (error) {
-    //   // const notify = () =>
-    //   //   toast.info('Noget gik galt. Prøv venligst igen.', {
-    //   //     hideProgressBar: false,
-    //   //     pauseOnFocusLoss: true,
-    //   //     autoClose: false,
-    //   //     toastId: 'alert'
-    //   //   });
-    //   // notify();
-    // }
-
     // if form is valid, errors will be undefined
   }
-  validate(values: Array<String>) {
+
+  validate(values: any) {
     console.log(values);
+    this.values = values;
     return {
       email: 'Email is invalid'
     };
   }
+
   sanityBlocks(blocks: Array<any>) {
     return blocksToHtml({
       blocks: blocks
     });
   }
+
   fetchData() {
     // this.error = this.post = null;
     this.isLoading = true;
@@ -555,6 +819,19 @@ export default class Applikation extends Vue {
         console.log(error);
         // this.error = error;
       });
+  }
+
+  calculateSliders(name: string, values: Array<String>, fields: Array<Object>, setValue: any) {
+    const sliders = fields.filter((field: any) => field._type === 'slider');
+    const sum = sliders.reduce((accumulator: any, field: any) => accumulator + (Number(values[field.key]) - 1), 0);
+    if (sum > 10) {
+      setValue(name, 0);
+      this.errorHeading = 'Bemærk!';
+      this.error = `Svarprocenten for de ${sliders.length === 3 ? 'tre' : 'to'} spørgsmål må max. give 100% i alt`;
+    } else {
+      this.errorHeading = '';
+      this.error = '';
+    }
   }
 }
 </script>
@@ -769,7 +1046,7 @@ ul.nav-bottom {
       background-color: $colorGrey;
       position: absolute;
       visibility: visible;
-      top: -28px;
+      top: -20px;
       z-index: 0;
 
       @-moz-document url-prefix() {
@@ -788,269 +1065,105 @@ ul.nav-bottom {
   }
 }
 
-// input[type='range'] {
-//   appearance: none;
-//   width: 100%;
-//   border-radius: 2px;
-//   height: 4px;
-//   cursor: pointer;
-//   background: $colorPrimary;
-//   z-index: 0;
-
-//   &:focus {
-//     box-shadow: none;
-//   }
-
-//   &::-webkit-slider-runnable-track {
-//     cursor: pointer;
-//   }
-
-//   &::-moz-range-track {
-//     background-color: $colorGrey_dark;
-//     height: 4px;
-//     border-radius: 2px;
-//   }
-
-//   &::-moz-range-progress {
-//     background-color: $colorPrimary;
-//     height: 4px;
-//     border-radius: 2px;
-//   }
-
-//   &::-webkit-slider-thumb {
-//     appearance: none;
-//     height: 20px;
-//     width: 20px;
-//     border-radius: 50%;
-//     background: $colorWhite;
-//     cursor: ew-resize;
-//     box-shadow: 0px 0px 8px rgba($colorBlack, 0.4);
-//     border: 2px solid #797272;
-//     z-index: 10;
-//   }
-
-//   &::-moz-range-thumb {
-//     appearance: none;
-//     height: 20px;
-//     width: 20px;
-//     border-radius: 50%;
-//     background: $colorWhite;
-//     cursor: ew-resize;
-//     box-shadow: 0px 0px 8px rgba($colorBlack, 0.4);
-//     z-index: 10;
-//     border: 2px solid #797272;
-//     border: none;
-//   }
-
-//   &:focus {
-//     outline: none;
-
-//     &::-webkit-slider-thumb {
-//       // border: 1px solid $colorFocus;
-//     }
-
-//     &::-moz-range-thumb {
-//       // border: 1px solid $colorFocus;
-//     }
-//   }
-
-//   @at-root .calculatingSliders & {
-//     &:after {
-//       content: '';
-//       width: 40px;
-//       display: block;
-//       position: absolute;
-//       background-color: $colorGrey;
-//       left: 12px;
-//       height: 2px;
-//     }
-//   }
-// }
-
-// input[type='range'] {
-//   width: 100%;
-//   margin: 8px 0;
-//   background-color: transparent;
-//   -webkit-appearance: none;
-// }
-// input[type='range']:focus {
-//   outline: none;
-// }
-// input[type='range']::-webkit-slider-runnable-track {
-//   background: #d23f1e;
-//   border: 1px solid #d23f1e;
-//   border-radius: 2px;
-//   width: 100%;
-//   height: 4px;
-//   cursor: pointer;
-// }
-// input[type='range']::-webkit-slider-thumb {
-//   margin-top: -9px;
-//   width: 20px;
-//   height: 20px;
-//   background: #ffffff;
-//   border: 0px solid rgba(255, 255, 255, 0);
-//   border: 0;
-//   border-radius: 10px;
-//   cursor: pointer;
-//   -webkit-appearance: none;
-// }
-// input[type='range']:focus::-webkit-slider-runnable-track {
-//   background: #df4320;
-// }
-// input[type='range']::-moz-range-track {
-//   background: #d23f1e;
-//   border: 1px solid #d23f1e;
-//   border-radius: 2px;
-//   width: 100%;
-//   height: 4px;
-//   cursor: pointer;
-// }
-// input[type='range']::-moz-range-thumb {
-//   width: 20px;
-//   height: 20px;
-//   background: #ffffff;
-//   border: 0px solid rgba(255, 255, 255, 0);
-//   border: 0;
-//   border-radius: 10px;
-//   cursor: pointer;
-// }
-// input[type='range']::-ms-track {
-//   background: transparent;
-//   border-color: transparent;
-//   border-width: 9px 0;
-//   color: transparent;
-//   width: 100%;
-//   height: 4px;
-//   cursor: pointer;
-// }
-// input[type='range']::-ms-fill-lower {
-//   background: #c53b1c;
-//   border: 1px solid #d23f1e;
-//   border-radius: 4px;
-// }
-// input[type='range']::-ms-fill-upper {
-//   background: #d23f1e;
-//   border: 1px solid #d23f1e;
-//   border-radius: 4px;
-// }
-// input[type='range']::-ms-thumb {
-//   width: 20px;
-//   height: 20px;
-//   background: #ffffff;
-//   border: 0px solid rgba(255, 255, 255, 0);
-//   border: 0;
-//   border-radius: 10px;
-//   cursor: pointer;
-//   margin-top: 0px;
-//   /*Needed to keep the Edge thumb centred*/
-// }
-// input[type='range']:focus::-ms-fill-lower {
-//   background: #d23f1e;
-// }
-// input[type='range']:focus::-ms-fill-upper {
-//   background: #df4320;
-// }
-// /*TODO: Use one of the selectors from https://stackoverflow.com/a/20541859/7077589 and figure out
-// how to remove the virtical space around the range input in IE*/
-// @supports (-ms-ime-align: auto) {
-//   /* Pre-Chromium Edge only styles, selector taken from hhttps://stackoverflow.com/a/32202953/7077589 */
-//   input[type='range'] {
-//     margin: 0;
-//     /*Edge starts the margin from the thumb, not the track as other browsers do*/
-//   }
-// }
-
 input[type='range'] {
   width: 100%;
   margin: 8px 0;
   background-color: transparent;
   padding: 16px 0;
   -webkit-appearance: none;
+
+  @at-root .calculatingSliders & {
+    &:after {
+      content: '';
+      width: 40px;
+      display: block;
+      position: absolute;
+      background-color: $colorGrey;
+      left: -32px;
+      height: 2px;
+    }
+  }
+
+  &::-webkit-slider-runnable-track {
+    background: #d23f1e;
+    border: 0;
+    border-radius: 2px;
+    width: 100%;
+    height: 4px;
+    cursor: pointer;
+  }
+
+  &::-webkit-slider-thumb {
+    margin-top: -8px;
+    width: 20px;
+    height: 20px;
+    background: #ffffff;
+    border: 2px solid #797272;
+    border-radius: 10px;
+    cursor: pointer;
+    -webkit-appearance: none;
+    transition: all 220ms ease-in-out;
+    box-shadow: 0px 0px 8px rgba($colorBlack, 0.4);
+  }
+  &:hover::-webkit-slider-thumb {
+    background: #797272;
+  }
+  &:focus::-webkit-slider-runnable-track {
+    background: #e04b29;
+  }
+  &::-moz-range-track {
+    background: #d23f1e;
+    border: 0;
+    border-radius: 2px;
+    width: 100%;
+    height: 4px;
+    cursor: pointer;
+  }
+  &::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: #ffffff;
+    border: 2px solid #797272;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0px 0px 8px rgba($colorBlack, 0.4);
+  }
+  &::-ms-track {
+    background: transparent;
+    border-color: transparent;
+    border-width: 20.8px 0;
+    color: transparent;
+    width: 100%;
+    height: 4px;
+    cursor: pointer;
+  }
+  &::-ms-fill-lower {
+    background: #bc381b;
+    border: 0;
+    border-radius: 4px;
+  }
+  &::-ms-fill-upper {
+    background: #d23f1e;
+    border: 0;
+    border-radius: 4px;
+  }
+  &::-ms-thumb {
+    width: 20px;
+    height: 20px;
+    background: #ffffff;
+    border: 2px solid #797272;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 0px;
+    /*Needed to keep the Edge thumb centred*/
+  }
+  &:focus::-ms-fill-lower {
+    background: #d23f1e;
+  }
+  &:focus::-ms-fill-upper {
+    background: #e04b29;
+  }
 }
-input[type='range']:focus {
-  // outline: none;
-}
-input[type='range']::-webkit-slider-runnable-track {
-  background: #d23f1e;
-  border: 0;
-  border-radius: 2px;
-  width: 100%;
-  height: 4px;
-  cursor: pointer;
-}
-input[type='range']::-webkit-slider-thumb {
-  margin-top: -8px;
-  width: 20px;
-  height: 20px;
-  background: #ffffff;
-  border: 2px solid #797272;
-  border-radius: 10px;
-  cursor: pointer;
-  -webkit-appearance: none;
-  transition: all 220ms ease-in-out;
-  box-shadow: 0px 0px 8px rgba($colorBlack, 0.4);
-}
-input[type='range']:hover::-webkit-slider-thumb {
-  background: #797272;
-}
-input[type='range']:focus::-webkit-slider-runnable-track {
-  background: #e04b29;
-}
-input[type='range']::-moz-range-track {
-  background: #d23f1e;
-  border: 0;
-  border-radius: 2px;
-  width: 100%;
-  height: 4px;
-  cursor: pointer;
-}
-input[type='range']::-moz-range-thumb {
-  width: 20px;
-  height: 20px;
-  background: #ffffff;
-  border: 2px solid #797272;
-  border-radius: 10px;
-  cursor: pointer;
-  box-shadow: 0px 0px 8px rgba($colorBlack, 0.4);
-}
-input[type='range']::-ms-track {
-  background: transparent;
-  border-color: transparent;
-  border-width: 20.8px 0;
-  color: transparent;
-  width: 100%;
-  height: 4px;
-  cursor: pointer;
-}
-input[type='range']::-ms-fill-lower {
-  background: #bc381b;
-  border: 0;
-  border-radius: 4px;
-}
-input[type='range']::-ms-fill-upper {
-  background: #d23f1e;
-  border: 0;
-  border-radius: 4px;
-}
-input[type='range']::-ms-thumb {
-  width: 20px;
-  height: 20px;
-  background: #ffffff;
-  border: 2px solid #797272;
-  border-radius: 10px;
-  cursor: pointer;
-  margin-top: 0px;
-  /*Needed to keep the Edge thumb centred*/
-}
-input[type='range']:focus::-ms-fill-lower {
-  background: #d23f1e;
-}
-input[type='range']:focus::-ms-fill-upper {
-  background: #e04b29;
-}
-/*TODO: Use one of the selectors from https://stackoverflow.com/a/20541859/7077589 and figure out
-how to remove the virtical space around the range input in IE*/
 @supports (-ms-ime-align: auto) {
   /* Pre-Chromium Edge only styles, selector taken from hhttps://stackoverflow.com/a/32202953/7077589 */
   input[type='range'] {
@@ -1111,6 +1224,48 @@ how to remove the virtical space around the range input in IE*/
 
 .formWrapper {
   margin-bottom: 32px;
+
+  @at-root .calculatingSliders & {
+    @include media-breakpoint-up(sm) {
+      // transform: translateX(-66px);
+    }
+
+    &:not(:first-of-type) {
+      &:before {
+        content: '';
+        width: 2px;
+        position: absolute;
+        background-color: $colorGrey;
+        left: -32px;
+        bottom: 36px;
+        height: calc(100% + 16px);
+
+        @include media-breakpoint-up(sm) {
+          height: calc(100% + 32px);
+        }
+      }
+    }
+  }
+}
+
+.calculatingSliders {
+  position: relative;
+  padding-left: 66px;
+
+  &:before {
+    content: 'Max 100%';
+    width: auto;
+    height: auto;
+    position: absolute;
+    bottom: 42%;
+    transform: translateX(calc(-100%)) rotate(-90deg);
+    font-size: 12px;
+    left: 28px;
+
+    @include media-breakpoint-up(sm) {
+      left: 48px;
+    }
+  }
 }
 
 .card {
@@ -1159,9 +1314,20 @@ how to remove the virtical space around the range input in IE*/
 .apexcharts-canvas svg {
   overflow: visible;
 }
+
 .apexcharts-legend-marker {
   border-width: 1px !important;
   margin-right: 0.5rem !important;
+
+  &:nth-of-type(1) {
+    border: 1px solid #0d42ff !important;
+  }
+  &:nth-of-type(2) {
+    border: 1px solid #fba21c !important;
+  }
+  &:nth-of-type(3) {
+    border: 1px solid #1ab759 !important;
+  }
 }
 
 .hero {
@@ -1217,5 +1383,13 @@ how to remove the virtical space around the range input in IE*/
 
 .hero-padding {
   padding-top: 80px !important;
+}
+
+select.form-select {
+  color: rgb(117, 117, 117);
+
+  &.active {
+    color: $colorBlack;
+  }
 }
 </style>
