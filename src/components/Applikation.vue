@@ -21,7 +21,13 @@
                 </p>
                 <div class="link">
                   <div>
-                    <a class="arrowLink" @click.prevent="currentSection = 'test1'">
+                    <a
+                      class="arrowLink"
+                      @click.prevent="
+                        currentSection = 'test1';
+                        pageCount = 5;
+                      "
+                    >
                       {{ frontPageMatter.cta_text }}
                     </a>
                   </div>
@@ -55,16 +61,15 @@
             </div>
           </div>
         </div>
-        <!-- <img :src="apiBaseUrl + '/img/heroImage.jpg'" /> -->
       </template>
 
-      <template v-if="currentSection == 'test1'">
-        <h1>Tag innovationstesten</h1>
+      <template v-if="currentSection == 'test1' || currentSection == 'test2'">
         <SimpleForm :value="initialValues" :validate="validate" @submit="handleSubmit">
           <template slot-scope="{ values, errors, touched, input, blur, setValue, setTouched, handleSubmit, submitted, submitting }">
-            <nav>
+            <h1 v-if="currentSection == 'test1'">Tag innovationstesten</h1>
+            <nav v-if="currentSection == 'test1'">
               <ul class="nav-list">
-                <li v-for="(page, index) in response" v-bind:key="index">
+                <li v-for="(page, index) in test1" v-bind:key="index">
                   <button
                     :class="['nav-button', currentStep > index + 1 ? 'nav-button-past' : '', currentStep === index + 1 ? 'nav-button-current' : '']"
                     :disabled="currentStep < index && currentStep > maxStep"
@@ -81,212 +86,334 @@
 
             <div class="spinner" v-if="isLoading" aria-label="Henter indhold" />
 
-            <div class="alert alert-error" role="alert" aria-atomic="true" v-if="error">
-              <div class="alert-body">
-                <p class="alert-heading">{{ errorHeading }}</p>
-                <p class="alert-text" v-html="error" />
-              </div>
-            </div>
-
             <form v-if="!isLoading">
-              <!-- <input type="email" v-on="{ input, blur }" name="email" :value="values.email" />
-            <span class="error" v-if="touched('email') && errors('email')">{{ errors('email') }}</span> -->
-
-              <template v-for="(step, index) in response">
-                <div v-if="currentStep === index + 1" :key="index">
-                  <div class="row">
-                    <div class="col-md-6 col-xs-12">
-                      <div class="card">
-                        <div class="card-header">
-                          <h2 class="">{{ response[index].headline }}</h2>
-                        </div>
-                        <div class="card-text" v-html="sanityBlocks(response[index].text)"></div>
-                      </div>
-                    </div>
-                    <div class="col-md-6 col-xs-12">
-                      <fieldset :class="['row', step.calculatingSliders ? 'calculatingSliders' : '']" v-if="response[index].fields.length > 0">
-                        <div
-                          v-for="field in response[index].fields"
-                          v-bind:key="field._id"
-                          :class="['formWrapper', field.width == 50 ? 'col-6' : 'col-12']"
-                        >
-                          <div class="form-group" v-if="field._type === 'textinput'">
-                            <label class="form-label" :for="field.key">
-                              {{ field.label }}
-                            </label>
-
-                            <input
-                              class="form-input"
-                              v-on="{ input, blur }"
-                              :id="field.key"
-                              :value="values[field.key]"
-                              :name="field.key"
-                              type="text"
-                              :placeholder="field.placeholder"
-                            />
+              <template v-for="(currentTest, index) of [test1, test2]">
+                <div :class="'test' + (index + 1)" :key="index">
+                  <template v-if="currentSection == 'test' + (index + 1)">
+                    <template v-for="(step, index) in currentTest">
+                      <div v-if="currentStep === index + 1" :key="index">
+                        <div class="row">
+                          <div class="col-md-6 col-xs-12">
+                            <!-- left column -->
+                            <div class="card">
+                              <div class="card-header">
+                                <h2 class="">{{ currentTest[index].headline }}</h2>
+                              </div>
+                              <div class="card-text" v-html="sanityBlocks(currentTest[index].text)"></div>
+                            </div>
                           </div>
+                          <div class="col-md-6 col-xs-12">
+                            <!-- right column -->
 
-                          <div class="form-group" v-else-if="field._type === 'select'">
-                            <label class="form-label" for="options">{{ field.label }}</label>
-                            <select
-                              :class="['form-select', values[field.key] !== 0 ? 'active' : '']"
-                              :name="field.key"
-                              id="options"
-                              v-on="{ input, blur }"
+                            <fieldset
+                              :class="['row', step.calculatingSliders ? 'calculatingSliders' : '']"
+                              v-if="currentTest[index].fields && currentTest[index].fields.length > 0"
                             >
-                              <option disabled selected value="0">{{ field.placeholder }}</option>
-                              <option v-for="(option, index) in field.options" :value="index + 1" :key="index + 1">{{ option }}</option>
-                            </select>
-                          </div>
+                              <div class="alert alert-error" role="alert" aria-atomic="true" v-if="error && !isLoading">
+                                <div class="alert-body">
+                                  <p class="alert-heading">{{ errorHeading }}</p>
+                                  <p class="alert-text" v-html="error" />
+                                </div>
+                              </div>
+                              <div
+                                v-for="field in currentTest[index].fields"
+                                v-bind:key="field._id"
+                                :class="[
+                                  'formWrapper',
+                                  field.width == 50 ? 'col-6' : 'col-12',
+                                  field._type == 'slider' && step.calculatingSliders ? 'calculatingSlider' : ''
+                                ]"
+                              >
+                                <div class="form-group" v-if="field._type === 'textinput'">
+                                  <label class="form-label" :for="field.key">
+                                    {{ field.label }}
+                                  </label>
 
-                          <div class="form-group" v-else-if="field._type === 'radiobuttons'">
-                            <fieldset>
-                              <legend class="h5">{{ field.label }}</legend>
-                              <p>{{ field.description }}</p>
-                              <ul class="nobullet-list">
-                                <li v-for="(option, index) in field.options" :key="index">
+                                  <input
+                                    class="form-input"
+                                    v-on="{ input, blur }"
+                                    :id="field.key"
+                                    :value="values[field.key]"
+                                    :name="field.key"
+                                    type="text"
+                                    :placeholder="field.placeholder"
+                                  />
+                                </div>
+
+                                <div class="form-group" v-else-if="field._type === 'select'">
+                                  <label class="form-label" for="options">{{ field.label }}</label>
+                                  <select
+                                    :class="['form-select', values[field.key] !== 0 ? 'active' : '']"
+                                    :name="field.key"
+                                    id="options"
+                                    v-on="{ input, blur }"
+                                  >
+                                    <option disabled selected value="0">{{ field.placeholder }}</option>
+                                    <option v-for="(option, index) in field.options" :value="index + 1" :key="index + 1">{{ option }}</option>
+                                  </select>
+                                </div>
+
+                                <div class="form-group" v-else-if="field._type === 'radiobuttons'">
+                                  <fieldset>
+                                    <legend class="h5">{{ field.label }}</legend>
+                                    <p>{{ field.description }}</p>
+                                    <ul class="nobullet-list">
+                                      <li v-for="(option, index) in field.options" :key="index">
+                                        <input
+                                          v-on="{ input, blur }"
+                                          :id="field.key + '_' + index"
+                                          type="radio"
+                                          :name="field.key"
+                                          :value="index + 1"
+                                          class="form-radio"
+                                          :checked="values[field.key] === (index + 1).toString()"
+                                        />
+                                        <label :for="field.key + '_' + index" id="form-label-radio-1" class="">{{ option }}</label>
+                                      </li>
+                                    </ul>
+                                  </fieldset>
+                                </div>
+
+                                <div class="form-group" v-else-if="field._type === 'slider'">
+                                  <label class="form-label" :for="field.key">{{ field.label }}</label>
+                                  <p class="formWrapper_description">{{ field.description }}</p>
                                   <input
                                     v-on="{ input, blur }"
-                                    :id="field.key + '_' + index"
-                                    type="radio"
+                                    type="range"
+                                    class="slider"
+                                    :id="field.key"
                                     :name="field.key"
-                                    :value="index + 1"
-                                    class="form-radio"
-                                    :checked="values[field.key] === (index + 1).toString()"
+                                    :value="values[field.key]"
+                                    :max="field.options.length"
+                                    min="1"
+                                    @change="step.calculatingSliders ? calculateSliders(field.key, values, step.fields, setValue) : null"
                                   />
-                                  <label :for="field.key + '_' + index" id="form-label-radio-1" class="">{{ option }}</label>
-                                </li>
-                              </ul>
-                            </fieldset>
-                          </div>
+                                  <div :class="['sliderOptions', values[field.key] !== 0 ? 'active' : '']">
+                                    <div
+                                      class="sliderBackground"
+                                      :style="{
+                                        width:
+                                          values[field.key] === 0
+                                            ? 'calc(100% - 20px)'
+                                            : `calc(100% - ${((values[field.key] - 1) / (field.options.length - 1)) * 100}% - ${
+                                                20 * (1 - (values[field.key] - 1) / (field.options.length - 1))
+                                              }px)`,
+                                        left:
+                                          values[field.key] === 0
+                                            ? '20px'
+                                            : `calc(${((values[field.key] - 1) / (field.options.length - 1)) * 100}% + ${
+                                                20 * (1 - (values[field.key] - 1) / (field.options.length - 1))
+                                              }px)`
+                                      }"
+                                    />
+                                    <div
+                                      v-for="(option, index) in field.options"
+                                      :class="['sliderOptions_item', index + 1 == values[field.key] ? 'selected' : '']"
+                                      :key="option"
+                                    >
+                                      {{ option }}
+                                    </div>
+                                  </div>
+                                </div>
 
-                          <div class="form-group" v-else-if="field._type === 'slider'">
-                            <label class="form-label" :for="field.key">{{ field.label }}</label>
-                            <p class="formWrapper_description">{{ field.description }}</p>
-                            <input
-                              v-on="{ input, blur }"
-                              type="range"
-                              class="slider"
-                              :id="field.key"
-                              :name="field.key"
-                              :value="values[field.key]"
-                              :max="field.options.length"
-                              min="1"
-                              @change="step.calculatingSliders ? calculateSliders(field.key, values, step.fields, setValue) : null"
-                            />
-                            <div :class="['sliderOptions', values[field.key] !== 0 ? 'active' : '']">
-                              <div
-                                class="sliderBackground"
-                                :style="{
-                                  width:
-                                    values[field.key] === 0
-                                      ? 'calc(100% - 20px)'
-                                      : `calc(100% - ${((values[field.key] - 1) / (field.options.length - 1)) * 100}% - ${
-                                          20 * (1 - (values[field.key] - 1) / (field.options.length - 1))
-                                        }px)`,
-                                  left:
-                                    values[field.key] === 0
-                                      ? '20px'
-                                      : `calc(${((values[field.key] - 1) / (field.options.length - 1)) * 100}% + ${
-                                          20 * (1 - (values[field.key] - 1) / (field.options.length - 1))
-                                        }px)`
-                                }"
-                              />
-                              <div
-                                v-for="(option, index) in field.options"
-                                :class="['sliderOptions_item', index + 1 == values[field.key] ? 'selected' : '']"
-                                :key="option"
-                              >
-                                {{ option }}
+                                <div class="form-group" v-else>
+                                  {{ field.type }}
+                                </div>
                               </div>
+                            </fieldset>
+                            <div v-else-if="currentSection == 'test1' && results1.simpleList">
+                              <apexchart
+                                v-if="results1.simpleList"
+                                height="500px"
+                                type="radar"
+                                :options="radarOptions"
+                                :series="[
+                                  {
+                                    name: 'Din vurdering',
+                                    data: [
+                                      results1.simpleList.prod_vurd,
+                                      results1.simpleList.mar_vurd,
+                                      results1.simpleList.org_vurd,
+                                      results1.simpleList.prcs_vurd
+                                    ]
+                                  },
+                                  {
+                                    name: 'Dit resultat',
+                                    data: [
+                                      results1.simpleList.prod_gruppe,
+                                      results1.simpleList.mar_gruppe,
+                                      results1.simpleList.org_gruppe,
+                                      results1.simpleList.prcs_gruppe
+                                    ]
+                                  },
+                                  {
+                                    name: 'Andre virksomheder',
+                                    data: [
+                                      results1.simpleList.prod_andre,
+                                      results1.simpleList.mar_andre,
+                                      results1.simpleList.org_andre,
+                                      results1.simpleList.prcs_andre
+                                    ]
+                                  }
+                                ]"
+                              ></apexchart>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="row" v-if="currentSection == 'test1' && currentStep === pageCount + 1 && results1.simpleList" :key="index">
+                          <div class="col-sm-3" v-for="(chart, index) of test1BarCharts" :key="index">
+                            <apexchart height="200px" type="bar" :options="chart.options" :series="chart.series"></apexchart>
+                            <div class="chartBottom">
+                              <button class="expandButton button button-unstyled" @click.prevent="expandedContent = chart.id">
+                                {{ expandedContent === chart.id ? 'Skjul uddybende information' : 'Vis uddybende information' }}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="row" v-if="currentSection == 'test2' && currentStep === pageCount + 1 && results2.simpleList" :key="index">
+                          <div class="col-md-12">
+                            <h2>Innovationsparathed i din virksomhed</h2>
+                            <p>
+                              Innovationsparatheden er et tal mellem 0 og 100%. Hvis din værdi er 30, så betyder det, at en virksomhed med dine
+                              karakteristika har 30% sandsynlighed for at lave innovation.
+                            </p>
+                          </div>
+                          <div class="col-sm-6" v-for="(chart, index) of test2BarCharts.feature2" :key="chart.id">
+                            <apexchart type="bar" :options="chart.options" :series="chart.series"></apexchart>
+                            <div class="chartBottom">
+                              <p class="chartBottom-subtitle">{{ chart.subtitle }}</p>
+                              <button class="expandButton button button-unstyled" @click.prevent="expandedContent = chart.id">
+                                {{ expandedContent === chart.id ? 'Skjul uddybende information' : 'Vis uddybende information' }}
+                              </button>
                             </div>
                           </div>
 
-                          <div class="form-group" v-else>
-                            {{ field.type }}
+                          <div class="col-md-12">
+                            <h2>Innovationseffekter i din virksomhed</h2>
+                            <p>
+                              Innovationseffekter viser hvordan innovation forventes at påvirke profit pr. medarbejder og produktiviteten (vækst i
+                              værditilvækst i forhold til produktionsfaktorer).
+                            </p>
+                          </div>
+                          <div class="col-sm-6" v-for="(chart, index) of test2BarCharts.feature3" :key="chart.id">
+                            <apexchart type="bar" :options="chart.options" :series="chart.series"></apexchart>
+                            <div class="chartBottom">
+                              <p class="chartBottom-subtitle">{{ chart.subtitle }}</p>
+                              <button class="expandButton button button-unstyled" @click.prevent="expandedContent = chart.id">
+                                {{ expandedContent === chart.id ? 'Skjul uddybende information' : 'Vis uddybende information' }}
+                              </button>
+                            </div>
                           </div>
                         </div>
-                      </fieldset>
-                      <div v-else>
-                        <apexchart
-                          v-if="results.simpleList"
-                          height="500px"
-                          type="radar"
-                          :options="radarOptions"
-                          :series="[
-                            {
-                              name: 'Din vurdering',
-                              data: [
-                                results.simpleList.prod_vurd,
-                                results.simpleList.mar_vurd,
-                                results.simpleList.org_vurd,
-                                results.simpleList.prcs_vurd
-                              ]
-                            },
-                            {
-                              name: 'Dit resultat',
-                              data: [
-                                results.simpleList.prod_gruppe,
-                                results.simpleList.mar_gruppe,
-                                results.simpleList.org_gruppe,
-                                results.simpleList.prcs_gruppe
-                              ]
-                            },
-                            {
-                              name: 'Andre virksomheder',
-                              data: [
-                                results.simpleList.prod_andre,
-                                results.simpleList.mar_andre,
-                                results.simpleList.org_andre,
-                                results.simpleList.prcs_andre
-                              ]
-                            }
-                          ]"
-                        ></apexchart>
+
+                        <div class="row" v-if="currentStep === pageCount + 1">
+                          <div class="col-md-12">
+                            <hr />
+                          </div>
+
+                          <div class="col-md-6" v-for="(card, index) of step.cards" :key="index">
+                            <div :class="['card', [0, 3, 4, 5, 6].includes(index) ? 'card-transparent' : '']">
+                              <div class="card-header">
+                                <h2>{{ card.cardHeadline }}</h2>
+                              </div>
+                              <div class="card-text" v-html="sanityBlocks(card.cardBody)"></div>
+                              <div class="card-footer card-action" v-if="card.cardButtonText">
+                                <a
+                                  :href="
+                                    card.cardButtonUrl.includes('http') || card.cardButtonUrl == '/test'
+                                      ? card.cardButtonUrl
+                                      : apiBaseUrl + card.cardButtonUrl
+                                  "
+                                  :data-url="card.cardButtonUrl"
+                                  :target="card.cardButtonUrl.includes('http') || card.cardButtonUrl !== '/test' ? '_blank' : ''"
+                                  @click="resolveUrl"
+                                  :class="[
+                                    'button',
+                                    'custom-button',
+                                    [0].includes(index)
+                                      ? ['button-primary', 'custom-button-primary']
+                                      : ['button-secondary', 'custom-button-secondary']
+                                  ]"
+                                  >{{ card.cardButtonText }}</a
+                                >
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-md-12">
+                            <hr />
+                          </div>
+                          <div class="col-md-6">
+                            <div :class="['card', 'card-transparent']">
+                              <div class="card-header">
+                                <h2>{{ frontPageMatter.cards[frontPageMatter.cards.length - 1].cardHeadline }}</h2>
+                              </div>
+                              <div class="card-text" v-html="sanityBlocks(frontPageMatter.cards[frontPageMatter.cards.length - 1].cardBody)"></div>
+                              <div class="card-footer card-action" v-if="frontPageMatter.cards[frontPageMatter.cards.length - 1].cardButtonText">
+                                <a
+                                  :href="
+                                    frontPageMatter.cards[frontPageMatter.cards.length - 1].cardButtonUrl.includes('http') ||
+                                    frontPageMatter.cards[frontPageMatter.cards.length - 1].cardButtonUrl == '/test'
+                                      ? frontPageMatter.cards[frontPageMatter.cards.length - 1].cardButtonUrl
+                                      : apiBaseUrl + frontPageMatter.cards[frontPageMatter.cards.length - 1].cardButtonUrl
+                                  "
+                                  :data-url="frontPageMatter.cards[frontPageMatter.cards.length - 1].cardButtonUrl"
+                                  :target="
+                                    frontPageMatter.cards[frontPageMatter.cards.length - 1].cardButtonUrl.includes('http') ||
+                                    frontPageMatter.cards[frontPageMatter.cards.length - 1].cardButtonUrl !== '/test'
+                                      ? '_blank'
+                                      : ''
+                                  "
+                                  @click="resolveUrl"
+                                  :class="[
+                                    'button',
+                                    'custom-button',
+                                    [0].includes(index)
+                                      ? ['button-primary', 'custom-button-primary']
+                                      : ['button-secondary', 'custom-button-secondary']
+                                  ]"
+                                  >{{ frontPageMatter.cards[frontPageMatter.cards.length - 1].cardButtonText }}</a
+                                >
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                  <div class="row" v-if="currentStep === pageCount + 1 && results.simpleList" :key="index">
-                    <div class="col-sm-3" v-for="(chart, index) of barCharts" :key="index">
-                      <apexchart height="200px" type="bar" :options="chart.options" :series="chart.series"></apexchart>
-                    </div>
-                  </div>
+                    </template>
+                  </template>
                 </div>
               </template>
             </form>
 
             <nav>
-              <ul class="nav-bottom">
+              <ul class="nav-bottom" v-if="!isLoading && currentStep !== pageCount + 1">
                 <li>
                   <button
                     class="button button-primary custom-button custom-button-primary"
                     v-on:click="handleNextClick"
-                    v-if="currentStep !== pageCount"
+                    v-if="currentStep < pageCount"
                   >
                     Næste
                   </button>
-                  <button v-else @click.prevent="handleSubmit" class="button button-primary custom-button custom-button-primary">
+                  <button
+                    v-else-if="currentStep === pageCount"
+                    @click.prevent="handleSubmit"
+                    class="button button-primary custom-button custom-button-primary"
+                  >
                     Næste
                     <span class="spinner" />
                   </button>
-
-                  <!-- <Button isLoading="{isLoading}" submitDisabled="{submitDisabled}" title="Næste" onClick="{handleNextClick}" /> -->
                 </li>
-                <li>
-                  <!-- <Button buttonStyle="neutral" disabled={!showSkip} style={{ visibility: showSkip ? 'visible' : 'hidden' }}
-                title="Spring over" onClick={handleSkip} /> -->
-                </li>
+                <li></li>
                 <li>
                   <button
                     class="button button-secondary custom-button custom-button-secondary"
                     v-on:click="handlePreviousClick"
                     :disabled="currentStep === 1"
-                    :style="{ visibility: currentStep !== 1 ? 'visible' : 'hidden' }"
+                    :style="{ visibility: currentStep !== 1 && currentStep <= pageCount ? 'visible' : 'hidden' }"
                   >
                     Tilbage
                   </button>
-                  <!-- <Button buttonStyle="secondary" disabled={currentPage === 1} style={{ visibility: currentPage !== 1 ? 'visible' : 'hidden' }}
-                title="Tilbage" onClick={handlePreviousClick} /> -->
                 </li>
               </ul>
             </nav>
@@ -322,8 +449,9 @@ const client = sanityClient({
   }
 })
 export default class Applikation extends Vue {
-  currentSection = 'test1'; // frontpage, test1, test2
-  currentStep = 5;
+  // initial data values
+  currentSection = 'frontpage'; // frontpage, test1, test2
+  currentStep = 1;
   maxStep = 1;
   // apiBaseUrl = 'https://innovation-benchmark-git-dev-innovationbenchmark.vercel.app';
   apiBaseUrl = 'http://localhost:3002';
@@ -331,11 +459,13 @@ export default class Applikation extends Vue {
   error = '';
   errorHeading = '';
   sessionId = this.generateId(32);
-  pageCount = 5;
-  response = [];
+  test1 = [];
+  test2 = [];
   values = [];
+  pageCount = 1;
   frontPageMatter = {};
-  results = {} as any;
+  results1 = {} as any;
+  results2 = {} as any;
   initialValues = {
     virk_navn: '',
     industri: 0,
@@ -359,25 +489,48 @@ export default class Applikation extends Vue {
     mar3: 0,
     mar4: 0,
     mar5: 0,
-    mar6: 0
+    mar6: 0,
+    feature2_inno: 0,
+    feature2_industri: 0,
+    feature2_storrelse: 0,
+    feature2_kvu: 0,
+    feature2_mlvu: 0
   };
   radarOptions = {
     colors: ['rgba(13, 66, 255, 0.2)', 'rgba(251, 162, 28, 0.2)', 'rgba(26, 183, 89, 0.2)'],
     chart: {
       id: 'radar',
-      // background: '#fff',
       foreColor: '#292929',
       // fontFamily: 'Helvetica Neue, Helvetica, sans-serif',
       fontFamily: 'IBMPlexSans, system',
       offsetY: -25,
       toolbar: {
         show: false
+      },
+      events: {
+        mounted: function () {
+          const radarPolygon = document.querySelector('.apexcharts-radar-series polygon') as any;
+          if (radarPolygon) {
+            radarPolygon.style.fill = 'white';
+          }
+          document.querySelectorAll('.apexcharts-legend-marker').forEach((marker: any) => {
+            console.log(marker);
+            marker.style.borderWidth = '1px';
+            marker.style.marginRight = '8px';
+          });
+        },
+        updated: function () {
+          const radarPolygon = document.querySelector('.apexcharts-radar-series polygon') as any;
+          if (radarPolygon) {
+            radarPolygon.style.fill = 'white';
+          }
+          document.querySelectorAll('.apexcharts-legend-marker').forEach((marker: any) => {
+            console.log(marker);
+            marker.style.borderWidth = '1px';
+            marker.style.marginRight = '8px';
+          });
+        }
       }
-      // events: {
-      //   mounted: function () {
-      //     window.scrollTo(0, 0);
-      //   }
-      // }
     },
     stroke: {
       width: 1,
@@ -411,26 +564,28 @@ export default class Applikation extends Vue {
       markers: {
         width: 20,
         height: 20,
-        radius: 5
-        // strokeWidth: 1,
-        // strokeColor: ['#0D42FF', '#FBA21C', '#1AB759']
+        radius: 5,
+        strokeWidth: 1,
+        strokeColor: ['#0D42FF', '#FBA21C', '#1AB759']
       }
     }
   };
+  expandedContent = '';
 
   barOptions(
     animationsEnabled = true,
-    annotation = [],
+    annotation = [] as any,
     categories = [] as any,
     colors = [] as any,
-    max = 5,
+    max = undefined as any,
     showXLabels = true,
     strokes = [] as any,
     title = '',
     tooltipEnabled = false,
     tooltips = '',
     types = [] as any,
-    xaxis = ''
+    xaxis = '',
+    yaxis = ''
   ) {
     return {
       chart: {
@@ -488,7 +643,7 @@ export default class Applikation extends Vue {
           offsetY: -2
         },
         title: {
-          text: title ? title : '',
+          text: yaxis,
           style: {
             fontWeight: 400
           }
@@ -532,7 +687,7 @@ export default class Applikation extends Vue {
               orientation: 'horizontal',
               borderColor: 'transparent',
               style: {
-                background: '#fafafa',
+                background: '#f5f5f5',
                 padding: {
                   top: 24,
                   right: 12
@@ -550,7 +705,7 @@ export default class Applikation extends Vue {
               orientation: 'horizontal',
               borderColor: 'transparent',
               style: {
-                background: '#fafafa',
+                background: '#f5f5f5',
                 padding: {
                   top: 24,
                   right: 12
@@ -570,16 +725,11 @@ export default class Applikation extends Vue {
           offsetY: -1
         },
         title: {
-          text: xaxis ? xaxis : '',
+          text: xaxis,
           style: {
             fontWeight: 400
           }
         },
-        // title: {
-        //   text: !tooltipEnabled ? 'Du er en del af den orange søjle' : '',
-        //   offsetX: -120
-        // },
-        // tickAmount: 0,
         categories: categories,
         axisTicks: {
           show: false
@@ -612,14 +762,15 @@ export default class Applikation extends Vue {
     };
   }
 
-  get barCharts() {
-    if (!this.results) return null;
+  get test1BarCharts() {
+    if (!this.results1) return null;
     return [
       {
+        id: 'prod',
         series: [
           {
             name: 'Produkt',
-            data: [this.results.simpleList.prod_vurd, this.results.simpleList.prod_gruppe, this.results.simpleList.prod_andre]
+            data: [this.results1.simpleList.prod_vurd, this.results1.simpleList.prod_gruppe, this.results1.simpleList.prod_andre]
           }
         ],
         options: this.barOptions(
@@ -630,17 +781,19 @@ export default class Applikation extends Vue {
           5,
           false,
           ['#0D42FF', '#FBA21C', '#1AB759'],
-          '',
+          'Produkt',
           true,
           undefined,
-          'Produkt'
+          '',
+          ''
         )
       },
       {
+        id: 'prcs',
         series: [
           {
             name: 'Proces',
-            data: [this.results.simpleList.prcs_vurd, this.results.simpleList.prcs_gruppe, this.results.simpleList.prcs_andre]
+            data: [this.results1.simpleList.prcs_vurd, this.results1.simpleList.prcs_gruppe, this.results1.simpleList.prcs_andre]
           }
         ],
         options: this.barOptions(
@@ -651,17 +804,19 @@ export default class Applikation extends Vue {
           5,
           false,
           ['#0D42FF', '#FBA21C', '#1AB759'],
-          '',
+          'Proces',
           true,
           undefined,
-          'Proces'
+          '',
+          ''
         )
       },
       {
+        id: 'org',
         series: [
           {
             name: 'Organisatorisk',
-            data: [this.results.simpleList.org_vurd, this.results.simpleList.org_gruppe, this.results.simpleList.org_andre]
+            data: [this.results1.simpleList.org_vurd, this.results1.simpleList.org_gruppe, this.results1.simpleList.org_andre]
           }
         ],
         options: this.barOptions(
@@ -672,17 +827,19 @@ export default class Applikation extends Vue {
           5,
           false,
           ['#0D42FF', '#FBA21C', '#1AB759'],
-          '',
+          'Organisatorisk',
           true,
           undefined,
-          'Organisatorisk'
+          '',
+          ''
         )
       },
       {
+        id: 'mar',
         series: [
           {
             name: 'Markedsføring',
-            data: [this.results.simpleList.mar_vurd, this.results.simpleList.mar_gruppe, this.results.simpleList.mar_andre]
+            data: [this.results1.simpleList.mar_vurd, this.results1.simpleList.mar_gruppe, this.results1.simpleList.mar_andre]
           }
         ],
         options: this.barOptions(
@@ -693,13 +850,216 @@ export default class Applikation extends Vue {
           5,
           false,
           ['#0D42FF', '#FBA21C', '#1AB759'],
-          '',
+          'Markedsføring',
           true,
           undefined,
-          'Markedsføring'
+          '',
+          ''
         )
       }
     ];
+  }
+
+  get test2BarCharts() {
+    if (!this.results2) return null;
+
+    return {
+      feature2: [
+        {
+          id: 'hist1_samlet_bins',
+          title: `Alle virksomheder - Din sandsynlighed er ${this.results2.simpleList.din_ssh_samlet}%`,
+          width: 50,
+          subtitle: `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2.simpleList.din_ssh_samlet} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle størrelser og fra alle industrier. Under ‘Vis uddybende information kan du se en sammenligning med virksomheder af din størrelse eller fra din industri (Der tages forbehold for, at disse  beregninger forudsætter data af en vis mængde)`,
+          myScore: this.results2.simpleList.hist1_my_bin,
+          series: [
+            {
+              name: `Alle virksomheder - Din sandsynlighed er ${this.results2.simpleList.din_ssh_samlet}%`,
+              data: this.results2.histogramList['hist1_samlet_bins'].map((item: any) => item.Value)
+            }
+          ],
+          options: this.barOptions(
+            true, //annimationenabled
+            [undefined, this.results2.simpleList.hist1_my_bin], // annotation
+            this.results2.histogramList['hist1_samlet_bins'].map((item: any) => item.Variable), //categories
+            this.results2.histogramList['hist1_samlet_bins'].map((item: any) => {
+              // colors
+              if (item.Variable === this.results2.simpleList.hist1_my_bin) {
+                return 'rgba(251, 162, 28, 0.2)';
+              }
+              return 'rgba(26, 183, 89, 0.2)';
+            }),
+            undefined, //max
+            true, //showXLabels
+            this.results2.histogramList['hist1_samlet_bins'].map((item: any) => {
+              // strokes
+              if (item.Variable === this.results2.simpleList.hist1_my_bin) {
+                return '#FBA21C';
+              }
+
+              return '#1AB759';
+            }),
+            `Alle virksomheder - Din sandsynlighed er ${this.results2.simpleList.din_ssh_samlet}%`, // title
+            false, //tooltipenabled
+            undefined, //tooltips
+            undefined, //types
+            this.results2.simpleList.hist1_samlet_text_x_axis, //xaxis,
+            this.results2.simpleList.hist1_samlet_text_left //yaxis,
+          ),
+          expands: [
+            {
+              id: 'hist2_str_bins',
+              title: `Samme størrelse - Din sandsynlighed er ${this.results2.simpleList.din_ssh_str}%`,
+              width: 50,
+              yaxis: this.results2.simpleList.hist2_str_text_left,
+              xaxis: this.results2.simpleList.hist2_str_text_x_axis,
+              subtitle: `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2.simpleList.din_ssh_str} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle industrier for din størrelsesgruppe.`,
+              myScore: this.results2.simpleList.hist2_my_bin
+            },
+            {
+              id: 'hist3_industri_bins',
+              subtitle: `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2.simpleList.din_ssh_industri} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle størrelser i din industrigruppe.`,
+              title: `Samme industri - Din sandsynlighed er ${this.results2.simpleList.din_ssh_industri}%`,
+              yaxis: this.results2.simpleList.hist3_industri_text_left,
+              xaxis: this.results2.simpleList.hist3_industri_text_x_axis,
+              width: 50,
+              myScore: this.results2.simpleList.hist3_my_bin
+            }
+          ]
+        }
+      ],
+      feature3: [
+        {
+          id: 'hist7_samlet_bins',
+          title: `Ændring i profit pr. medarbejder`,
+          width: 50,
+          subtitle: `Værdien for din virksomhed betyder, at din profit pr. medarbejder er ${this.results2.histogramList.hist7_samlet_bins
+            .filter((column: any) => column.Variable === this.results2.simpleList.hist7_my_bin)
+            .map(
+              (column: any) => column.Value
+            )} kr. højere efter tre år med innovation end uden. De øvrige søjler viser værdien, hvis andelen af ansatte med videregående uddannelse havde været anderledes. Under ‘Vis uddybende information’ kan du se en sammenligning med virksomheder af din størrelse eller fra din industri (Der tages forbehold for, at disse beregninger forudsætter data af en vis mængde).`,
+          myScore: this.results2.simpleList.hist7_my_bin,
+          series: [
+            {
+              name: `Ændring i profit pr. medarbejder`,
+              data: this.results2.histogramList['hist7_samlet_bins'].map((item: any) => item.Value)
+            }
+          ],
+          options: this.barOptions(
+            true, //annimationenabled
+            [undefined, this.results2.simpleList.hist7_my_bin], // annotation
+            this.results2.histogramList['hist7_samlet_bins'].map((item: any) => item.Variable), //categories
+            this.results2.histogramList['hist7_samlet_bins'].map((item: any) => {
+              // colors
+              if (item.Variable === this.results2.simpleList.hist7_my_bin) {
+                return 'rgba(251, 162, 28, 0.2)';
+              }
+              return 'rgba(26, 183, 89, 0.2)';
+            }),
+            undefined, //max
+            true, //showXLabels
+            this.results2.histogramList['hist7_samlet_bins'].map((item: any) => {
+              // strokes
+              if (item.Variable === this.results2.simpleList.hist7_my_bin) {
+                return '#FBA21C';
+              }
+
+              return '#1AB759';
+            }),
+            `Ændring i profit pr. medarbejder`, // title
+            false, //tooltipenabled
+            undefined, //tooltips
+            undefined, //types
+            this.results2.simpleList.hist7_samlet_text_x_axis, //xaxis,
+            this.results2.simpleList.hist7_samlet_text_left //yaxis,
+          ),
+          expands: [
+            {
+              id: 'hist2_str_bins',
+              title: `Samme størrelse - Din sandsynlighed er ${this.results2.simpleList.din_ssh_str}%`,
+              width: 50,
+              yaxis: this.results2.simpleList.hist2_str_text_left,
+              xaxis: this.results2.simpleList.hist2_str_text_x_axis,
+              subtitle: `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2.simpleList.din_ssh_str} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle industrier for din størrelsesgruppe.`,
+              myScore: this.results2.simpleList.hist2_my_bin
+            },
+            {
+              id: 'hist3_industri_bins',
+              subtitle: `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2.simpleList.din_ssh_industri} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle størrelser i din industrigruppe.`,
+              title: `Samme industri - Din sandsynlighed er ${this.results2.simpleList.din_ssh_industri}%`,
+              yaxis: this.results2.simpleList.hist3_industri_text_left,
+              xaxis: this.results2.simpleList.hist3_industri_text_x_axis,
+              width: 50,
+              myScore: this.results2.simpleList.hist3_my_bin
+            }
+          ]
+        },
+        {
+          id: 'hist4_samlet_bins',
+          title: `Ændring i produktivitetsvækst`,
+          width: 50,
+          subtitle: `Værdien for din virksomhed betyder, at din produktivitetsvækst over tre år ${this.results2.histogramList.hist4_samlet_bins
+            .filter((column: any) => column.Variable === this.results2.simpleList.hist4_my_bin)
+            .map(
+              (column: any) => column.Value
+            )}%-point med innovation end uden. De øvrige søjler viser værdien, hvis andelen af ansatte med videregående uddannelse havde været anderledes. Under ‘Vis uddybende information’ kan du se en sammenligning med virksomheder af din størrelse eller fra din industri (Der tages forbehold for, at disse beregninger forudsætter data af en vis mængde).`,
+          myScore: this.results2.simpleList.hist4_my_bin,
+          series: [
+            {
+              name: `Ændring i produktivitetsvækst`,
+              data: this.results2.histogramList['hist4_samlet_bins'].map((item: any) => item.Value)
+            }
+          ],
+          options: this.barOptions(
+            true, //annimationenabled
+            [undefined, this.results2.simpleList.hist4_my_bin], // annotation
+            this.results2.histogramList['hist4_samlet_bins'].map((item: any) => item.Variable), //categories
+            this.results2.histogramList['hist4_samlet_bins'].map((item: any) => {
+              // colors
+              if (item.Variable === this.results2.simpleList.hist4_my_bin) {
+                return 'rgba(251, 162, 28, 0.2)';
+              }
+              return 'rgba(26, 183, 89, 0.2)';
+            }),
+            undefined, //max
+            true, //showXLabels
+            this.results2.histogramList['hist4_samlet_bins'].map((item: any) => {
+              // strokes
+              if (item.Variable === this.results2.simpleList.hist4_my_bin) {
+                return '#FBA21C';
+              }
+
+              return '#1AB759';
+            }),
+            `Ændring i produktivitetsvækst`, // title
+            false, //tooltipenabled
+            undefined, //tooltips
+            undefined, //types
+            this.results2.simpleList.hist4_samlet_text_x_axis, //xaxis,
+            this.results2.simpleList.hist4_samlet_text_left //yaxis,
+          ),
+          expands: [
+            {
+              id: 'hist2_str_bins',
+              title: `Samme størrelse - Din sandsynlighed er ${this.results2.simpleList.din_ssh_str}%`,
+              width: 50,
+              yaxis: this.results2.simpleList.hist2_str_text_left,
+              xaxis: this.results2.simpleList.hist2_str_text_x_axis,
+              subtitle: `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2.simpleList.din_ssh_str} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle industrier for din størrelsesgruppe.`,
+              myScore: this.results2.simpleList.hist2_my_bin
+            },
+            {
+              id: 'hist3_industri_bins',
+              subtitle: `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2.simpleList.din_ssh_industri} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle størrelser i din industrigruppe.`,
+              title: `Samme industri - Din sandsynlighed er ${this.results2.simpleList.din_ssh_industri}%`,
+              yaxis: this.results2.simpleList.hist3_industri_text_left,
+              xaxis: this.results2.simpleList.hist3_industri_text_x_axis,
+              width: 50,
+              myScore: this.results2.simpleList.hist3_my_bin
+            }
+          ]
+        }
+      ]
+    };
   }
 
   generateId(length: number) {
@@ -714,11 +1074,28 @@ export default class Applikation extends Vue {
   }
 
   mounted() {
+    const html = document.querySelector('html') as any;
+    if (html) {
+      html.style.scrollBehavior = 'smooth'; // add smooth scroll
+    }
     // fetch the data when the view is created and the data is
     // already being observed
     this.fetchData();
 
     window.scrollTo(0, 0);
+  }
+
+  updated() {
+    if (document.querySelectorAll('.calculatingSlider').length > 0) {
+      const newElem = document.createElement('div');
+      newElem.classList.add('calculatingSliders');
+      const sliderArray = [...document.querySelectorAll('.calculatingSlider')] as any;
+      const position = sliderArray[0].parentNode;
+      sliderArray.forEach((item: any) => {
+        newElem.appendChild(item);
+      });
+      position.appendChild(newElem);
+    }
   }
 
   @Watch('currentStep')
@@ -732,7 +1109,6 @@ export default class Applikation extends Vue {
   }
 
   resolveUrl(event: Event) {
-    console.log(event.target);
     const target = event.target as HTMLTextAreaElement;
     const url = target.getAttribute('data-url');
     if (url && url.includes('http')) {
@@ -742,6 +1118,16 @@ export default class Applikation extends Vue {
     if (url === '/test') {
       event.preventDefault();
       this.currentSection = 'test1';
+      this.pageCount = 5;
+      this.currentStep = 1;
+      return;
+    }
+
+    if (url === '/test2') {
+      event.preventDefault();
+      this.currentSection = 'test2';
+      this.pageCount = 1;
+      this.currentStep = 1;
       return;
     }
   }
@@ -756,8 +1142,10 @@ export default class Applikation extends Vue {
   handleSubmit({ values, errors, setSubmitting, setSubmitted }: any) {
     console.log(this.values);
     this.isLoading = true;
+    const url = this.currentSection === 'test1' ? `${this.apiBaseUrl}/api/put` : `${this.apiBaseUrl}/api/put-parathed`;
+    console.log(url);
     axios
-      .post(`${this.apiBaseUrl}/api/put`, {
+      .post(url, {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json'
@@ -765,14 +1153,17 @@ export default class Applikation extends Vue {
         body: JSON.stringify({ ...this.values, session_id: this.sessionId })
       })
       .then((rsp: any) => {
-        // this.response = rsp;
-        console.log(rsp);
+        console.log(rsp.data);
         this.errorHeading = '';
         this.error = '';
         this.isLoading = false;
         if (!rsp.data.error) {
-          // setResults(rsp.data);
-          this.results = rsp.data;
+          if (this.currentSection === 'test1') {
+            this.results1 = rsp.data;
+          }
+          if (this.currentSection === 'test2') {
+            this.results2 = rsp.data;
+          }
           this.currentStep = this.pageCount + 1;
           this.isLoading = false;
         }
@@ -783,8 +1174,6 @@ export default class Applikation extends Vue {
         this.errorHeading = 'Fejl';
         this.error = 'Noget gik galt. Prøv venligst igen.';
       });
-
-    // if form is valid, errors will be undefined
   }
 
   validate(values: any) {
@@ -806,14 +1195,16 @@ export default class Applikation extends Vue {
     this.isLoading = true;
     // replace `getPost` with your data fetching util / API wrapper
     const query = `*[_type == "test1"] | order(order asc)`;
+    const query2 = `*[_type == "test2"] | order(order asc)`;
     const frontpageQuery = '*[_type == "frontpage"][0]';
 
-    Promise.all([client.fetch(query), client.fetch(frontpageQuery)])
+    Promise.all([client.fetch(frontpageQuery), client.fetch(query), client.fetch(query2)])
       .then(response => {
         console.log(response);
         this.isLoading = false;
-        this.response = response[0];
-        this.frontPageMatter = response[1];
+        this.frontPageMatter = response[0];
+        this.test1 = response[1];
+        this.test2 = response[2];
       })
       .catch((error: any) => {
         console.log(error);
@@ -828,6 +1219,7 @@ export default class Applikation extends Vue {
       setValue(name, 0);
       this.errorHeading = 'Bemærk!';
       this.error = `Svarprocenten for de ${sliders.length === 3 ? 'tre' : 'to'} spørgsmål må max. give 100% i alt`;
+      window.scrollTo(0, 0);
     } else {
       this.errorHeading = '';
       this.error = '';
@@ -852,6 +1244,12 @@ $baseFontSize: 16;
 $baseUrl: 'https://innovationbenchmark.dk';
 html {
   scroll-behavior: smooth;
+}
+
+hr {
+  border-color: $colorGrey;
+  margin-top: 80px;
+  margin-bottom: 40px;
 }
 
 ul.nav-list {
@@ -1225,7 +1623,7 @@ input[type='range'] {
 .formWrapper {
   margin-bottom: 32px;
 
-  @at-root .calculatingSliders & {
+  @at-root .calculatingSliders &.calculatingSlider {
     @include media-breakpoint-up(sm) {
       // transform: translateX(-66px);
     }
@@ -1264,6 +1662,10 @@ input[type='range'] {
 
     @include media-breakpoint-up(sm) {
       left: 48px;
+    }
+
+    @at-root .test2 & {
+      bottom: 200px;
     }
   }
 }
@@ -1330,6 +1732,10 @@ input[type='range'] {
   }
 }
 
+.apexcharts-radar-series polygon {
+  fill: $colorWhite;
+}
+
 .hero {
   height: 65vh;
   min-height: 304px;
@@ -1391,5 +1797,31 @@ select.form-select {
   &.active {
     color: $colorBlack;
   }
+}
+
+.button.expandButton {
+  text-decoration: none;
+  position: relative;
+  color: $colorOrange;
+  font-size: 12px;
+  min-height: auto;
+}
+
+.chartBottom {
+  padding-left: 36px;
+  font-size: 12px;
+  line-height: 16px;
+  margin-top: -24px;
+
+  &-subtitle {
+    font-size: 12px;
+    line-height: 16px;
+    margin-top: 24px;
+    color: $colorGrey_dark;
+  }
+}
+
+.alert {
+  width: 100%;
 }
 </style>
