@@ -21,7 +21,7 @@
                 </p>
                 <div class="link">
                   <div>
-                    <a
+                    <button
                       class="arrowLink"
                       @click.prevent="
                         currentSection = 'test1';
@@ -29,7 +29,7 @@
                       "
                     >
                       {{ frontPageMatter.cta_text }}
-                    </a>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -37,29 +37,46 @@
           </div>
         </template>
         <div class="hero-padding mb-8"></div>
-        <div class="row">
-          <div class="col-md-6" v-for="(card, index) of frontPageMatter.cards" :key="index">
-            <div :class="['card', [0, 3, 4, 5, 6].includes(index) ? 'card-transparent' : '']">
-              <div class="card-header">
-                <h2>{{ card.cardHeadline }}</h2>
-              </div>
-              <div class="card-text" v-html="sanityBlocks(card.cardBody)"></div>
-              <div class="card-footer card-action" v-if="card.cardButtonText">
-                <a
-                  :href="card.cardButtonUrl.includes('http') || card.cardButtonUrl == '/test' ? card.cardButtonUrl : apiBaseUrl + card.cardButtonUrl"
-                  :data-url="card.cardButtonUrl"
-                  :target="card.cardButtonUrl.includes('http') || card.cardButtonUrl !== '/test' ? '_blank' : ''"
-                  @click="resolveUrl"
-                  :class="[
-                    'button',
-                    'custom-button',
-                    [0].includes(index) ? ['button-primary', 'custom-button-primary'] : ['button-secondary', 'custom-button-secondary']
-                  ]"
-                  >{{ card.cardButtonText }}</a
-                >
+        <div class="row frontPageMatter">
+          <template v-for="(card, index) of frontPageMatter.cards">
+            <div class="col-md-6" :key="card._key">
+              <div :class="['card', [0, 6].includes(index) ? 'card-transparent' : '']">
+                <div class="card-header">
+                  <h2 v-if="[0].includes(index)">{{ card.cardHeadline }}</h2>
+                  <h3 v-else>{{ card.cardHeadline }}</h3>
+                </div>
+                <div class="card-text" v-html="sanityBlocks(card.cardBody)"></div>
+                <div class="card-footer card-action" v-if="card.cardButtonText">
+                  <a
+                    :href="
+                      card.cardButtonUrl.includes('http') || card.cardButtonUrl == '/test' ? card.cardButtonUrl : apiBaseUrl + card.cardButtonUrl
+                    "
+                    :data-url="card.cardButtonUrl"
+                    :target="card.cardButtonUrl.includes('http') || card.cardButtonUrl !== '/test' ? '_blank' : ''"
+                    @click="resolveUrl"
+                    :class="[
+                      'button',
+                      'custom-button',
+                      [0].includes(index) ? ['button-primary', 'custom-button-primary'] : ['button-secondary', 'custom-button-secondary']
+                    ]"
+                  >
+                    <svg
+                      class="icon-svg"
+                      focusable="false"
+                      aria-hidden="true"
+                      v-if="card.cardButtonUrl.includes('http') || card.cardButtonUrl !== '/test'"
+                    >
+                      <use xlink:href="#open-in-new"></use></svg
+                    >{{ card.cardButtonText }}</a
+                  >
+                </div>
               </div>
             </div>
-          </div>
+            <div class="col-md-12" style="margin-bottom: 0;" v-if="[1, 5].includes(index)" :key="index">
+              <hr />
+              <h2 v-if="[1].includes(index)">Mere inspiration til din virksomhed</h2>
+            </div>
+          </template>
         </div>
       </template>
 
@@ -260,16 +277,29 @@
                             </div>
                           </div>
                         </div>
-                        <div class="row" v-if="currentSection == 'test1' && currentStep === pageCount + 1 && results1.simpleList" :key="index">
-                          <div class="col-sm-3" v-for="(chart, index) of test1BarCharts" :key="index">
-                            <apexchart height="200px" type="bar" :options="chart.options" :series="chart.series"></apexchart>
-                            <div class="chartBottom">
-                              <button class="expandButton button button-unstyled" @click.prevent="expandedContent = chart.id">
-                                {{ expandedContent === chart.id ? 'Skjul uddybende information' : 'Vis uddybende information' }}
-                              </button>
+                        <template v-if="currentSection == 'test1' && currentStep === pageCount + 1 && results1.simpleList">
+                          <div class="row" :key="index">
+                            <div class="col-sm-3" v-for="(chart, index) of test1BarCharts" :key="index">
+                              <apexchart height="200px" type="bar" :options="chart.options" :series="chart.series"></apexchart>
+                              <div class="chartBottom">
+                                <button
+                                  class="expandButton button button-unstyled"
+                                  @click.prevent="expandedContent == chart.id ? (expandedContent = '') : (expandedContent = chart.id)"
+                                >
+                                  {{ expandedContent === chart.id ? 'Skjul uddybende information' : 'Vis uddybende information' }}
+                                </button>
+                              </div>
                             </div>
                           </div>
-                        </div>
+
+                          <div class="row" v-for="(chart, index) of test1BarCharts" :key="index">
+                            <div class="col-sm-6">
+                              <template v-if="expandedContent === chart.id">
+                                {{ expandedContent }}
+                              </template>
+                            </div>
+                          </div>
+                        </template>
 
                         <div class="row" v-if="currentSection == 'test2' && currentStep === pageCount + 1 && results2.simpleList" :key="index">
                           <div class="col-md-12">
@@ -283,7 +313,10 @@
                             <apexchart type="bar" :options="chart.options" :series="chart.series"></apexchart>
                             <div class="chartBottom">
                               <p class="chartBottom-subtitle">{{ chart.subtitle }}</p>
-                              <button class="expandButton button button-unstyled" @click.prevent="expandedContent = chart.id">
+                              <button
+                                class="expandButton button button-unstyled"
+                                @click.prevent="expandedContent == chart.id ? (expandedContent = '') : (expandedContent = chart.id)"
+                              >
                                 {{ expandedContent === chart.id ? 'Skjul uddybende information' : 'Vis uddybende information' }}
                               </button>
                             </div>
@@ -372,7 +405,8 @@
                                       ? ['button-primary', 'custom-button-primary']
                                       : ['button-secondary', 'custom-button-secondary']
                                   ]"
-                                  >{{ frontPageMatter.cards[frontPageMatter.cards.length - 1].cardButtonText }}</a
+                                >
+                                  {{ frontPageMatter.cards[frontPageMatter.cards.length - 1].cardButtonText }}</a
                                 >
                               </div>
                             </div>
@@ -450,8 +484,9 @@ const client = sanityClient({
 })
 export default class Applikation extends Vue {
   // initial data values
-  currentSection = 'frontpage'; // frontpage, test1, test2
-  currentStep = 1;
+  currentSection = 'test1'; // frontpage, test1, test2 - initial frontpage
+  currentStep = 5; // initial 1
+  pageCount = 5; // initial 1
   maxStep = 1;
   // apiBaseUrl = 'https://innovation-benchmark-git-dev-innovationbenchmark.vercel.app';
   apiBaseUrl = 'http://localhost:3002';
@@ -462,7 +497,6 @@ export default class Applikation extends Vue {
   test1 = [];
   test2 = [];
   values = [];
-  pageCount = 1;
   frontPageMatter = {};
   results1 = {} as any;
   results2 = {} as any;
@@ -496,11 +530,20 @@ export default class Applikation extends Vue {
     feature2_kvu: 0,
     feature2_mlvu: 0
   };
+  chartColors = {
+    blue: 'rgba(0, 82, 255, 0.3)',
+    orange: 'rgba(143, 43, 143, 0.3)',
+    green: 'rgba(33, 150, 83, 0.3)',
+    blueSolid: '#0052FF',
+    orangeSolid: '#8F2B8F',
+    greenSolid: '#219653',
+    textColor: '#292929'
+  };
   radarOptions = {
-    colors: ['rgba(13, 66, 255, 0.2)', 'rgba(251, 162, 28, 0.2)', 'rgba(26, 183, 89, 0.2)'],
+    colors: [this.chartColors.blue, this.chartColors.orange, this.chartColors.green],
     chart: {
       id: 'radar',
-      foreColor: '#292929',
+      foreColor: this.chartColors.textColor,
       // fontFamily: 'Helvetica Neue, Helvetica, sans-serif',
       fontFamily: 'IBMPlexSans, system',
       offsetY: -25,
@@ -534,13 +577,13 @@ export default class Applikation extends Vue {
     },
     stroke: {
       width: 1,
-      colors: ['#0D42FF', '#FBA21C', '#1AB759']
+      colors: [this.chartColors.blueSolid, this.chartColors.orangeSolid, this.chartColors.greenSolid]
     },
     xaxis: {
       categories: ['Produkt', 'Markedsføring', 'Organisatorisk', 'Proces'],
       labels: {
         style: {
-          colors: ['#292929', '#292929', '#292929', '#292929']
+          colors: [this.chartColors.textColor, this.chartColors.textColor, this.chartColors.textColor, this.chartColors.textColor]
         }
       }
     },
@@ -566,7 +609,7 @@ export default class Applikation extends Vue {
         height: 20,
         radius: 5,
         strokeWidth: 1,
-        strokeColor: ['#0D42FF', '#FBA21C', '#1AB759']
+        strokeColor: [this.chartColors.blueSolid, this.chartColors.orangeSolid, this.chartColors.greenSolid]
       }
     }
   };
@@ -627,7 +670,7 @@ export default class Applikation extends Vue {
       },
       dataLabels: {
         style: {
-          colors: ['#292929'],
+          colors: [this.chartColors.textColor],
           fontWeight: 'normal'
         }
       },
@@ -678,7 +721,7 @@ export default class Applikation extends Vue {
         xaxis: [
           {
             x: annotation && annotation[0] ? annotation[0] : '',
-            borderColor: '#0D42FF',
+            borderColor: this.chartColors.blueSolid,
             // offsetX: -16,
             // offsetY: -12,
             label: {
@@ -697,7 +740,7 @@ export default class Applikation extends Vue {
           },
           {
             x: annotation && annotation[1] ? annotation[1] : '',
-            borderColor: '#FBA21C',
+            borderColor: this.chartColors.orangeSolid,
             // offsetX: 8,
             // offsetY: 24,
             label: {
@@ -777,10 +820,10 @@ export default class Applikation extends Vue {
           true,
           undefined,
           ['Din vurdering', 'Dit resultat', 'Andre virksomheder'],
-          ['rgba(13, 66, 255, 0.2)', 'rgba(251, 162, 28, 0.2)', 'rgba(26, 183, 89, 0.2)'],
+          [this.chartColors.blue, this.chartColors.orange, this.chartColors.green],
           5,
           false,
-          ['#0D42FF', '#FBA21C', '#1AB759'],
+          [this.chartColors.blueSolid, this.chartColors.orangeSolid, this.chartColors.greenSolid],
           'Produkt',
           true,
           undefined,
@@ -800,10 +843,10 @@ export default class Applikation extends Vue {
           true,
           undefined,
           ['Din vurdering', 'Dit resultat', 'Andre virksomheder'],
-          ['rgba(13, 66, 255, 0.2)', 'rgba(251, 162, 28, 0.2)', 'rgba(26, 183, 89, 0.2)'],
+          [this.chartColors.blue, this.chartColors.orange, this.chartColors.green],
           5,
           false,
-          ['#0D42FF', '#FBA21C', '#1AB759'],
+          [this.chartColors.blueSolid, this.chartColors.orangeSolid, this.chartColors.greenSolid],
           'Proces',
           true,
           undefined,
@@ -823,10 +866,10 @@ export default class Applikation extends Vue {
           true,
           undefined,
           ['Din vurdering', 'Dit resultat', 'Andre virksomheder'],
-          ['rgba(13, 66, 255, 0.2)', 'rgba(251, 162, 28, 0.2)', 'rgba(26, 183, 89, 0.2)'],
+          [this.chartColors.blue, this.chartColors.orange, this.chartColors.green],
           5,
           false,
-          ['#0D42FF', '#FBA21C', '#1AB759'],
+          [this.chartColors.blueSolid, this.chartColors.orangeSolid, this.chartColors.greenSolid],
           'Organisatorisk',
           true,
           undefined,
@@ -846,10 +889,10 @@ export default class Applikation extends Vue {
           true,
           undefined,
           ['Din vurdering', 'Dit resultat', 'Andre virksomheder'],
-          ['rgba(13, 66, 255, 0.2)', 'rgba(251, 162, 28, 0.2)', 'rgba(26, 183, 89, 0.2)'],
+          [this.chartColors.blue, this.chartColors.orange, this.chartColors.green],
           5,
           false,
-          ['#0D42FF', '#FBA21C', '#1AB759'],
+          [this.chartColors.blueSolid, this.chartColors.orangeSolid, this.chartColors.greenSolid],
           'Markedsføring',
           true,
           undefined,
@@ -884,19 +927,19 @@ export default class Applikation extends Vue {
             this.results2.histogramList['hist1_samlet_bins'].map((item: any) => {
               // colors
               if (item.Variable === this.results2.simpleList.hist1_my_bin) {
-                return 'rgba(251, 162, 28, 0.2)';
+                return this.chartColors.orange;
               }
-              return 'rgba(26, 183, 89, 0.2)';
+              return this.chartColors.green;
             }),
             undefined, //max
             true, //showXLabels
             this.results2.histogramList['hist1_samlet_bins'].map((item: any) => {
               // strokes
               if (item.Variable === this.results2.simpleList.hist1_my_bin) {
-                return '#FBA21C';
+                return this.chartColors.orangeSolid;
               }
 
-              return '#1AB759';
+              return this.chartColors.greenSolid;
             }),
             `Alle virksomheder - Din sandsynlighed er ${this.results2.simpleList.din_ssh_samlet}%`, // title
             false, //tooltipenabled
@@ -951,19 +994,19 @@ export default class Applikation extends Vue {
             this.results2.histogramList['hist7_samlet_bins'].map((item: any) => {
               // colors
               if (item.Variable === this.results2.simpleList.hist7_my_bin) {
-                return 'rgba(251, 162, 28, 0.2)';
+                return this.chartColors.orange;
               }
-              return 'rgba(26, 183, 89, 0.2)';
+              return this.chartColors.green;
             }),
             undefined, //max
             true, //showXLabels
             this.results2.histogramList['hist7_samlet_bins'].map((item: any) => {
               // strokes
               if (item.Variable === this.results2.simpleList.hist7_my_bin) {
-                return '#FBA21C';
+                return this.chartColors.orangeSolid;
               }
 
-              return '#1AB759';
+              return this.chartColors.greenSolid;
             }),
             `Ændring i profit pr. medarbejder`, // title
             false, //tooltipenabled
@@ -1016,19 +1059,19 @@ export default class Applikation extends Vue {
             this.results2.histogramList['hist4_samlet_bins'].map((item: any) => {
               // colors
               if (item.Variable === this.results2.simpleList.hist4_my_bin) {
-                return 'rgba(251, 162, 28, 0.2)';
+                return this.chartColors.orange;
               }
-              return 'rgba(26, 183, 89, 0.2)';
+              return this.chartColors.green;
             }),
             undefined, //max
             true, //showXLabels
             this.results2.histogramList['hist4_samlet_bins'].map((item: any) => {
               // strokes
               if (item.Variable === this.results2.simpleList.hist4_my_bin) {
-                return '#FBA21C';
+                return this.chartColors.orangeSolid;
               }
 
-              return '#1AB759';
+              return this.chartColors.greenSolid;
             }),
             `Ændring i produktivitetsvækst`, // title
             false, //tooltipenabled
@@ -1248,7 +1291,7 @@ html {
 
 hr {
   border-color: $colorGrey;
-  margin-top: 80px;
+  margin-top: 40px;
   margin-bottom: 40px;
 }
 
@@ -1595,8 +1638,6 @@ input[type='range'] {
 
     &:focus {
       background-color: $colorPrimary;
-      outline: none;
-      box-shadow: 0 0 0 1px $colorBlack;
     }
   }
 
@@ -1614,8 +1655,7 @@ input[type='range'] {
     }
 
     &:focus {
-      outline: none;
-      box-shadow: 0 0 0 1px $colorBlack;
+      background-color: transparent;
     }
   }
 }
@@ -1673,13 +1713,11 @@ input[type='range'] {
 .card {
   box-shadow: none;
   border-color: #d7dadf;
-
+  @at-root .frontPageMatter & {
+    height: 100%;
+  }
   &-text {
     padding: 0 32px 32px;
-
-    h2 {
-      padding-top: 16px;
-    }
 
     @at-root .card-transparent & {
       background-color: transparent;
@@ -1698,7 +1736,7 @@ input[type='range'] {
     }
   }
   &-header {
-    padding: 32px 32px 0;
+    padding: 32px 32px 16px;
 
     @at-root .card-transparent & {
       background-color: transparent;
@@ -1769,6 +1807,10 @@ input[type='range'] {
   color: $colorPrimary;
   max-width: none;
   cursor: pointer;
+  background: none;
+  border: none;
+  font-family: inherit;
+  padding: 0;
 
   &:after {
     content: '';
@@ -1823,5 +1865,12 @@ select.form-select {
 
 .alert {
   width: 100%;
+}
+</style>
+
+<style lang="scss">
+//TODO: dynamic loaded content does not get properly styled
+.card-text h3 {
+  margin-top: 16px;
 }
 </style>
