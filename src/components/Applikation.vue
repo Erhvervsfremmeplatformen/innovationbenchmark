@@ -40,7 +40,7 @@
         <div class="row frontPageMatter">
           <template v-for="(card, index) of frontPageMatter.cards">
             <div class="col-md-6" :key="card._key">
-              <div :class="['card', [0, 6].includes(index) ? 'card-transparent' : '']">
+              <div :class="['card', [0, 6].includes(index) ? 'card-transparent' : '', [1].includes(index) ? 'prosAndCons' : '']">
                 <div class="card-header">
                   <h2 v-if="[0].includes(index)">{{ card.cardHeadline }}</h2>
                   <h3 v-else>{{ card.cardHeadline }}</h3>
@@ -279,7 +279,11 @@
                         </div>
                         <template v-if="currentSection == 'test1' && currentStep === pageCount + 1 && results1.simpleList">
                           <div class="row" :key="index">
-                            <div class="col-sm-3" v-for="(chart, index) of test1BarCharts" :key="index">
+                            <div
+                              :class="['col-sm-3', expandedContent === chart.id ? 'expandedChart' : '']"
+                              v-for="(chart, index) of test1BarCharts"
+                              :key="index"
+                            >
                               <apexchart height="200px" type="bar" :options="chart.options" :series="chart.series"></apexchart>
                               <div class="chartBottom">
                                 <button
@@ -293,9 +297,29 @@
                           </div>
 
                           <div class="row" v-for="(chart, index) of test1BarCharts" :key="index">
-                            <div class="col-sm-6">
+                            <div class="col-sm-12">
                               <template v-if="expandedContent === chart.id">
-                                {{ expandedContent }}
+                                <div class="row expandedContent isExpanded">
+                                  <div class="col-sm-6">
+                                    <p class="intro">{{ chart.intro }}</p>
+                                  </div>
+                                  <div class="col-sm-6" />
+                                  <div
+                                    :class="[chart.width == 25 ? 'col-sm-3' : 'col-sm-6']"
+                                    v-for="(chart, index) of chart.expands"
+                                    :key="chart.id + '_' + index"
+                                  >
+                                    <apexchart height="200" type="bar" :options="chart.options" :series="chart.series"></apexchart>
+                                  </div>
+                                </div>
+                                <button
+                                  @click.prevent="getPDF(chart.id)"
+                                  class="button custom-button button-secondary custom-button-secondary custom-button-right"
+                                >
+                                  <svg class="icon-svg" focusable="false" aria-hidden="true">
+                                    <use xlink:href="#download"></use></svg
+                                  >Hent PDF-rapport
+                                </button>
                               </template>
                             </div>
                           </div>
@@ -309,7 +333,7 @@
                               karakteristika har 30% sandsynlighed for at lave innovation.
                             </p>
                           </div>
-                          <div class="col-sm-6" v-for="(chart, index) of test2BarCharts.feature2" :key="chart.id">
+                          <div class="col-sm-6" v-for="chart of test2BarCharts.feature2" :key="chart.id">
                             <apexchart type="bar" :options="chart.options" :series="chart.series"></apexchart>
                             <div class="chartBottom">
                               <p class="chartBottom-subtitle">{{ chart.subtitle }}</p>
@@ -319,6 +343,20 @@
                               >
                                 {{ expandedContent === chart.id ? 'Skjul uddybende information' : 'Vis uddybende information' }}
                               </button>
+                            </div>
+                          </div>
+
+                          <div class="row" v-for="(chart, index) of test2BarCharts.feature2" :key="index">
+                            <div class="col-sm-12">
+                              {{ chart.id }}
+                              {{ expandedContent }}
+                              <template v-if="expandedContent === chart.id">
+                                <div class="row expandedContent isExpanded">
+                                  <div class="col-sm-6" v-for="(chart, index) of chart.expands" :key="chart.id + '_' + index">
+                                    <apexchart height="200" type="bar" :options="chart.options" :series="chart.series"></apexchart>
+                                  </div>
+                                </div>
+                              </template>
                             </div>
                           </div>
 
@@ -484,9 +522,9 @@ const client = sanityClient({
 })
 export default class Applikation extends Vue {
   // initial data values
-  currentSection = 'test1'; // frontpage, test1, test2 - initial frontpage
-  currentStep = 5; // initial 1
-  pageCount = 5; // initial 1
+  currentSection = 'test2'; // frontpage, test1, test2 - initial frontpage
+  currentStep = 1; // initial 1
+  pageCount = 1; // initial 1
   maxStep = 1;
   // apiBaseUrl = 'https://innovation-benchmark-git-dev-innovationbenchmark.vercel.app';
   apiBaseUrl = 'http://localhost:3002';
@@ -554,10 +592,9 @@ export default class Applikation extends Vue {
         mounted: function () {
           const radarPolygon = document.querySelector('.apexcharts-radar-series polygon') as any;
           if (radarPolygon) {
-            radarPolygon.style.fill = 'white';
+            // radarPolygon.style.fill = 'white';
           }
           document.querySelectorAll('.apexcharts-legend-marker').forEach((marker: any) => {
-            console.log(marker);
             marker.style.borderWidth = '1px';
             marker.style.marginRight = '8px';
           });
@@ -568,7 +605,6 @@ export default class Applikation extends Vue {
             radarPolygon.style.fill = 'white';
           }
           document.querySelectorAll('.apexcharts-legend-marker').forEach((marker: any) => {
-            console.log(marker);
             marker.style.borderWidth = '1px';
             marker.style.marginRight = '8px';
           });
@@ -829,7 +865,76 @@ export default class Applikation extends Vue {
           undefined,
           '',
           ''
-        )
+        ),
+        intro:
+          'Nedenfor kan du se, hvor produktinnovativ din virksomhed er sammenlignet med andre danske fremstillingsvirksomheder. Fordelingerne for de enkelte brancher er relativt ens, og derfor er der ingen yderligere opdeling.',
+        expands: [...Array(4)].map((chart, index) => {
+          const labels = [
+            'Produkter, der er nye på verdensplan',
+            'Produkter, der er nye for virksomhedens marked',
+            'Produkter, der er nye for virksomheden',
+            'Virksomhedens samlede placering'
+          ];
+          return {
+            series: [
+              {
+                name: labels[index],
+                data: this.results1.histogramList[`prod_hist${index + 1}_bins`].map((item: any) => item.Value)
+              }
+            ],
+            options: this.barOptions(
+              true, // animationsEnabled
+              [this.results1.simpleList[`prod_hist${index + 1}_vurd_bin`], this.results1.simpleList[`prod_hist${index + 1}_my_bin`]], // annotation
+              this.results1.histogramList[`prod_hist${index + 1}_bins`].map((item: any) => item.Variable), //categories
+              this.results1.histogramList[`prod_hist${index + 1}_bins`].map((item: any) => {
+                if (
+                  item.Variable === this.results1.simpleList[`prod_hist${index + 1}_my_bin`] &&
+                  item.Variable === this.results1.simpleList[`prod_hist${index + 1}_vurd_bin`]
+                ) {
+                  return this.chartColors.orangeSolid;
+                }
+
+                if (item.Variable === this.results1.simpleList[`prod_hist${index + 1}_my_bin`]) {
+                  return this.chartColors.orange;
+                }
+
+                if (item.Variable === this.results1.simpleList[`prod_hist${index + 1}_vurd_bin`]) {
+                  return this.chartColors.blue;
+                }
+
+                return this.chartColors.green;
+              }), // colors
+              100, // max
+              true, // showXLabels
+              this.results1.histogramList[`prod_hist${index + 1}_bins`].map((item: any) => {
+                if (item.Variable === this.results1.simpleList[`prod_hist${index + 1}_my_bin`]) {
+                  return this.chartColors.orangeSolid;
+                }
+
+                if (item.Variable === this.results1.simpleList[`prod_hist${index + 1}_vurd_bin`]) {
+                  return this.chartColors.blueSolid;
+                }
+
+                return this.chartColors.greenSolid;
+              }), // strokes
+              labels[index], // title
+              true, // tooltipsenabled
+              this.results1.histogramList[`prod_hist${index + 1}_tooltip`].map((item: any) => item.Value), // tooltips
+              this.results1.histogramList[`prod_hist${index + 1}_bins`].map((item: any) => {
+                if (
+                  item.Variable === this.results1.simpleList[`prod_hist${index + 1}_my_bin`] &&
+                  item.Variable === this.results1.simpleList[`prod_hist${index + 1}_vurd_bin`]
+                ) {
+                  return 'pattern';
+                }
+
+                return 'solid';
+              }), //types
+              '', //xasis
+              this.results1.simpleList[`prod_hist${index + 1}_text_left`] //yasis
+            )
+          };
+        })
       },
       {
         id: 'prcs',
@@ -852,7 +957,71 @@ export default class Applikation extends Vue {
           undefined,
           '',
           ''
-        )
+        ),
+        intro:
+          'Nedenfor kan du se, hvor procesinnovativ og automatiseret din virksomhed er sammenlignet med andre danske fremstillingsvirksomheder. Fordelingerne for de enkelte brancher er relativt ens, og derfor er der ingen yderligere opdeling.',
+        expands: [...Array(4)].map((chart, index) => {
+          const labels = ['Fremstillingen', 'Pakningen', 'Lagringen', 'Virksomhedens samlede placering'];
+          return {
+            series: [
+              {
+                name: labels[index],
+                data: this.results1.histogramList[`prcs_hist${index + 1}_bins`].map((item: any) => item.Value)
+              }
+            ],
+            options: this.barOptions(
+              true, // animationsEnabled
+              [this.results1.simpleList[`prcs_hist${index + 1}_vurd_bin`], this.results1.simpleList[`prcs_hist${index + 1}_my_bin`]], // annotation
+              this.results1.histogramList[`prcs_hist${index + 1}_bins`].map((item: any) => item.Variable), //categories
+              this.results1.histogramList[`prcs_hist${index + 1}_bins`].map((item: any) => {
+                if (
+                  item.Variable === this.results1.simpleList[`prcs_hist${index + 1}_my_bin`] &&
+                  item.Variable === this.results1.simpleList[`prcs_hist${index + 1}_vurd_bin`]
+                ) {
+                  return this.chartColors.orangeSolid;
+                }
+
+                if (item.Variable === this.results1.simpleList[`prcs_hist${index + 1}_my_bin`]) {
+                  return this.chartColors.orange;
+                }
+
+                if (item.Variable === this.results1.simpleList[`prcs_hist${index + 1}_vurd_bin`]) {
+                  return this.chartColors.blue;
+                }
+
+                return this.chartColors.green;
+              }), // colors
+              100, // max
+              true, // showXLabels
+              this.results1.histogramList[`prcs_hist${index + 1}_bins`].map((item: any) => {
+                if (item.Variable === this.results1.simpleList[`prcs_hist${index + 1}_my_bin`]) {
+                  return this.chartColors.orangeSolid;
+                }
+
+                if (item.Variable === this.results1.simpleList[`prcs_hist${index + 1}_vurd_bin`]) {
+                  return this.chartColors.blueSolid;
+                }
+
+                return this.chartColors.greenSolid;
+              }), // strokes
+              labels[index], // title
+              true, // tooltipsenabled
+              this.results1.histogramList[`prcs_hist${index + 1}_tooltip`].map((item: any) => item.Value), // tooltips
+              this.results1.histogramList[`prcs_hist${index + 1}_bins`].map((item: any) => {
+                if (
+                  item.Variable === this.results1.simpleList[`prcs_hist${index + 1}_my_bin`] &&
+                  item.Variable === this.results1.simpleList[`prcs_hist${index + 1}_vurd_bin`]
+                ) {
+                  return 'pattern';
+                }
+
+                return 'solid';
+              }), //types
+              '', //xasis
+              this.results1.simpleList[`prcs_hist${index + 1}_text_left`] //yasis
+            )
+          };
+        })
       },
       {
         id: 'org',
@@ -875,7 +1044,71 @@ export default class Applikation extends Vue {
           undefined,
           '',
           ''
-        )
+        ),
+        intro:
+          'Nedenfor kan du se, hvor organisatorisk innovativ og decentraliseret din virksomhed er sammenlignet med andre danske fremstillingsvirksomheder. Fordelingerne for de enkelte brancher er relativt ens, og derfor er der ingen yderligere opdeling.',
+        expands: [...Array(4)].map((chart, index) => {
+          const labels = ['Løsningsansvar', 'Tidsplanlægning', 'Selvstyrende grupper', 'Virksomhedens samlede placering'];
+          return {
+            series: [
+              {
+                name: labels[index],
+                data: this.results1.histogramList[`org_hist${index + 1}_bins`].map((item: any) => item.Value)
+              }
+            ],
+            options: this.barOptions(
+              true, // animationsEnabled
+              [this.results1.simpleList[`org_hist${index + 1}_vurd_bin`], this.results1.simpleList[`org_hist${index + 1}_my_bin`]], // annotation
+              this.results1.histogramList[`org_hist${index + 1}_bins`].map((item: any) => item.Variable), //categories
+              this.results1.histogramList[`org_hist${index + 1}_bins`].map((item: any) => {
+                if (
+                  item.Variable === this.results1.simpleList[`org_hist${index + 1}_my_bin`] &&
+                  item.Variable === this.results1.simpleList[`org_hist${index + 1}_vurd_bin`]
+                ) {
+                  return this.chartColors.orangeSolid;
+                }
+
+                if (item.Variable === this.results1.simpleList[`org_hist${index + 1}_my_bin`]) {
+                  return this.chartColors.orange;
+                }
+
+                if (item.Variable === this.results1.simpleList[`org_hist${index + 1}_vurd_bin`]) {
+                  return this.chartColors.blue;
+                }
+
+                return this.chartColors.green;
+              }), // colors
+              100, // max
+              true, // showXLabels
+              this.results1.histogramList[`org_hist${index + 1}_bins`].map((item: any) => {
+                if (item.Variable === this.results1.simpleList[`org_hist${index + 1}_my_bin`]) {
+                  return this.chartColors.orangeSolid;
+                }
+
+                if (item.Variable === this.results1.simpleList[`org_hist${index + 1}_vurd_bin`]) {
+                  return this.chartColors.blueSolid;
+                }
+
+                return this.chartColors.greenSolid;
+              }), // strokes
+              labels[index], // title
+              true, // tooltipsenabled
+              this.results1.histogramList[`org_hist${index + 1}_tooltip`].map((item: any) => item.Value), // tooltips
+              this.results1.histogramList[`org_hist${index + 1}_bins`].map((item: any) => {
+                if (
+                  item.Variable === this.results1.simpleList[`org_hist${index + 1}_my_bin`] &&
+                  item.Variable === this.results1.simpleList[`org_hist${index + 1}_vurd_bin`]
+                ) {
+                  return 'pattern';
+                }
+
+                return 'solid';
+              }), //types
+              '', //xasis
+              this.results1.simpleList[`org_hist${index + 1}_text_left`] //yasis
+            )
+          };
+        })
       },
       {
         id: 'mar',
@@ -898,7 +1131,80 @@ export default class Applikation extends Vue {
           undefined,
           '',
           ''
-        )
+        ),
+        intro:
+          'Nedenfor kan du se, hvor innovativ virksomheden er ifm. introduktion af nye markedsføringstiltag sammenlignet med andre danske fremstillingsvirksomheder. Fordelingerne for de enkelte brancher er relativt ens, og derfor er der ingen yderligere opdeling.',
+        expands: [...Array(7)].map((chart, index) => {
+          const labels = [
+            'Produktdesign',
+            'Indpakning',
+            'Markedsføringsstrategier',
+            'Promovering af produkter',
+            'Eksponering',
+            'Prissætning',
+            'Virksomhedens samlede placering'
+          ];
+          return {
+            series: [
+              {
+                name: labels[index],
+                data: this.results1.histogramList[`mar_hist${index + 1}_bins`].map((item: any) => item.Value)
+              }
+            ],
+            width: index == 6 ? 50 : 25,
+            options: this.barOptions(
+              true, // animationsEnabled
+              [this.results1.simpleList[`mar_hist${index + 1}_vurd_bin`], this.results1.simpleList[`mar_hist${index + 1}_my_bin`]], // annotation
+              this.results1.histogramList[`mar_hist${index + 1}_bins`].map((item: any) => item.Variable), //categories
+              this.results1.histogramList[`mar_hist${index + 1}_bins`].map((item: any) => {
+                if (
+                  item.Variable === this.results1.simpleList[`mar_hist${index + 1}_my_bin`] &&
+                  item.Variable === this.results1.simpleList[`mar_hist${index + 1}_vurd_bin`]
+                ) {
+                  return this.chartColors.orangeSolid;
+                }
+
+                if (item.Variable === this.results1.simpleList[`mar_hist${index + 1}_my_bin`]) {
+                  return this.chartColors.orange;
+                }
+
+                if (item.Variable === this.results1.simpleList[`mar_hist${index + 1}_vurd_bin`]) {
+                  return this.chartColors.blue;
+                }
+
+                return this.chartColors.green;
+              }), // colors
+              100, // max
+              true, // showXLabels
+              this.results1.histogramList[`mar_hist${index + 1}_bins`].map((item: any) => {
+                if (item.Variable === this.results1.simpleList[`mar_hist${index + 1}_my_bin`]) {
+                  return this.chartColors.orangeSolid;
+                }
+
+                if (item.Variable === this.results1.simpleList[`mar_hist${index + 1}_vurd_bin`]) {
+                  return this.chartColors.blueSolid;
+                }
+
+                return this.chartColors.greenSolid;
+              }), // strokes
+              labels[index], // title
+              true, // tooltipsenabled
+              this.results1.histogramList[`mar_hist${index + 1}_tooltip`].map((item: any) => item.Value), // tooltips
+              this.results1.histogramList[`mar_hist${index + 1}_bins`].map((item: any) => {
+                if (
+                  item.Variable === this.results1.simpleList[`mar_hist${index + 1}_my_bin`] &&
+                  item.Variable === this.results1.simpleList[`mar_hist${index + 1}_vurd_bin`]
+                ) {
+                  return 'pattern';
+                }
+
+                return 'solid';
+              }), //types
+              '', //xasis
+              this.results1.simpleList[`mar_hist${index + 1}_text_left`] //yasis
+            )
+          };
+        })
       }
     ];
   }
@@ -948,26 +1254,68 @@ export default class Applikation extends Vue {
             this.results2.simpleList.hist1_samlet_text_x_axis, //xaxis,
             this.results2.simpleList.hist1_samlet_text_left //yaxis,
           ),
-          expands: [
-            {
-              id: 'hist2_str_bins',
-              title: `Samme størrelse - Din sandsynlighed er ${this.results2.simpleList.din_ssh_str}%`,
-              width: 50,
-              yaxis: this.results2.simpleList.hist2_str_text_left,
-              xaxis: this.results2.simpleList.hist2_str_text_x_axis,
+          expands: ['hist2_str_bins', 'hist3_industri_bins'].map((chartId, index) => {
+            const labels = [
+              `Samme størrelse - Din sandsynlighed er ${this.results2.simpleList.din_ssh_str}%`,
+              'Produkter, der er nye for virksomhedens marked'
+            ];
+            return {
+              series: [
+                {
+                  name: labels[index],
+                  data: this.results2.histogramList[chartId].map((item: any) => item.Value)
+                }
+              ],
               subtitle: `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2.simpleList.din_ssh_str} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle industrier for din størrelsesgruppe.`,
-              myScore: this.results2.simpleList.hist2_my_bin
-            },
-            {
-              id: 'hist3_industri_bins',
-              subtitle: `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2.simpleList.din_ssh_industri} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle størrelser i din industrigruppe.`,
-              title: `Samme industri - Din sandsynlighed er ${this.results2.simpleList.din_ssh_industri}%`,
-              yaxis: this.results2.simpleList.hist3_industri_text_left,
-              xaxis: this.results2.simpleList.hist3_industri_text_x_axis,
-              width: 50,
-              myScore: this.results2.simpleList.hist3_my_bin
-            }
-          ]
+              options: this.barOptions(
+                true, // animationsEnabled
+                [undefined, this.results2.simpleList.hist2_my_bin], // annotation
+                this.results2.histogramList[chartId].map((item: any) => item.Variable), //categories
+                this.results2.histogramList[chartId].map((item: any) => {
+                  if (item.Variable === this.results2.simpleList.hist2_my_bin) {
+                    return this.chartColors.orange;
+                  }
+
+                  return this.chartColors.green;
+                }), // colors
+                undefined, // max
+                true, // showXLabels
+                this.results2.histogramList[chartId].map((item: any) => {
+                  if (item.Variable === this.results2.simpleList.hist2_my_bin) {
+                    return this.chartColors.orangeSolid;
+                  }
+
+                  return this.chartColors.greenSolid;
+                }), // strokes
+                labels[index], // title
+                false, // tooltipsenabled
+                undefined, // tooltips
+                undefined, //types
+                this.results2.simpleList.hist2_str_text_x_axis, //xasis
+                this.results2.simpleList.hist2_str_text_left //yasis
+              )
+            };
+          })
+          // [
+          //   {
+          //     id: 'hist2_str_bins',
+          //     title: `Samme størrelse - Din sandsynlighed er ${this.results2.simpleList.din_ssh_str}%`,
+          //     width: 50,
+          //     yaxis: this.results2.simpleList.hist2_str_text_left,
+          //     xaxis: this.results2.simpleList.hist2_str_text_x_axis,
+          //     subtitle: `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2.simpleList.din_ssh_str} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle industrier for din størrelsesgruppe.`,
+          //     myScore: this.results2.simpleList.hist2_my_bin
+          //   },
+          //   {
+          //     id: 'hist3_industri_bins',
+          //     subtitle: `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2.simpleList.din_ssh_industri} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle størrelser i din industrigruppe.`,
+          //     title: `Samme industri - Din sandsynlighed er ${this.results2.simpleList.din_ssh_industri}%`,
+          //     yaxis: this.results2.simpleList.hist3_industri_text_left,
+          //     xaxis: this.results2.simpleList.hist3_industri_text_x_axis,
+          //     width: 50,
+          //     myScore: this.results2.simpleList.hist3_my_bin
+          //   }
+          // ]
         }
       ],
       feature3: [
@@ -1174,6 +1522,35 @@ export default class Applikation extends Vue {
       return;
     }
   }
+
+  getPDF(id: any) {
+    const pdfWindow = window.open('', '_blank') as any;
+    pdfWindow.document.write('Henter PDF');
+    pdfWindow.document.querySelector('body').style.cursor = 'wait';
+
+    axios
+      .post(`${this.apiBaseUrl}/api/pdf`, {
+        method: 'PUT',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ ...this.values, id, session_id: this.sessionId })
+      })
+      .then((rsp: any) => {
+        console.log(rsp);
+        if (!rsp.data.error) {
+          const { PDFURL } = rsp.data;
+          pdfWindow.location.href = PDFURL;
+          pdfWindow.document.querySelector('body').style.cursor = 'auto';
+        }
+      })
+      .catch((error: any) => {
+        pdfWindow.close;
+        console.log(error);
+      });
+  }
+
   handleNextClick(event: Event) {
     event.preventDefault();
     this.currentStep++;
@@ -1186,7 +1563,6 @@ export default class Applikation extends Vue {
     console.log(this.values);
     this.isLoading = true;
     const url = this.currentSection === 'test1' ? `${this.apiBaseUrl}/api/put` : `${this.apiBaseUrl}/api/put-parathed`;
-    console.log(url);
     axios
       .post(url, {
         headers: {
@@ -1658,6 +2034,12 @@ input[type='range'] {
       background-color: transparent;
     }
   }
+
+  &-right {
+    margin-right: 0;
+    margin-left: auto;
+    display: block;
+  }
 }
 
 .formWrapper {
@@ -1866,11 +2248,85 @@ select.form-select {
 .alert {
   width: 100%;
 }
+
+.expandedContent {
+  transition: all 220ms ease-in-out;
+
+  &.isExpanded {
+    padding-top: 24px;
+
+    @include media-breakpoint-up(sm) {
+      padding-top: 64px;
+    }
+  }
+}
+
+.expandedChart {
+  position: relative;
+  @include media-breakpoint-up(sm) {
+    &:after {
+      content: '';
+      width: 1px;
+      display: block;
+      position: absolute;
+      left: 50%;
+      bottom: -62px;
+      background: $colorPrimary;
+      height: 48px;
+      transform: translateX(8px);
+    }
+  }
+
+  &_feature2_3 {
+    @include media-breakpoint-up(sm) {
+      &:after {
+        left: 25%;
+      }
+    }
+  }
+}
 </style>
 
 <style lang="scss">
 //TODO: dynamic loaded content does not get properly styled
+$baseUrl: 'https://innovationbenchmark.dk';
+
 .card-text h3 {
   margin-top: 16px;
+}
+
+ul {
+  @at-root .prosAndCons & {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 32px;
+
+    li {
+      margin-bottom: 16px;
+      padding-left: 40px;
+      position: relative;
+
+      &:before {
+        content: '';
+        display: block;
+        position: absolute;
+        width: 24px;
+        height: 24px;
+        left: 0;
+      }
+    }
+  }
+
+  @at-root .prosAndCons &:first-of-type {
+    li:before {
+      background: transparent url($baseUrl + '/img/listItem-pro.svg') center / contain no-repeat;
+    }
+  }
+
+  @at-root .prosAndCons &:last-of-type {
+    li:before {
+      background: transparent url($baseUrl + '/img/listItem-con.svg') center / contain no-repeat;
+    }
+  }
 }
 </style>
