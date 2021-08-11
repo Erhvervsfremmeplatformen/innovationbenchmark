@@ -39,7 +39,7 @@
         <div class="hero-padding mb-8"></div>
         <div class="row frontPageMatter">
           <template v-for="(card, index) of frontPageMatter.cards">
-            <div class="col-md-6" :key="card._key">
+            <div class="col-md-6" :key="card._key" style="margin-bottom: 32px;">
               <div :class="['card', [0, 6].includes(index) ? 'card-transparent' : '', [1].includes(index) ? 'prosAndCons' : '']">
                 <div class="card-header">
                   <h2 v-if="[0].includes(index)">{{ card.cardHeadline }}</h2>
@@ -350,11 +350,41 @@
 
                           <div class="row" v-for="(chart, index) of test2BarCharts.feature2" :key="index">
                             <div class="col-sm-12">
-                              {{ expandedContent }}
                               <template v-if="expandedContent === chart.id">
                                 <div class="row expandedContent isExpanded">
                                   <div class="col-sm-6" v-for="(chart, index) of chart.expands" :key="chart.id + '_' + index">
-                                    <apexchart height="200" type="bar" :options="chart.options" :series="chart.series"></apexchart>
+                                    <template v-if="chart.value && chart.value !== '#N/A' && chart.value !== '#VALUE!'">
+                                      <apexchart height="200" type="bar" :options="chart.options" :series="chart.series"></apexchart>
+                                      <div class="chartBottom">
+                                        <p class="chartBottom-subtitle">{{ chart.subtitle }}</p>
+                                      </div>
+                                    </template>
+
+                                    <div style="font-size: 14;" v-else>
+                                      <apexchart
+                                        height="200"
+                                        type="bar"
+                                        :series="[{ data: [1, 2, 3, 4, 5], name: chart.series[0].name }]"
+                                        :options="barOptions( false,
+                                      undefined, chart.options.xaxis.categories, [chartColors.green], 5, true, [chartColors.greenSolid],
+                                      chart.series[0].name, true, undefined, '', '' ),"
+                                      />
+                                      <div
+                                        style="
+                                          position: absolute;
+                                          top: 2rem;
+                                          width: 100%;
+                                          height: calc(100% - 2rem);
+                                          background: #f5f5f5;
+                                          opacity: 0.8;
+                                          display: flex;
+                                          align-items: center;
+                                          justify-content: center;
+                                        "
+                                      >
+                                        <p style="margin-top: -2rem;">Det var ikke muligt at udregne effekten for din industri/din størrelse</p>
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
                               </template>
@@ -377,6 +407,48 @@
                                   {{ expandedContent === chart.id ? 'Skjul uddybende information' : 'Vis uddybende information' }}
                                 </button>
                               </div>
+                            </div>
+                          </div>
+                          <div class="row" v-for="(chart, index) of test2BarCharts.feature3" :key="index">
+                            <div class="col-sm-12">
+                              <template v-if="expandedContent === chart.id">
+                                <div class="row expandedContent isExpanded">
+                                  <div class="col-sm-6" v-for="(chart, index) of chart.expands" :key="chart.id + '_' + index">
+                                    <apexchart
+                                      height="200"
+                                      type="bar"
+                                      :options="chart.options"
+                                      :series="chart.series"
+                                      v-if="chart.value && chart.value !== '#N/A' && chart.value !== '#VALUE!'"
+                                    ></apexchart>
+                                    <div style="font-size: 14;" v-else>
+                                      <apexchart
+                                        height="200"
+                                        type="bar"
+                                        :series="[{ data: [1, 2, 3, 4, 5], name: chart.series[0].name }]"
+                                        :options="barOptions( false,
+                                      undefined, chart.options.xaxis.categories, [chartColors.green], 5, true, [chartColors.greenSolid],
+                                      chart.series[0].name, true, undefined, '', '' ),"
+                                      />
+                                      <div
+                                        style="
+                                          position: absolute;
+                                          top: 2rem;
+                                          width: 100%;
+                                          height: calc(100% - 2rem);
+                                          background: #f5f5f5;
+                                          opacity: 0.8;
+                                          display: flex;
+                                          align-items: center;
+                                          justify-content: center;
+                                        "
+                                      >
+                                        <p style="margin-top: -2rem;">Det var ikke muligt at udregne effekten for din industri/din størrelse</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </template>
                             </div>
                           </div>
                         </template>
@@ -630,7 +702,7 @@ export default class Applikation extends Vue {
       labels: {
         offsetX: 8,
         style: {
-          colors: ['#E3593B', '#E3593B', '#E3593B', '#E3593B', '#E3593B', '#E3593B'],
+          colors: [this.chartColors.textColor],
           fontWeight: 700,
           fontSize: 14
         }
@@ -1257,25 +1329,30 @@ export default class Applikation extends Vue {
             this.results2.simpleList.hist1_samlet_text_x_axis, //xaxis,
             this.results2.simpleList.hist1_samlet_text_left //yaxis,
           ),
-          expands: ['hist2_str_bins', 'hist3_industri_bins'].map((chartId, index) => {
+          expands: ['hist2_str', 'hist3_industri'].map((chartId, index) => {
             const labels = [
               `Samme størrelse - Din sandsynlighed er ${this.results2.simpleList.din_ssh_str}%`,
-              'Produkter, der er nye for virksomhedens marked'
+              `Samme industri - Din sandsynlighed er ${this.results2.simpleList.din_ssh_industri}%`
             ];
+            const chartPrefix = ['hist2', 'hist3'];
             return {
               series: [
                 {
                   name: labels[index],
-                  data: this.results2.histogramList[chartId].map((item: any) => item.Value)
+                  data: this.results2.histogramList[`${chartId}_bins`].map((item: any) => item.Value)
                 }
               ],
-              subtitle: `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2.simpleList.din_ssh_str} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle industrier for din størrelsesgruppe.`,
+              subtitle: [
+                `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2.simpleList.din_ssh_str} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle industrier for din størrelsesgruppe.`,
+                `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2.simpleList.din_ssh_industri} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle størrelser i din industrigruppe.`
+              ][index],
+              value: [this.results2.simpleList.din_ssh_str, this.results2.simpleList.din_ssh_industri][index],
               options: this.barOptions(
                 true, // animationsEnabled
-                [undefined, this.results2.simpleList.hist2_my_bin], // annotation
-                this.results2.histogramList[chartId].map((item: any) => item.Variable), //categories
-                this.results2.histogramList[chartId].map((item: any) => {
-                  if (item.Variable === this.results2.simpleList.hist2_my_bin) {
+                [undefined, this.results2.simpleList[`${chartPrefix[index]}_my_bin`]], // annotation
+                this.results2.histogramList[`${chartId}_bins`].map((item: any) => item.Variable), //categories
+                this.results2.histogramList[`${chartId}_bins`].map((item: any) => {
+                  if (item.Variable === this.results2.simpleList[`${chartPrefix[index]}_my_bin`]) {
                     return this.chartColors.orange;
                   }
 
@@ -1283,8 +1360,8 @@ export default class Applikation extends Vue {
                 }), // colors
                 undefined, // max
                 true, // showXLabels
-                this.results2.histogramList[chartId].map((item: any) => {
-                  if (item.Variable === this.results2.simpleList.hist2_my_bin) {
+                this.results2.histogramList[`${chartId}_bins`].map((item: any) => {
+                  if (item.Variable === this.results2.simpleList[`${chartPrefix[index]}_my_bin`]) {
                     return this.chartColors.orangeSolid;
                   }
 
@@ -1294,31 +1371,11 @@ export default class Applikation extends Vue {
                 false, // tooltipsenabled
                 undefined, // tooltips
                 undefined, //types
-                this.results2.simpleList.hist2_str_text_x_axis, //xasis
-                this.results2.simpleList.hist2_str_text_left //yasis
+                this.results2.simpleList[`${chartId}_text_x_axis`], //xasis
+                this.results2.simpleList[`${chartId}_text_left`] //yasis
               )
             };
           })
-          // [
-          //   {
-          //     id: 'hist2_str_bins',
-          //     title: `Samme størrelse - Din sandsynlighed er ${this.results2.simpleList.din_ssh_str}%`,
-          //     width: 50,
-          //     yaxis: this.results2.simpleList.hist2_str_text_left,
-          //     xaxis: this.results2.simpleList.hist2_str_text_x_axis,
-          //     subtitle: `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2.simpleList.din_ssh_str} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle industrier for din størrelsesgruppe.`,
-          //     myScore: this.results2.simpleList.hist2_my_bin
-          //   },
-          //   {
-          //     id: 'hist3_industri_bins',
-          //     subtitle: `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2.simpleList.din_ssh_industri} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle størrelser i din industrigruppe.`,
-          //     title: `Samme industri - Din sandsynlighed er ${this.results2.simpleList.din_ssh_industri}%`,
-          //     yaxis: this.results2.simpleList.hist3_industri_text_left,
-          //     xaxis: this.results2.simpleList.hist3_industri_text_x_axis,
-          //     width: 50,
-          //     myScore: this.results2.simpleList.hist3_my_bin
-          //   }
-          // ]
         }
       ],
       feature3: [
@@ -1366,26 +1423,51 @@ export default class Applikation extends Vue {
             this.results2.simpleList.hist7_samlet_text_x_axis, //xaxis,
             this.results2.simpleList.hist7_samlet_text_left //yaxis,
           ),
-          expands: [
-            {
-              id: 'hist2_str_bins',
-              title: `Samme størrelse - Din sandsynlighed er ${this.results2.simpleList.din_ssh_str}%`,
-              width: 50,
-              yaxis: this.results2.simpleList.hist2_str_text_left,
-              xaxis: this.results2.simpleList.hist2_str_text_x_axis,
-              subtitle: `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2.simpleList.din_ssh_str} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle industrier for din størrelsesgruppe.`,
-              myScore: this.results2.simpleList.hist2_my_bin
-            },
-            {
-              id: 'hist3_industri_bins',
-              subtitle: `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2.simpleList.din_ssh_industri} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle størrelser i din industrigruppe.`,
-              title: `Samme industri - Din sandsynlighed er ${this.results2.simpleList.din_ssh_industri}%`,
-              yaxis: this.results2.simpleList.hist3_industri_text_left,
-              xaxis: this.results2.simpleList.hist3_industri_text_x_axis,
-              width: 50,
-              myScore: this.results2.simpleList.hist3_my_bin
-            }
-          ]
+          expands: ['hist8_str', 'hist9_industri'].map((chartId, index) => {
+            const labels = [`Samme størrelse - Ændring i profit pr. medarbejder`, `Samme industri - Ændring i profit pr. medarbejder`];
+            const chartPrefix = ['hist8', 'hist9'];
+            return {
+              series: [
+                {
+                  name: labels[index],
+                  data: this.results2.histogramList[`${chartId}_bins`].map((item: any) => item.Value)
+                }
+              ],
+              subtitle: `Værdien for din virksomhed betyder, at din profit pr. medarbejder er ${this.results2.histogramList[`${chartId}_bins`]
+                .filter((column: any) => column.Variable === this.results2.simpleList[`${chartId}_my_bin`])
+                .map(
+                  (column: any) => column.Value
+                )} kr. højere efter tre år med innovation end uden. De øvrige søjler viser værdien, hvis andelen af ansatte med videregående uddannelse havde været anderledes.`,
+              value: this.results2.simpleList[`${chartPrefix[index]}_my_bin`],
+              options: this.barOptions(
+                true, // animationsEnabled
+                [undefined, this.results2.simpleList[`${chartPrefix[index]}_my_bin`]], // annotation
+                this.results2.histogramList[`${chartId}_bins`].map((item: any) => item.Variable), //categories
+                this.results2.histogramList[`${chartId}_bins`].map((item: any) => {
+                  if (item.Variable === this.results2.simpleList[`${chartPrefix[index]}_my_bin`]) {
+                    return this.chartColors.orange;
+                  }
+
+                  return this.chartColors.green;
+                }), // colors
+                undefined, // max
+                true, // showXLabels
+                this.results2.histogramList[`${chartId}_bins`].map((item: any) => {
+                  if (item.Variable === this.results2.simpleList[`${chartPrefix[index]}_my_bin`]) {
+                    return this.chartColors.orangeSolid;
+                  }
+
+                  return this.chartColors.greenSolid;
+                }), // strokes
+                labels[index], // title
+                false, // tooltipsenabled
+                undefined, // tooltips
+                undefined, //types
+                this.results2.simpleList[`${chartId}_text_x_axis`], //xasis
+                this.results2.simpleList[`${chartId}_text_left`] //yasis
+              )
+            };
+          })
         },
         {
           id: 'hist4_samlet_bins',
@@ -1431,26 +1513,53 @@ export default class Applikation extends Vue {
             this.results2.simpleList.hist4_samlet_text_x_axis, //xaxis,
             this.results2.simpleList.hist4_samlet_text_left //yaxis,
           ),
-          expands: [
-            {
-              id: 'hist2_str_bins',
-              title: `Samme størrelse - Din sandsynlighed er ${this.results2.simpleList.din_ssh_str}%`,
-              width: 50,
-              yaxis: this.results2.simpleList.hist2_str_text_left,
-              xaxis: this.results2.simpleList.hist2_str_text_x_axis,
-              subtitle: `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2.simpleList.din_ssh_str} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle industrier for din størrelsesgruppe.`,
-              myScore: this.results2.simpleList.hist2_my_bin
-            },
-            {
-              id: 'hist3_industri_bins',
-              subtitle: `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2.simpleList.din_ssh_industri} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle størrelser i din industrigruppe.`,
-              title: `Samme industri - Din sandsynlighed er ${this.results2.simpleList.din_ssh_industri}%`,
-              yaxis: this.results2.simpleList.hist3_industri_text_left,
-              xaxis: this.results2.simpleList.hist3_industri_text_x_axis,
-              width: 50,
-              myScore: this.results2.simpleList.hist3_my_bin
-            }
-          ]
+          expands: ['hist2_str', 'hist3_industri'].map((chartId, index) => {
+            const labels = [
+              `Samme størrelse - Din sandsynlighed er ${this.results2.simpleList.din_ssh_str}%`,
+              `Samme industri - Din sandsynlighed er ${this.results2.simpleList.din_ssh_industri}%`
+            ];
+            const chartPrefix = ['hist2', 'hist3'];
+            return {
+              series: [
+                {
+                  name: labels[index],
+                  data: this.results2.histogramList[`${chartId}_bins`].map((item: any) => item.Value)
+                }
+              ],
+              subtitle: [
+                `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2.simpleList.din_ssh_str} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle industrier for din størrelsesgruppe.`,
+                `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2.simpleList.din_ssh_industri} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle størrelser i din industrigruppe.`
+              ][index],
+              value: [this.results2.simpleList.din_ssh_str, this.results2.simpleList.din_ssh_industri][index],
+              options: this.barOptions(
+                true, // animationsEnabled
+                [undefined, this.results2.simpleList[`${chartPrefix[index]}_my_bin`]], // annotation
+                this.results2.histogramList[`${chartId}_bins`].map((item: any) => item.Variable), //categories
+                this.results2.histogramList[`${chartId}_bins`].map((item: any) => {
+                  if (item.Variable === this.results2.simpleList[`${chartPrefix[index]}_my_bin`]) {
+                    return this.chartColors.orange;
+                  }
+
+                  return this.chartColors.green;
+                }), // colors
+                undefined, // max
+                true, // showXLabels
+                this.results2.histogramList[`${chartId}_bins`].map((item: any) => {
+                  if (item.Variable === this.results2.simpleList[`${chartPrefix[index]}_my_bin`]) {
+                    return this.chartColors.orangeSolid;
+                  }
+
+                  return this.chartColors.greenSolid;
+                }), // strokes
+                labels[index], // title
+                false, // tooltipsenabled
+                undefined, // tooltips
+                undefined, //types
+                this.results2.simpleList[`${chartId}_text_x_axis`], //xasis
+                this.results2.simpleList[`${chartId}_text_left`] //yasis
+              )
+            };
+          })
         }
       ]
     };
@@ -1657,7 +1766,7 @@ $colorHover: darken($colorPrimary, 10%);
 $colorGrey: #d0cfcf;
 $colorBackground: #f5f5f5;
 $colorGrey_light: #fafafa;
-$colorGrey_dark: #797272;
+$colorGrey_dark: #4b4848;
 $colorWhite: #ffffff;
 $colorBlack: #292929;
 
