@@ -325,30 +325,31 @@
                           </div>
                         </template>
 
-                        <div class="row" v-if="currentSection == 'test2' && currentStep === pageCount + 1 && results2.simpleList" :key="index">
-                          <div class="col-md-12">
-                            <h2>Innovationsparathed i din virksomhed</h2>
-                            <p>
-                              Innovationsparatheden er et tal mellem 0 og 100%. Hvis din værdi er 30, så betyder det, at en virksomhed med dine
-                              karakteristika har 30% sandsynlighed for at lave innovation.
-                            </p>
-                          </div>
-                          <div class="col-sm-6" v-for="chart of test2BarCharts.feature2" :key="chart.id">
-                            <apexchart type="bar" :options="chart.options" :series="chart.series"></apexchart>
-                            <div class="chartBottom">
-                              <p class="chartBottom-subtitle">{{ chart.subtitle }}</p>
-                              <button
-                                class="expandButton button button-unstyled"
-                                @click.prevent="expandedContent == chart.id ? (expandedContent = '') : (expandedContent = chart.id)"
-                              >
-                                {{ expandedContent === chart.id ? 'Skjul uddybende information' : 'Vis uddybende information' }}
-                              </button>
+                        <template v-if="currentSection == 'test2' && currentStep === pageCount + 1 && results2.simpleList">
+                          <div class="row" :key="index">
+                            <div class="col-md-12">
+                              <h2>Innovationsparathed i din virksomhed</h2>
+                              <p>
+                                Innovationsparatheden er et tal mellem 0 og 100%. Hvis din værdi er 30, så betyder det, at en virksomhed med dine
+                                karakteristika har 30% sandsynlighed for at lave innovation.
+                              </p>
+                            </div>
+                            <div class="col-sm-6" v-for="chart of test2BarCharts.feature2" :key="chart.id">
+                              <apexchart type="bar" :options="chart.options" :series="chart.series"></apexchart>
+                              <div class="chartBottom">
+                                <p class="chartBottom-subtitle">{{ chart.subtitle }}</p>
+                                <button
+                                  class="expandButton button button-unstyled"
+                                  @click.prevent="expandedContent == chart.id ? (expandedContent = '') : (expandedContent = chart.id)"
+                                >
+                                  {{ expandedContent === chart.id ? 'Skjul uddybende information' : 'Vis uddybende information' }}
+                                </button>
+                              </div>
                             </div>
                           </div>
 
                           <div class="row" v-for="(chart, index) of test2BarCharts.feature2" :key="index">
                             <div class="col-sm-12">
-                              {{ chart.id }}
                               {{ expandedContent }}
                               <template v-if="expandedContent === chart.id">
                                 <div class="row expandedContent isExpanded">
@@ -360,23 +361,25 @@
                             </div>
                           </div>
 
-                          <div class="col-md-12">
-                            <h2>Innovationseffekter i din virksomhed</h2>
-                            <p>
-                              Innovationseffekter viser hvordan innovation forventes at påvirke profit pr. medarbejder og produktiviteten (vækst i
-                              værditilvækst i forhold til produktionsfaktorer).
-                            </p>
-                          </div>
-                          <div class="col-sm-6" v-for="(chart, index) of test2BarCharts.feature3" :key="chart.id">
-                            <apexchart type="bar" :options="chart.options" :series="chart.series"></apexchart>
-                            <div class="chartBottom">
-                              <p class="chartBottom-subtitle">{{ chart.subtitle }}</p>
-                              <button class="expandButton button button-unstyled" @click.prevent="expandedContent = chart.id">
-                                {{ expandedContent === chart.id ? 'Skjul uddybende information' : 'Vis uddybende information' }}
-                              </button>
+                          <div class="row">
+                            <div class="col-md-12">
+                              <h2>Innovationseffekter i din virksomhed</h2>
+                              <p>
+                                Innovationseffekter viser hvordan innovation forventes at påvirke profit pr. medarbejder og produktiviteten (vækst i
+                                værditilvækst i forhold til produktionsfaktorer).
+                              </p>
+                            </div>
+                            <div class="col-sm-6" v-for="(chart, index) of test2BarCharts.feature3" :key="chart.id">
+                              <apexchart type="bar" :options="chart.options" :series="chart.series"></apexchart>
+                              <div class="chartBottom">
+                                <p class="chartBottom-subtitle">{{ chart.subtitle }}</p>
+                                <button class="expandButton button button-unstyled" @click.prevent="expandedContent = chart.id">
+                                  {{ expandedContent === chart.id ? 'Skjul uddybende information' : 'Vis uddybende information' }}
+                                </button>
+                              </div>
                             </div>
                           </div>
-                        </div>
+                        </template>
 
                         <div class="row" v-if="currentStep === pageCount + 1">
                           <div class="col-md-12">
@@ -522,12 +525,12 @@ const client = sanityClient({
 })
 export default class Applikation extends Vue {
   // initial data values
-  currentSection = 'test2'; // frontpage, test1, test2 - initial frontpage
+  currentSection = 'frontpage'; // frontpage, test1, test2 - initial frontpage
   currentStep = 1; // initial 1
   pageCount = 1; // initial 1
   maxStep = 1;
-  // apiBaseUrl = 'https://innovation-benchmark-git-dev-innovationbenchmark.vercel.app';
-  apiBaseUrl = 'http://localhost:3002';
+  apiBaseUrl = 'https://innovation-benchmark-git-dev-innovationbenchmark.vercel.app';
+  // apiBaseUrl = 'http://localhost:3002';
   isLoading = false;
   error = '';
   errorHeading = '';
