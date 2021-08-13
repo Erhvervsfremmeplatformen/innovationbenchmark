@@ -33,7 +33,7 @@
         <div class="hero-padding mb-8"></div>
         <div class="row frontPageMatter">
           <template v-for="(card, index) of frontPageMatter.cards">
-            <div class="col-md-6" :key="card._key" style="margin-bottom: 32px;">
+            <div class="col-md-6" :key="'frontPageMatterCards' + index" style="margin-bottom: 32px;">
               <div :class="['card', [0, 6].includes(index) ? 'card-transparent' : '', [1].includes(index) ? 'prosAndCons' : '']">
                 <div class="card-header">
                   <h2 v-if="[0].includes(index)">{{ card.cardHeadline }}</h2>
@@ -227,8 +227,12 @@
                                   </div>
                                 </div>
 
+                                <legend v-else-if="field._type === 'helptext'">
+                                  <strong>{{ field.description }}</strong>
+                                </legend>
+
                                 <div class="form-group" v-else>
-                                  {{ field.type }}
+                                  {{ field._type }}
                                 </div>
                               </div>
                             </fieldset>
@@ -284,6 +288,9 @@
                                   class="expandButton button button-unstyled"
                                   @click.prevent="expandedContent == chart.id ? (expandedContent = '') : (expandedContent = chart.id)"
                                 >
+                                  <svg class="icon-svg" focusable="false" aria-hidden="true">
+                                    <use :xlink:href="expandedContent === chart.id ? '#minus' : '#plus'"></use>
+                                  </svg>
                                   {{ expandedContent === chart.id ? 'Skjul uddybende information' : 'Vis uddybende information' }}
                                 </button>
                               </div>
@@ -322,13 +329,22 @@
                         <template v-if="currentSection == 'test2' && currentStep === pageCount + 1 && results2.simpleList">
                           <div class="row" :key="index">
                             <div class="col-md-12">
+                              <button class="arrowLink arrowLink_back" @click.prevent="currentStep = 1">
+                                Ret dine svar
+                              </button>
+                            </div>
+                            <div class="col-md-12">
                               <h2>Innovationsparathed i din virksomhed</h2>
                               <p>
                                 Innovationsparatheden er et tal mellem 0 og 100%. Hvis din værdi er 30, så betyder det, at en virksomhed med dine
                                 karakteristika har 30% sandsynlighed for at lave innovation.
                               </p>
                             </div>
-                            <div class="col-sm-6" v-for="chart of test2BarCharts.feature2" :key="chart.id">
+                            <div
+                              :class="['col-sm-6', expandedContent === chart.id ? 'expandedChart' : '']"
+                              v-for="chart of test2BarCharts.feature2"
+                              :key="chart.id"
+                            >
                               <apexchart type="bar" :options="chart.options" :series="chart.series"></apexchart>
                               <div class="chartBottom">
                                 <p class="chartBottom-subtitle">{{ chart.subtitle }}</p>
@@ -336,18 +352,21 @@
                                   class="expandButton button button-unstyled"
                                   @click.prevent="expandedContent == chart.id ? (expandedContent = '') : (expandedContent = chart.id)"
                                 >
+                                  <svg class="icon-svg" focusable="false" aria-hidden="true">
+                                    <use :xlink:href="expandedContent === chart.id ? '#minus' : '#plus'"></use>
+                                  </svg>
                                   {{ expandedContent === chart.id ? 'Skjul uddybende information' : 'Vis uddybende information' }}
                                 </button>
                               </div>
                             </div>
                           </div>
 
-                          <div class="row" v-for="(chart, index) of test2BarCharts.feature2" :key="index">
+                          <div class="row" v-for="chart of test2BarCharts.feature2" :key="chart.id">
                             <div class="col-sm-12">
                               <template v-if="expandedContent === chart.id">
                                 <div class="row expandedContent isExpanded">
                                   <div class="col-sm-6" v-for="(chart, index) of chart.expands" :key="chart.id + '_' + index">
-                                    <template v-if="chart.value && chart.value !== '#N/A' && chart.value !== '#VALUE!'">
+                                    <template v-if="chart.series[0].data[0] !== '#N/A' && chart.series[0].data[0] !== '#VALUE!'">
                                       <apexchart height="200" type="bar" :options="chart.options" :series="chart.series"></apexchart>
                                       <div class="chartBottom">
                                         <p class="chartBottom-subtitle">{{ chart.subtitle }}</p>
@@ -374,9 +393,10 @@
                                           display: flex;
                                           align-items: center;
                                           justify-content: center;
+                                          font-size: 12px;
                                         "
                                       >
-                                        <p style="margin-top: -2rem;">Det var ikke muligt at udregne effekten for din industri/din størrelse</p>
+                                        <p style="margin-top: -32px;">Det var ikke muligt at udregne effekten for din industri/din størrelse</p>
                                       </div>
                                     </div>
                                   </div>
@@ -387,34 +407,44 @@
 
                           <div class="row">
                             <div class="col-md-12">
+                              <hr />
                               <h2>Innovationseffekter i din virksomhed</h2>
                               <p>
                                 Innovationseffekter viser hvordan innovation forventes at påvirke profit pr. medarbejder og produktiviteten (vækst i
                                 værditilvækst i forhold til produktionsfaktorer).
                               </p>
                             </div>
-                            <div class="col-sm-6" v-for="(chart, index) of test2BarCharts.feature3" :key="chart.id">
+                            <div
+                              :class="['col-sm-6', expandedContent === chart.id ? 'expandedChart' : '']"
+                              v-for="chart of test2BarCharts.feature3"
+                              :key="chart.id"
+                            >
                               <apexchart type="bar" :options="chart.options" :series="chart.series"></apexchart>
                               <div class="chartBottom">
                                 <p class="chartBottom-subtitle">{{ chart.subtitle }}</p>
-                                <button class="expandButton button button-unstyled" @click.prevent="expandedContent = chart.id">
+                                <button
+                                  class="expandButton button button-unstyled"
+                                  @click.prevent="expandedContent == chart.id ? (expandedContent = '') : (expandedContent = chart.id)"
+                                >
+                                  <svg class="icon-svg" focusable="false" aria-hidden="true">
+                                    <use :xlink:href="expandedContent === chart.id ? '#minus' : '#plus'"></use>
+                                  </svg>
                                   {{ expandedContent === chart.id ? 'Skjul uddybende information' : 'Vis uddybende information' }}
                                 </button>
                               </div>
                             </div>
                           </div>
-                          <div class="row" v-for="(chart, index) of test2BarCharts.feature3" :key="index">
+                          <div class="row" v-for="chart of test2BarCharts.feature3" :key="chart.id">
                             <div class="col-sm-12">
                               <template v-if="expandedContent === chart.id">
                                 <div class="row expandedContent isExpanded">
                                   <div class="col-sm-6" v-for="(chart, index) of chart.expands" :key="chart.id + '_' + index">
-                                    <apexchart
-                                      height="200"
-                                      type="bar"
-                                      :options="chart.options"
-                                      :series="chart.series"
-                                      v-if="chart.value && chart.value !== '#N/A' && chart.value !== '#VALUE!'"
-                                    ></apexchart>
+                                    <template v-if="chart.series[0].data[0] !== '#N/A' && chart.series[0].data[0] !== '#VALUE!'">
+                                      <apexchart height="200" type="bar" :options="chart.options" :series="chart.series"></apexchart>
+                                      <div class="chartBottom">
+                                        <p class="chartBottom-subtitle">{{ chart.subtitle }}</p>
+                                      </div>
+                                    </template>
                                     <div style="font-size: 14;" v-else>
                                       <apexchart
                                         height="200"
@@ -448,7 +478,7 @@
                         </template>
 
                         <div class="row" v-if="currentStep === pageCount + 1">
-                          <div class="col-md-12">
+                          <div class="col-md-12" id="line1">
                             <hr />
                           </div>
 
@@ -480,27 +510,27 @@
                               </div>
                             </div>
                           </div>
-                          <div class="col-md-12">
+                          <div class="col-md-12" id="line2" v-if="step.cards">
                             <hr />
                           </div>
                           <div class="col-md-6">
                             <div :class="['card', 'card-transparent']">
                               <div class="card-header">
-                                <h2>{{ frontPageMatter.cards[frontPageMatter.cards.length - 1].cardHeadline }}</h2>
+                                <h2>{{ frontPageMatter.cards[frontPageMatter.cards.length - 2].cardHeadline }}</h2>
                               </div>
-                              <div class="card-text" v-html="sanityBlocks(frontPageMatter.cards[frontPageMatter.cards.length - 1].cardBody)"></div>
-                              <div class="card-footer card-action" v-if="frontPageMatter.cards[frontPageMatter.cards.length - 1].cardButtonText">
+                              <div class="card-text" v-html="sanityBlocks(frontPageMatter.cards[frontPageMatter.cards.length - 2].cardBody)"></div>
+                              <div class="card-footer card-action" v-if="frontPageMatter.cards[frontPageMatter.cards.length - 2].cardButtonText">
                                 <a
                                   :href="
-                                    frontPageMatter.cards[frontPageMatter.cards.length - 1].cardButtonUrl.includes('http') ||
-                                    frontPageMatter.cards[frontPageMatter.cards.length - 1].cardButtonUrl == '/test'
-                                      ? frontPageMatter.cards[frontPageMatter.cards.length - 1].cardButtonUrl
-                                      : apiBaseUrl + frontPageMatter.cards[frontPageMatter.cards.length - 1].cardButtonUrl
+                                    frontPageMatter.cards[frontPageMatter.cards.length - 2].cardButtonUrl.includes('http') ||
+                                    frontPageMatter.cards[frontPageMatter.cards.length - 2].cardButtonUrl == '/test'
+                                      ? frontPageMatter.cards[frontPageMatter.cards.length - 2].cardButtonUrl
+                                      : apiBaseUrl + frontPageMatter.cards[frontPageMatter.cards.length - 2].cardButtonUrl
                                   "
-                                  :data-url="frontPageMatter.cards[frontPageMatter.cards.length - 1].cardButtonUrl"
+                                  :data-url="frontPageMatter.cards[frontPageMatter.cards.length - 2].cardButtonUrl"
                                   :target="
-                                    frontPageMatter.cards[frontPageMatter.cards.length - 1].cardButtonUrl.includes('http') ||
-                                    frontPageMatter.cards[frontPageMatter.cards.length - 1].cardButtonUrl !== '/test'
+                                    frontPageMatter.cards[frontPageMatter.cards.length - 2].cardButtonUrl.includes('http') ||
+                                    frontPageMatter.cards[frontPageMatter.cards.length - 2].cardButtonUrl !== '/test'
                                       ? '_blank'
                                       : ''
                                   "
@@ -513,7 +543,7 @@
                                       : ['button-secondary', 'custom-button-secondary']
                                   ]"
                                 >
-                                  {{ frontPageMatter.cards[frontPageMatter.cards.length - 1].cardButtonText }}</a
+                                  {{ frontPageMatter.cards[frontPageMatter.cards.length - 2].cardButtonText }}</a
                                 >
                               </div>
                             </div>
@@ -604,7 +634,7 @@ export default class Applikation extends Vue {
   test1 = [];
   test2 = [];
   values = [];
-  frontPageMatter = {};
+  frontPageMatter = {} as any;
   results1 = {} as any;
   results2 = {} as any;
   initialValues = {
@@ -634,8 +664,8 @@ export default class Applikation extends Vue {
     feature2_inno: 0,
     feature2_industri: 0,
     feature2_storrelse: 0,
-    feature2_kvu: 0,
-    feature2_mlvu: 0
+    feature2_kvu: '1',
+    feature2_mlvu: '1'
   };
   chartColors = {
     blue: 'rgba(0, 82, 255, 0.3)',
@@ -1340,7 +1370,7 @@ export default class Applikation extends Vue {
                 `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2.simpleList.din_ssh_str} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle industrier for din størrelsesgruppe.`,
                 `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2.simpleList.din_ssh_industri} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle størrelser i din industrigruppe.`
               ][index],
-              value: [this.results2.simpleList.din_ssh_str, this.results2.simpleList.din_ssh_industri][index],
+              value: this.results2.simpleList[`${chartPrefix[index]}_my_bin`],
               options: this.barOptions(
                 true, // animationsEnabled
                 [undefined, this.results2.simpleList[`${chartPrefix[index]}_my_bin`]], // annotation
@@ -1507,12 +1537,9 @@ export default class Applikation extends Vue {
             this.results2.simpleList.hist4_samlet_text_x_axis, //xaxis,
             this.results2.simpleList.hist4_samlet_text_left //yaxis,
           ),
-          expands: ['hist2_str', 'hist3_industri'].map((chartId, index) => {
-            const labels = [
-              `Samme størrelse - Din sandsynlighed er ${this.results2.simpleList.din_ssh_str}%`,
-              `Samme industri - Din sandsynlighed er ${this.results2.simpleList.din_ssh_industri}%`
-            ];
-            const chartPrefix = ['hist2', 'hist3'];
+          expands: ['hist5_str', 'hist6_industri'].map((chartId, index) => {
+            const labels = [`Samme størrelse - Ændring i produktivitetsvækst`, `Samme industri - Ændring i produktivitetsvækst`];
+            const chartPrefix = ['hist5', 'hist6'];
             return {
               series: [
                 {
@@ -1520,11 +1547,14 @@ export default class Applikation extends Vue {
                   data: this.results2.histogramList[`${chartId}_bins`].map((item: any) => item.Value)
                 }
               ],
-              subtitle: [
-                `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2.simpleList.din_ssh_str} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle industrier for din størrelsesgruppe.`,
-                `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2.simpleList.din_ssh_industri} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle størrelser i din industrigruppe.`
-              ][index],
-              value: [this.results2.simpleList.din_ssh_str, this.results2.simpleList.din_ssh_industri][index],
+              subtitle: `Værdien for din virksomhed betyder, at din produktivitetsvækst over tre år er ${this.results2.histogramList[
+                `${chartId}_bins`
+              ]
+                .filter((column: any) => column.Variable === this.results2.simpleList[`${chartId}_my_bin`])
+                .map(
+                  (column: any) => column.Value
+                )}%-point med innovation end uden. De øvrige søjler viser værdien, hvis andelen af ansatte med videregående uddannelse havde været anderledes.`,
+              value: this.results2.simpleList[`${chartPrefix[index]}_my_bin`],
               options: this.barOptions(
                 true, // animationsEnabled
                 [undefined, this.results2.simpleList[`${chartPrefix[index]}_my_bin`]], // annotation
@@ -2198,6 +2228,10 @@ input[type='range'] {
       }
     }
   }
+
+  &_description {
+    hyphens: auto;
+  }
 }
 
 .calculatingSliders {
@@ -2342,6 +2376,29 @@ input[type='range'] {
       margin-left: 24px;
     }
   }
+
+  &_back {
+    margin-top: 32px;
+
+    &:after {
+      content: none;
+    }
+
+    &:before {
+      content: '';
+      display: inline-block;
+      width: 16px;
+      height: 24px;
+      background: transparent url($baseUrl + '/img/arrow--orange.svg') center / 16px no-repeat;
+      margin-right: 12px;
+      transition: all 220ms ease-in-out;
+      transform: rotate(180deg);
+    }
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 }
 
 .hero-padding {
@@ -2410,7 +2467,7 @@ select.form-select {
     }
   }
 
-  &_feature2_3 {
+  @at-root .test2 & {
     @include media-breakpoint-up(sm) {
       &:after {
         left: 25%;
