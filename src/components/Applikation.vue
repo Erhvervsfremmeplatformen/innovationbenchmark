@@ -21,13 +21,7 @@
                 </p>
                 <div class="link">
                   <div>
-                    <button
-                      class="arrowLink"
-                      @click.prevent="
-                        currentSection = 'test1';
-                        pageCount = 5;
-                      "
-                    >
+                    <button class="arrowLink" @click.prevent="goToTest1">
                       {{ frontPageMatter.cta_text }}
                     </button>
                   </div>
@@ -1577,6 +1571,18 @@ export default class Applikation extends Vue {
   }
 
   mounted() {
+    if (window.location.hash.length > 0) {
+      const hashLocation = window.location.hash.replace('#', '');
+
+      if (hashLocation == 'test1') {
+        this.goToTest1();
+      } else if (hashLocation == 'test2') {
+        this.goToTest2();
+      } else if (hashLocation == 'frontpage') {
+        this.goToFrontpage();
+      }
+    }
+
     const html = document.querySelector('html') as any;
     if (html) {
       html.style.scrollBehavior = 'smooth'; // add smooth scroll
@@ -1611,6 +1617,24 @@ export default class Applikation extends Vue {
     this.errorHeading = '';
   }
 
+  goToFrontpage() {
+    this.currentSection = 'frontpage';
+    this.pageCount = 1;
+    this.currentStep = 1;
+  }
+
+  goToTest1() {
+    this.currentSection = 'test1';
+    this.pageCount = 5;
+    this.currentStep = 1;
+  }
+
+  goToTest2() {
+    this.currentSection = 'test2';
+    this.pageCount = 1;
+    this.currentStep = 1;
+  }
+
   resolveUrl(event: Event) {
     const target = event.target as HTMLTextAreaElement;
     const url = target.getAttribute('data-url');
@@ -1620,17 +1644,13 @@ export default class Applikation extends Vue {
 
     if (url === '/test') {
       event.preventDefault();
-      this.currentSection = 'test1';
-      this.pageCount = 5;
-      this.currentStep = 1;
+      this.goToTest1();
       return;
     }
 
     if (url === '/test2') {
       event.preventDefault();
-      this.currentSection = 'test2';
-      this.pageCount = 1;
-      this.currentStep = 1;
+      this.goToTest2();
       return;
     }
   }
@@ -2199,7 +2219,8 @@ input[type='range'] {
     }
 
     @at-root .test2 & {
-      bottom: 200px;
+      bottom: auto;
+      top: 910px;
     }
   }
 }
