@@ -34,7 +34,7 @@
         <div class="row frontPageMatter">
           <template v-for="(card, index) of frontPageMatter.cards">
             <div class="col-md-6" :key="'frontPageMatterCards' + index" style="margin-bottom: 32px;">
-              <div :class="['card', [0, 6].includes(index) ? 'card-transparent' : '', [1].includes(index) ? 'prosAndCons' : '']">
+              <div :class="['card', [0, 6, 7].includes(index) ? 'card-transparent' : '', [1].includes(index) ? 'prosAndCons' : '']">
                 <div class="card-header">
                   <h2 v-if="[0].includes(index)">{{ card.cardHeadline }}</h2>
                   <h3 v-else>{{ card.cardHeadline }}</h3>
@@ -71,6 +71,16 @@
               <h2 v-if="[1].includes(index)">Mere inspiration til din virksomhed</h2>
             </div>
           </template>
+
+          <div class="bottomLogos">
+            <img
+              v-for="(logo, index) of ['bottomLogo1', 'bottomLogo2', 'bottomLogo3', 'bottomLogo4']"
+              :alt="logo"
+              class="bottomLogo"
+              :key="index"
+              :src="`${apiBaseUrl}/img/${logo}.png`"
+            />
+          </div>
         </div>
       </template>
 
@@ -2473,6 +2483,31 @@ select.form-select {
         left: 25%;
       }
     }
+  }
+}
+
+.bottomLogos {
+  margin-top: 48px;
+  margin-bottom: 32px;
+  justify-content: center;
+
+  @include media-breakpoint-up(md) {
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    padding-left: 16px;
+  }
+}
+
+.bottomLogo {
+  width: auto;
+  margin: 8px;
+  height: 32px;
+  max-width: 100%;
+  object-fit: contain;
+
+  @include media-breakpoint-up(sm) {
+    margin: 0 48px 0 0;
+    height: 40px;
   }
 }
 </style>
