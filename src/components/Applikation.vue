@@ -176,7 +176,7 @@
 
                                 <div class="form-group" v-else-if="field._type === 'radiobuttons'">
                                   <fieldset>
-                                    <legend class="h5">{{ field.label }}</legend>
+                                    <legend>{{ field.label }}</legend>
                                     <p>{{ field.description }}</p>
                                     <ul class="nobullet-list">
                                       <li v-for="(option, index) in field.options" :key="index">
@@ -2064,17 +2064,17 @@ ul.nav-bottom {
   .sliderOptions {
     .sliderBackground {
       background: none;
-      top: -40px !important;
+      top: -41px !important;
     }
 
     &_item {
       &:before {
-        top: -32px !important;
+        top: -33px !important;
       }
     }
 
     @at-root .calculatingSliders &:after {
-      top: -40px !important;
+      top: -41px !important;
     }
   }
 }
@@ -2551,6 +2551,15 @@ select.form-select {
   @include media-breakpoint-up(sm) {
     margin: 0 48px 0 0;
     height: 40px;
+  }
+}
+
+legend {
+  font-weight: 600;
+  margin-bottom: 0;
+
+  & + p {
+    margin-top: 0;
   }
 }
 </style>
