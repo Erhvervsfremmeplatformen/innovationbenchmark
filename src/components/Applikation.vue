@@ -1981,11 +1981,11 @@ ul.nav-bottom {
   position: relative;
 
   .sliderBackground {
-    height: 4px;
+    height: 5px;
     background-color: $colorGrey_dark;
     display: block;
     position: absolute;
-    top: -28px;
+    top: -29px;
     pointer-events: none;
 
     @-moz-document url-prefix() {
@@ -2002,7 +2002,7 @@ ul.nav-bottom {
       position: absolute;
       background-color: $colorGrey;
       left: -48px;
-      top: -28px;
+      top: -29px;
       height: 2px;
     }
   }
@@ -2039,14 +2039,14 @@ ul.nav-bottom {
 
     &:before {
       content: '';
-      width: 4px;
-      height: 4px;
+      width: 5px;
+      height: 5px;
       border-radius: 50%;
       display: block;
       background-color: $colorGrey;
       position: absolute;
       visibility: visible;
-      top: -20px;
+      top: -21px;
       z-index: 0;
     }
 
@@ -2074,7 +2074,7 @@ ul.nav-bottom {
     }
 
     @at-root .calculatingSliders &:after {
-      top: -41px !important;
+      top: -40px !important;
     }
   }
 }
