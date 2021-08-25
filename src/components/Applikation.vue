@@ -71,16 +71,6 @@
               <h2 v-if="[1].includes(index)">Mere inspiration til din virksomhed</h2>
             </div>
           </template>
-
-          <div class="bottomLogos">
-            <img
-              v-for="(logo, index) of ['bottomLogo1', 'bottomLogo2', 'bottomLogo3', 'bottomLogo4']"
-              :alt="logo"
-              class="bottomLogo"
-              :key="index"
-              :src="`${apiBaseUrl}/img/${logo}.png`"
-            />
-          </div>
         </div>
       </template>
 
@@ -141,7 +131,7 @@
                                 v-bind:key="field._id"
                                 :class="[
                                   'formWrapper',
-                                  field.width == 50 ? 'col-6' : 'col-12',
+                                  field.width == 50 ? 'col-lg-6' : 'col-12',
                                   field._type == 'slider' && step.calculatingSliders ? 'calculatingSlider' : ''
                                 ]"
                               >
@@ -288,7 +278,7 @@
                         <template v-if="currentSection == 'test1' && currentStep === pageCount + 1 && results1.simpleList">
                           <div class="row" :key="index">
                             <div
-                              :class="['col-sm-3', expandedContent === chart.id ? 'expandedChart' : '']"
+                              :class="['col-6', 'col-sm-3', expandedContent === chart.id ? 'expandedChart' : '']"
                               v-for="(chart, index) of test1BarCharts"
                               :key="index"
                             >
@@ -307,31 +297,33 @@
                             </div>
                           </div>
 
-                          <div class="row" v-for="(chart, index) of test1BarCharts" :key="index">
-                            <div class="col-sm-12">
-                              <template v-if="expandedContent === chart.id">
-                                <div class="row expandedContent isExpanded">
-                                  <div class="col-sm-6">
-                                    <p class="intro">{{ chart.intro }}</p>
+                          <div ref="expandedContentArea">
+                            <div class="row" v-for="(chart, index) of test1BarCharts" :key="index">
+                              <div class="col-sm-12">
+                                <template v-if="expandedContent === chart.id">
+                                  <div class="row expandedContent isExpanded">
+                                    <div class="col-sm-6">
+                                      <p class="intro">{{ chart.intro }}</p>
+                                    </div>
+                                    <div class="col-sm-6" />
+                                    <div
+                                      :class="[chart.width == 25 ? 'col-sm-3' : 'col-sm-6']"
+                                      v-for="(chart, index) of chart.expands"
+                                      :key="chart.id + '_' + index"
+                                    >
+                                      <apexchart height="200" type="bar" :options="chart.options" :series="chart.series"></apexchart>
+                                    </div>
                                   </div>
-                                  <div class="col-sm-6" />
-                                  <div
-                                    :class="[chart.width == 25 ? 'col-sm-3' : 'col-sm-6']"
-                                    v-for="(chart, index) of chart.expands"
-                                    :key="chart.id + '_' + index"
+                                  <button
+                                    @click.prevent="getPDF(chart.id)"
+                                    class="button custom-button button-secondary custom-button-secondary custom-button-right"
                                   >
-                                    <apexchart height="200" type="bar" :options="chart.options" :series="chart.series"></apexchart>
-                                  </div>
-                                </div>
-                                <button
-                                  @click.prevent="getPDF(chart.id)"
-                                  class="button custom-button button-secondary custom-button-secondary custom-button-right"
-                                >
-                                  <svg class="icon-svg" focusable="false" aria-hidden="true">
-                                    <use xlink:href="#download"></use></svg
-                                  >Hent PDF-rapport
-                                </button>
-                              </template>
+                                    <svg class="icon-svg" focusable="false" aria-hidden="true">
+                                      <use xlink:href="#download"></use></svg
+                                    >Hent PDF-rapport
+                                  </button>
+                                </template>
+                              </div>
                             </div>
                           </div>
                         </template>
@@ -355,7 +347,7 @@
                               v-for="chart of test2BarCharts.feature2"
                               :key="chart.id"
                             >
-                              <apexchart type="bar" :options="chart.options" :series="chart.series"></apexchart>
+                              <apexchart type="bar" height="300" :options="chart.options" :series="chart.series"></apexchart>
                               <div class="chartBottom">
                                 <p class="chartBottom-subtitle">{{ chart.subtitle }}</p>
                                 <button
@@ -371,47 +363,49 @@
                             </div>
                           </div>
 
-                          <div class="row" v-for="chart of test2BarCharts.feature2" :key="chart.id">
-                            <div class="col-sm-12">
-                              <template v-if="expandedContent === chart.id">
-                                <div class="row expandedContent isExpanded">
-                                  <div class="col-sm-6" v-for="(chart, index) of chart.expands" :key="chart.id + '_' + index">
-                                    <template v-if="chart.series[0].data[0] !== '#N/A' && chart.series[0].data[0] !== '#VALUE!'">
-                                      <apexchart height="200" type="bar" :options="chart.options" :series="chart.series"></apexchart>
-                                      <div class="chartBottom">
-                                        <p class="chartBottom-subtitle">{{ chart.subtitle }}</p>
-                                      </div>
-                                    </template>
+                          <div ref="expandedContentArea">
+                            <div class="row" v-for="chart of test2BarCharts.feature2" :key="chart.id">
+                              <div class="col-sm-12">
+                                <template v-if="expandedContent === chart.id">
+                                  <div class="row expandedContent isExpanded">
+                                    <div class="col-sm-6" v-for="(chart, index) of chart.expands" :key="chart.id + '_' + index">
+                                      <template v-if="chart.series[0].data[0] !== '#N/A' && chart.series[0].data[0] !== '#VALUE!'">
+                                        <apexchart type="bar" height="300" :options="chart.options" :series="chart.series"></apexchart>
+                                        <div class="chartBottom">
+                                          <p class="chartBottom-subtitle">{{ chart.subtitle }}</p>
+                                        </div>
+                                      </template>
 
-                                    <div style="font-size: 14;" v-else>
-                                      <apexchart
-                                        height="200"
-                                        type="bar"
-                                        :series="[{ data: [1, 2, 3, 4, 5], name: chart.series[0].name }]"
-                                        :options="barOptions( false,
+                                      <div style="font-size: 14;" v-else>
+                                        <apexchart
+                                          type="bar"
+                                          height="300"
+                                          :series="[{ data: [1, 2, 3, 4, 5], name: chart.series[0].name }]"
+                                          :options="barOptions( false,
                                       undefined, chart.options.xaxis.categories, [chartColors.green], 5, true, [chartColors.greenSolid],
                                       chart.series[0].name, true, undefined, '', '' ),"
-                                      />
-                                      <div
-                                        style="
-                                          position: absolute;
-                                          top: 2rem;
-                                          width: 100%;
-                                          height: calc(100% - 2rem);
-                                          background: #f5f5f5;
-                                          opacity: 0.8;
-                                          display: flex;
-                                          align-items: center;
-                                          justify-content: center;
-                                          font-size: 12px;
-                                        "
-                                      >
-                                        <p style="margin-top: -32px;">Det var ikke muligt at udregne effekten for din industri/din størrelse</p>
+                                        />
+                                        <div
+                                          style="
+                                            position: absolute;
+                                            top: 2rem;
+                                            width: 100%;
+                                            height: calc(100% - 2rem);
+                                            background: #f5f5f5;
+                                            opacity: 0.8;
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: center;
+                                            font-size: 12px;
+                                          "
+                                        >
+                                          <p style="margin-top: -32px;">Det var ikke muligt at udregne effekten for din industri/din størrelse</p>
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
-                                </div>
-                              </template>
+                                </template>
+                              </div>
                             </div>
                           </div>
 
@@ -429,7 +423,7 @@
                               v-for="chart of test2BarCharts.feature3"
                               :key="chart.id"
                             >
-                              <apexchart type="bar" :options="chart.options" :series="chart.series"></apexchart>
+                              <apexchart type="bar" height="300" :options="chart.options" :series="chart.series"></apexchart>
                               <div class="chartBottom">
                                 <p class="chartBottom-subtitle">{{ chart.subtitle }}</p>
                                 <button
@@ -447,18 +441,18 @@
                           <div class="row" v-for="chart of test2BarCharts.feature3" :key="chart.id">
                             <div class="col-sm-12">
                               <template v-if="expandedContent === chart.id">
-                                <div class="row expandedContent isExpanded">
+                                <div class="row expandedContent isExpanded" :ref="chart.id">
                                   <div class="col-sm-6" v-for="(chart, index) of chart.expands" :key="chart.id + '_' + index">
                                     <template v-if="chart.series[0].data[0] !== '#N/A' && chart.series[0].data[0] !== '#VALUE!'">
-                                      <apexchart height="200" type="bar" :options="chart.options" :series="chart.series"></apexchart>
+                                      <apexchart type="bar" height="300" :options="chart.options" :series="chart.series"></apexchart>
                                       <div class="chartBottom">
                                         <p class="chartBottom-subtitle">{{ chart.subtitle }}</p>
                                       </div>
                                     </template>
                                     <div style="font-size: 14;" v-else>
                                       <apexchart
-                                        height="200"
                                         type="bar"
+                                        height="300"
                                         :series="[{ data: [1, 2, 3, 4, 5], name: chart.series[0].name }]"
                                         :options="barOptions( false,
                                       undefined, chart.options.xaxis.categories, [chartColors.green], 5, true, [chartColors.greenSolid],
@@ -1635,7 +1629,9 @@ export default class Applikation extends Vue {
   }
 
   updated() {
+    console.log('render update');
     if (document.querySelectorAll('.calculatingSlider').length > 0) {
+      console.log('do stuff');
       const newElem = document.createElement('div');
       newElem.classList.add('calculatingSliders');
       const sliderArray = [...document.querySelectorAll('.calculatingSlider')] as any;
@@ -1649,12 +1645,26 @@ export default class Applikation extends Vue {
 
   @Watch('currentStep')
   @Watch('currentSection')
-  onPropertyChanged(value: string, oldValue: string) {
+  onStepChanged(value: string, oldValue: string) {
     // updated
     window.scrollTo(0, 0);
     this.maxStep = this.maxStep > this.currentStep ? this.maxStep : this.currentStep;
     this.error = '';
     this.errorHeading = '';
+  }
+
+  @Watch('expandedContent')
+  onExpandChanged(value: string, oldValue: string) {
+    console.log(this.$refs);
+
+    if (value) {
+      this.$nextTick(() => {
+        const element: any = this.$refs.expandedContentArea;
+        const top = element[0].offsetTop;
+
+        window.scrollTo(0, top);
+      });
+    }
   }
 
   goToFrontpage() {
@@ -1732,7 +1742,6 @@ export default class Applikation extends Vue {
     this.currentStep--;
   }
   handleSubmit({ values, errors, setSubmitting, setSubmitted }: any) {
-    console.log(this.values);
     this.isLoading = true;
     const url = this.currentSection === 'test1' ? `${this.apiBaseUrl}/api/put` : `${this.apiBaseUrl}/api/put-parathed`;
     axios
@@ -1744,7 +1753,7 @@ export default class Applikation extends Vue {
         body: JSON.stringify({ ...this.values, session_id: this.sessionId })
       })
       .then((rsp: any) => {
-        console.log(rsp.data);
+        // console.log(rsp.data);
         this.errorHeading = '';
         this.error = '';
         this.isLoading = false;
@@ -1791,7 +1800,7 @@ export default class Applikation extends Vue {
 
     Promise.all([client.fetch(frontpageQuery), client.fetch(query), client.fetch(query2)])
       .then(response => {
-        console.log(response);
+        // console.log(response);
         this.isLoading = false;
         this.frontPageMatter = response[0];
         this.test1 = response[1];
@@ -1807,7 +1816,7 @@ export default class Applikation extends Vue {
     const sliders = fields.filter((field: any) => field._type === 'slider');
     const sum = sliders.reduce((accumulator: any, field: any) => accumulator + (Number(values[field.key]) - 1), 0);
     if (sum > 10) {
-      setValue(name, 0);
+      setValue(name, '1');
       this.errorHeading = 'Bemærk!';
       this.error = `Svarprocenten for de ${sliders.length === 3 ? 'tre' : 'to'} spørgsmål må max. give 100% i alt`;
       window.scrollTo(0, 0);
@@ -1839,8 +1848,12 @@ html {
 
 hr {
   border-color: $colorGrey;
-  margin-top: 40px;
-  margin-bottom: 40px;
+  margin-top: 16px;
+
+  @include media-breakpoint-up(sm) {
+    margin-top: 40px;
+    margin-bottom: 40px;
+  }
 }
 
 ul.nav-list {
@@ -1997,13 +2010,18 @@ ul.nav-bottom {
   @at-root .calculatingSliders & {
     &:after {
       content: '';
-      width: 40px;
+      width: 24px;
       display: block;
       position: absolute;
       background-color: $colorGrey;
-      left: -48px;
+      left: -32px;
       top: -28px;
       height: 2px;
+
+      @include media-breakpoint-up(sm) {
+        width: 40px;
+        left: -48px;
+      }
     }
   }
 
@@ -2085,18 +2103,6 @@ input[type='range'] {
   background-color: transparent;
   padding: 16px 0;
   -webkit-appearance: none;
-
-  // @at-root .calculatingSliders & {
-  //   &:after {
-  //     content: '';
-  //     width: 40px;
-  //     display: block;
-  //     position: absolute;
-  //     background-color: $colorGrey;
-  //     left: -32px;
-  //     height: 2px;
-  //   }
-  // }
 
   &::-webkit-slider-runnable-track {
     background: #d23f1e;
@@ -2249,11 +2255,12 @@ input[type='range'] {
         width: 2px;
         position: absolute;
         background-color: $colorGrey;
-        left: -32px;
-        bottom: 36px;
-        height: calc(100% + 16px);
+        left: -16px;
+        bottom: 38px;
+        height: calc(100% + 32px);
 
         @include media-breakpoint-up(sm) {
+          left: -32px;
           height: calc(100% + 32px);
         }
       }
@@ -2289,7 +2296,11 @@ input[type='range'] {
 
 .calculatingSliders {
   position: relative;
-  padding-left: 66px;
+  padding-left: 40px;
+
+  @include media-breakpoint-up(sm) {
+    padding-left: 66px;
+  }
 
   &:before {
     content: 'Max 100%';
@@ -2299,15 +2310,17 @@ input[type='range'] {
     bottom: 42%;
     transform: translateX(calc(-100%)) rotate(-90deg);
     font-size: 12px;
-    left: 28px;
-
+    left: 40px;
     @include media-breakpoint-up(sm) {
       left: 48px;
     }
-
     @at-root .test2 & {
       bottom: auto;
-      top: 910px;
+      top: 1130px;
+
+      @include media-breakpoint-up(md) {
+        top: 910px;
+      }
     }
   }
 }
@@ -2431,7 +2444,9 @@ input[type='range'] {
   }
 
   &_back {
-    margin-top: 32px;
+    @include media-breakpoint-up(sm) {
+      margin-top: 32px;
+    }
 
     &:after {
       content: none;
@@ -2472,13 +2487,17 @@ select.form-select {
   color: $colorOrange;
   font-size: 12px;
   min-height: auto;
+  white-space: nowrap;
 }
 
 .chartBottom {
-  padding-left: 36px;
   font-size: 12px;
   line-height: 16px;
   margin-top: -24px;
+
+  @include media-breakpoint-up(sm) {
+    padding-left: 36px;
+  }
 
   &-subtitle {
     font-size: 12px;
@@ -2526,31 +2545,6 @@ select.form-select {
         left: 25%;
       }
     }
-  }
-}
-
-.bottomLogos {
-  margin-top: 48px;
-  margin-bottom: 32px;
-  justify-content: center;
-
-  @include media-breakpoint-up(md) {
-    justify-content: flex-start;
-    flex-wrap: nowrap;
-    padding-left: 16px;
-  }
-}
-
-.bottomLogo {
-  width: auto;
-  margin: 8px;
-  height: 32px;
-  max-width: 100%;
-  object-fit: contain;
-
-  @include media-breakpoint-up(sm) {
-    margin: 0 48px 0 0;
-    height: 40px;
   }
 }
 
