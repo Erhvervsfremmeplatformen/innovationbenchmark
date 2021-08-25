@@ -695,7 +695,7 @@ export default class Applikation extends Vue {
         mounted: function () {
           const radarPolygon = document.querySelector('.apexcharts-radar-series polygon') as any;
           if (radarPolygon) {
-            // radarPolygon.style.fill = 'white';
+            radarPolygon.style.fill = 'white';
           }
           document.querySelectorAll('.apexcharts-legend-marker').forEach((marker: any) => {
             marker.style.borderWidth = '1px';
@@ -2487,7 +2487,6 @@ select.form-select {
   color: $colorOrange;
   font-size: 12px;
   min-height: auto;
-  white-space: nowrap;
 }
 
 .chartBottom {
@@ -2555,6 +2554,14 @@ legend {
   & + p {
     margin-top: 0;
   }
+}
+
+.form-select {
+  background-color: $colorWhite;
+}
+
+.form-group {
+  width: 100% !important;
 }
 </style>
 
