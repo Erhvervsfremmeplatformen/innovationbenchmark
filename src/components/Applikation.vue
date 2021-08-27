@@ -2286,18 +2286,25 @@ input[type='range'] {
           height: calc(100% + 32px);
         }
       }
+    }
 
+    &:nth-of-type(2) {
       &:after {
         content: 'Max 100%';
         position: absolute;
-        left: 58px;
-        bottom: 38px;
-        height: calc(100% + 32px);
+        bottom: 0;
         font-size: 12px;
-        transform: rotate(-90deg);
+        left: -56px;
+        transform: rotate(-90deg) translateX(50%);
 
         @include media-breakpoint-up(sm) {
-          left: 24px;
+          left: -80px;
+        }
+
+        @at-root .test2 & {
+          bottom: auto;
+          top: 0;
+          transform: rotate(-90deg) translateX(-50%);
         }
       }
     }
