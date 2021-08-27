@@ -331,7 +331,13 @@
                         <template v-if="currentSection == 'test2' && currentStep === pageCount + 1 && results2.simpleList">
                           <div class="row" :key="index">
                             <div class="col-md-12">
-                              <button class="arrowLink arrowLink_back" @click.prevent="currentStep = 1">
+                              <button
+                                class="arrowLink arrowLink_back"
+                                @click.prevent="
+                                  currentStep = 1;
+                                  $forceUpdate();
+                                "
+                              >
                                 Ret dine svar
                               </button>
                             </div>
@@ -1644,9 +1650,7 @@ export default class Applikation extends Vue {
   }
 
   updated() {
-    console.log('render update');
     if (document.querySelectorAll('.calculatingSlider').length > 0) {
-      console.log('do stuff');
       const newElem = document.createElement('div');
       newElem.classList.add('calculatingSliders');
       const sliderArray = [...document.querySelectorAll('.calculatingSlider')] as any;
@@ -1798,7 +1802,6 @@ export default class Applikation extends Vue {
   }
 
   validate(values: any) {
-    console.log(values);
     this.values = values;
     return {
       email: 'Email is invalid'
