@@ -487,7 +487,7 @@
                             <h2 v-if="currentSection === 'test2'">Mere inspiration til din virksomhed</h2>
                           </div>
 
-                          <div class="col-md-6" v-for="(card, index) of step.cards" :key="index">
+                          <div class="col-md-6" v-for="(card, index) of step.cards" :key="index" style="margin-bottom: 32px;">
                             <div :class="['card', currentSection === 'test1' && [0].includes(index) ? 'card-transparent' : '']">
                               <div class="card-header">
                                 <h3>{{ card.cardHeadline }}</h3>
@@ -2290,15 +2290,14 @@ input[type='range'] {
       &:after {
         content: 'Max 100%';
         position: absolute;
-        left: -16px;
+        left: 58px;
         bottom: 38px;
         height: calc(100% + 32px);
         font-size: 12px;
         transform: rotate(-90deg);
 
         @include media-breakpoint-up(sm) {
-          left: -32px;
-          height: calc(100% + 32px);
+          left: 24px;
         }
       }
     }
