@@ -484,15 +484,16 @@
                         <div class="row" v-if="currentStep === pageCount + 1">
                           <div class="col-md-12" id="line1">
                             <hr />
+                            <h2 v-if="currentSection === 'test2'">Mere inspiration til din virksomhed</h2>
                           </div>
 
                           <div class="col-md-6" v-for="(card, index) of step.cards" :key="index">
-                            <div :class="['card', [0, 3, 4, 5, 6].includes(index) ? 'card-transparent' : '']">
+                            <div :class="['card', currentSection === 'test1' && [0].includes(index) ? 'card-transparent' : '']">
                               <div class="card-header">
-                                <h2>{{ card.cardHeadline }}</h2>
+                                <h3>{{ card.cardHeadline }}</h3>
                               </div>
-                              <div class="card-text" v-html="sanityBlocks(card.cardBody)"></div>
-                              <div class="card-footer card-action" v-if="card.cardButtonText">
+                              <div class="card-text" v-if="card.cardBody" v-html="sanityBlocks(card.cardBody)"></div>
+                              <div class="card-footer card-action" v-if="card.cardButtonText && card.cardButtonUrl">
                                 <a
                                   :href="
                                     card.cardButtonUrl.includes('http') || card.cardButtonUrl == '/test'
@@ -500,24 +501,38 @@
                                       : apiBaseUrl + card.cardButtonUrl
                                   "
                                   :data-url="card.cardButtonUrl"
-                                  :target="card.cardButtonUrl.includes('http') || card.cardButtonUrl !== '/test' ? '_blank' : ''"
+                                  :target="
+                                    card.cardButtonUrl.includes('http') || card.cardButtonUrl !== '/test' || card.cardButtonUrl !== '/frontpage'
+                                      ? '_blank'
+                                      : ''
+                                  "
                                   @click="resolveUrl"
                                   :class="[
                                     'button',
                                     'custom-button',
-                                    [0].includes(index)
+                                    currentSection === 'test1' && [0].includes(index)
                                       ? ['button-primary', 'custom-button-primary']
                                       : ['button-secondary', 'custom-button-secondary']
                                   ]"
+                                >
+                                  <svg
+                                    class="icon-svg"
+                                    focusable="false"
+                                    aria-hidden="true"
+                                    v-if="
+                                      card.cardButtonUrl.includes('http') || (card.cardButtonUrl !== '/test' && card.cardButtonUrl !== '/frontpage')
+                                    "
+                                  >
+                                    <use xlink:href="#open-in-new"></use></svg
                                   >{{ card.cardButtonText }}</a
                                 >
                               </div>
                             </div>
                           </div>
-                          <div class="col-md-12" id="line2" v-if="step.cards">
+                          <div class="col-md-12" id="line2" v-if="step.cards && currentSection === 'test1'">
                             <hr />
                           </div>
-                          <div class="col-md-6">
+                          <div class="col-md-6" v-if="currentSection === 'test1'">
                             <div :class="['card', 'card-transparent']">
                               <div class="card-header">
                                 <h2>{{ frontPageMatter.cards[frontPageMatter.cards.length - 2].cardHeadline }}</h2>
@@ -1703,6 +1718,12 @@ export default class Applikation extends Vue {
       this.goToTest2();
       return;
     }
+
+    if (url === '/frontpage') {
+      event.preventDefault();
+      this.goToFrontpage();
+      return;
+    }
   }
 
   getPDF(id: any) {
@@ -2248,6 +2269,7 @@ input[type='range'] {
 .formWrapper {
   margin-bottom: 32px;
 
+  // Vertical line
   @at-root .calculatingSliders &.calculatingSlider {
     &:not(:first-of-type) {
       &:before {
@@ -2258,6 +2280,21 @@ input[type='range'] {
         left: -16px;
         bottom: 38px;
         height: calc(100% + 32px);
+
+        @include media-breakpoint-up(sm) {
+          left: -32px;
+          height: calc(100% + 32px);
+        }
+      }
+
+      &:after {
+        content: 'Max 100%';
+        position: absolute;
+        left: -16px;
+        bottom: 38px;
+        height: calc(100% + 32px);
+        font-size: 12px;
+        transform: rotate(-90deg);
 
         @include media-breakpoint-up(sm) {
           left: -32px;
@@ -2302,27 +2339,27 @@ input[type='range'] {
     padding-left: 66px;
   }
 
-  &:before {
-    content: 'Max 100%';
-    width: auto;
-    height: auto;
-    position: absolute;
-    bottom: 42%;
-    transform: translateX(calc(-100%)) rotate(-90deg);
-    font-size: 12px;
-    left: 40px;
-    @include media-breakpoint-up(sm) {
-      left: 48px;
-    }
-    @at-root .test2 & {
-      bottom: auto;
-      top: 1130px;
+  // &:before {
+  //   content: 'Max 100%';
+  //   width: auto;
+  //   height: auto;
+  //   position: absolute;
+  //   bottom: 42%;
+  //   transform: translateX(calc(-100%)) rotate(-90deg);
+  //   font-size: 12px;
+  //   left: 40px;
+  //   @include media-breakpoint-up(sm) {
+  //     left: 48px;
+  //   }
+  //   @at-root .test2 & {
+  //     bottom: auto;
+  //     top: 1130px;
 
-      @include media-breakpoint-up(md) {
-        top: 910px;
-      }
-    }
-  }
+  //     @include media-breakpoint-up(md) {
+  //       top: 910px;
+  //     }
+  //   }
+  // }
 }
 
 .card {
