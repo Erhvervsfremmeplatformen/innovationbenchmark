@@ -174,5 +174,10 @@ module.exports = {
         }
       }
     ]
-  }
+  },
+  settings: {
+    jest: {
+      version: 26,
+    },
+  },
 };
