@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 <template>
   <div class="applikation-container">
     <div class="innovationtest">
@@ -119,7 +118,7 @@
                               v-if="currentTest[index].fields && currentTest[index].fields.length > 0"
                               :class="['row', step.calculatingSliders ? 'calculatingSliders' : '']"
                             >
-                              <div v-if="error && !isLoading" class="alert alert-e rror" role="alert" aria-atomic="true">
+                              <div v-if="error && !isLoading" class="alert alert-error" role="alert" aria-atomic="true">
                                 <div class="alert-body">
                                   <p class="alert-heading">{{ errorHeading }}</p>
                                   <p class="alert-text" v-html="error" />
@@ -154,7 +153,7 @@
                                   <label class="form-label" for="options">{{ field.label }}</label>
                                   <select
                                     id="options"
-                                    :class="['form-sel e c t ', values[field.key] !== 0 ? 'active' : '']"
+                                    :class="['form-select ', values[field.key] !== 0 ? 'active' : '']"
                                     :name="field.key"
                                     v-on="{ input, blur }"
                                   >
@@ -627,9 +626,8 @@ import * as DKFDS from 'dkfds';
 const client = sanityClient({
   projectId: 'gu31rtaa',
   dataset: 'production',
-  apiVersion: '2021-05-28', // use current UTC date - see "specifying API version"!
-  // token: 'sanity-auth-token', // or leave blank for unauthenticated usage
-  useCdn: true // `false` if you want to ensure fresh data
+  apiVersion: '2021-05-28',
+  useCdn: true
 });
 
 @Component({
@@ -645,8 +643,7 @@ export default class Applikation extends Vue {
   currentStep = 1; // initial 1
   pageCount = 1; // initial 1
   maxStep = 1;
-  apiBaseUrl = 'https://innovation-benchmark-git-dev-innovationbenchmark.vercel.app';
-  // apiBaseUrl = 'http://localhost:3002';
+  apiBaseUrl = 'https://innovationbenchmark.dk';
   isLoading = false;
   error = '';
   errorHeading = '';
@@ -2377,6 +2374,45 @@ input[type='range'] {
   &-text {
     padding: 0 32px 32px;
 
+    & >>> h3 {
+      margin-top: 16px;
+    }
+
+    & >>> ul {
+      @at-root .prosAndCons & {
+        list-style: none;
+        padding: 0;
+        margin-bottom: 32px;
+
+        li {
+          margin-bottom: 16px;
+          padding-left: 40px;
+          position: relative;
+
+          &:before {
+            content: '';
+            display: block;
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            left: 0;
+          }
+        }
+      }
+
+      @at-root .prosAndCons &:first-of-type {
+        li:before {
+          background: transparent url($baseUrl + '/img/listItem-pro.svg') center / contain no-repeat;
+        }
+      }
+
+      @at-root .prosAndCons &:last-of-type {
+        li:before {
+          background: transparent url($baseUrl + '/img/listItem-con.svg') center / contain no-repeat;
+        }
+      }
+    }
+
     @at-root .card-transparent & {
       background-color: transparent;
       padding-left: 0;
@@ -2605,49 +2641,5 @@ legend {
 
 .form-group {
   width: 100% !important;
-}
-</style>
-
-<style lang="scss">
-//TODO: dynamic loaded content does not get properly styled
-$baseUrl: 'https://innovationbenchmark.dk';
-
-.card-text h3 {
-  margin-top: 16px;
-}
-
-ul {
-  @at-root .prosAndCons & {
-    list-style: none;
-    padding: 0;
-    margin-bottom: 32px;
-
-    li {
-      margin-bottom: 16px;
-      padding-left: 40px;
-      position: relative;
-
-      &:before {
-        content: '';
-        display: block;
-        position: absolute;
-        width: 24px;
-        height: 24px;
-        left: 0;
-      }
-    }
-  }
-
-  @at-root .prosAndCons &:first-of-type {
-    li:before {
-      background: transparent url($baseUrl + '/img/listItem-pro.svg') center / contain no-repeat;
-    }
-  }
-
-  @at-root .prosAndCons &:last-of-type {
-    li:before {
-      background: transparent url($baseUrl + '/img/listItem-con.svg') center / contain no-repeat;
-    }
-  }
 }
 </style>
