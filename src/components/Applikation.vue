@@ -2368,7 +2368,8 @@ input[type='range'] {
 .card {
   box-shadow: none;
   border-color: #d7dadf;
-  @at-root .frontPageMatter & {
+  @at-root .frontPageMatter &,
+    .test2 & {
     height: 100%;
   }
   &-text {
