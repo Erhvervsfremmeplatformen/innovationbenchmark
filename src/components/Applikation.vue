@@ -1,6 +1,7 @@
 <template>
   <div class="applikation-container">
     <div class="innovationtest">
+      <h1 class="sr-only">Innovation Benchmark</h1>
       <template v-if="frontPageMatter && currentSection == 'frontpage'">
         <div class="hero-element">
           <div
@@ -14,7 +15,7 @@
         <div class="row">
           <div class="col-12 col-xs-12 col-sm-8 col-md-6 offset-md-6 col-lg-6 offset-lg-6 col-xl-6">
             <div class="hero-boks">
-              <p class="h1" v-html="frontPageMatter.headline"></p>
+              <h2 class="h1" v-html="frontPageMatter.headline"></h2>
               <p class="hero-boks-beskrivelse">
                 {{ frontPageMatter.lead }}
               </p>
@@ -35,7 +36,7 @@
               <div :class="['card', [0, 6, 7].includes(index) ? 'card-transparent' : '', [1].includes(index) ? 'prosAndCons' : '']">
                 <div class="card-header">
                   <h2 v-if="[0].includes(index)">{{ card.cardHeadline }}</h2>
-                  <h3 v-else>{{ card.cardHeadline }}</h3>
+                  <h3 v-else-if="card.cardHeadline">{{ card.cardHeadline }}</h3>
                 </div>
                 <div class="card-text" v-html="sanityBlocks(card.cardBody)"></div>
                 <div v-if="card.cardButtonText" class="card-footer card-action">
@@ -50,6 +51,7 @@
                       'custom-button',
                       [0].includes(index) ? ['button-primary', 'custom-button-primary'] : ['button-secondary', 'custom-button-secondary']
                     ]"
+                    :title="card.cardButtonText === 'Se mere' ? `Se mere om ${card.cardHeadline}` : card.cardButtonText"
                     @click="resolveUrl"
                   >
                     <svg
@@ -75,7 +77,6 @@
       <template v-if="currentSection == 'test1' || currentSection == 'test2'">
         <SimpleForm :value="initialValues" :validate="validate" @submit="handleSubmit">
           <template slot-scope="{ values, input, blur, setValue, handleSubmit }">
-            <h1 v-if="currentSection == 'test1'">Tag innovationstesten</h1>
             <nav v-if="currentSection == 'test1'">
               <ul class="nav-list">
                 <li v-for="(page, index) in test1" :key="index">
@@ -165,13 +166,14 @@
                                 <div v-else-if="field._type === 'radiobuttons'" class="form-group">
                                   <fieldset>
                                     <legend>{{ field.label }}</legend>
-                                    <p>{{ field.description }}</p>
+                                    <p :id="`label-description-${field.key}`">{{ field.description }}</p>
                                     <ul class="nobullet-list">
                                       <li v-for="(option, index) in field.options" :key="index">
                                         <input
                                           :id="field.key + '_' + index"
                                           type="radio"
                                           :name="field.key"
+                                          :aria-describedby="`label-description-${field.key}`"
                                           :value="index + 1"
                                           class="form-radio"
                                           :checked="values[field.key] === (index + 1).toString()"
@@ -185,7 +187,7 @@
 
                                 <div v-else-if="field._type === 'slider'" class="form-group">
                                   <label class="form-label" :for="field.key">{{ field.label }}</label>
-                                  <p class="formWrapper_description">{{ field.description }}</p>
+                                  <p :id="`label-description-${field.key}`" class="formWrapper_description">{{ field.description }}</p>
                                   <input
                                     :id="field.key"
                                     type="range"
@@ -193,7 +195,13 @@
                                     :name="field.key"
                                     :value="values[field.key]"
                                     :max="field.options.length"
+                                    :aria-valuemax="field.options.length"
+                                    aria-valuemin="1"
+                                    :aria-describedby="`label-description-${field.key}`"
                                     min="1"
+                                    aria-role="slider"
+                                    :aria-valuenow="values[field.key]"
+                                    :aria-valuetext="field.options[values[field.key] - 1]"
                                     v-on="{ input, blur }"
                                     @change="step.calculatingSliders ? calculateSliders(field.key, values, step.fields, setValue) : null"
                                   />
@@ -289,7 +297,7 @@
                                   <svg class="icon-svg" focusable="false" aria-hidden="true">
                                     <use :xlink:href="expandedContent === chart.id ? '#minus' : '#plus'"></use>
                                   </svg>
-                                  {{ expandedContent === chart.id ? 'Skjul uddybende information' : 'Vis uddybende information' }}
+                                  {{ expandedContent === chart.id ? 'Skjul' : 'Uddybende information' }}
                                 </button>
                               </div>
                             </div>
@@ -361,7 +369,7 @@
                                   <svg class="icon-svg" focusable="false" aria-hidden="true">
                                     <use :xlink:href="expandedContent === chart.id ? '#minus' : '#plus'"></use>
                                   </svg>
-                                  {{ expandedContent === chart.id ? 'Skjul uddybende information' : 'Vis uddybende information' }}
+                                  {{ expandedContent === chart.id ? 'Skjul' : 'Uddybende information' }}
                                 </button>
                               </div>
                             </div>
@@ -437,7 +445,7 @@
                                   <svg class="icon-svg" focusable="false" aria-hidden="true">
                                     <use :xlink:href="expandedContent === chart.id ? '#minus' : '#plus'"></use>
                                   </svg>
-                                  {{ expandedContent === chart.id ? 'Skjul uddybende information' : 'Vis uddybende information' }}
+                                  {{ expandedContent === chart.id ? 'Skjul' : 'Uddybende information' }}
                                 </button>
                               </div>
                             </div>
@@ -491,10 +499,10 @@
                             <h2 v-if="currentSection === 'test2'">Mere inspiration til din virksomhed</h2>
                           </div>
 
-                          <div v-for="(card, index) of step.cards" :key="index" class="col-md-6" style="margin-bottom: 32px;">
+                          <div v-for="(card, index) of step.cards" :key="index" class="col-md-6 mb-6">
                             <div :class="['card', currentSection === 'test1' && [0].includes(index) ? 'card-transparent' : '']">
                               <div class="card-header">
-                                <h3>{{ card.cardHeadline }}</h3>
+                                <h3 v-if="card.cardHeadline">{{ card.cardHeadline }}</h3>
                               </div>
                               <div v-if="card.cardBody" class="card-text" v-html="sanityBlocks(card.cardBody)"></div>
                               <div v-if="card.cardButtonText && card.cardButtonUrl" class="card-footer card-action">
@@ -517,11 +525,13 @@
                                       ? ['button-primary', 'custom-button-primary']
                                       : ['button-secondary', 'custom-button-secondary']
                                   ]"
+                                  :title="card.cardButtonText === 'Se mere' ? `Se mere om ${card.cardHeadline}` : card.cardButtonText"
                                   @click="resolveUrl"
                                 >
                                   <svg
                                     v-if="
-                                      card.cardButtonUrl.includes('http') || (card.cardButtonUrl !== '/test' && card.cardButtonUrl !== '/frontpage')
+                                      card.cardButtonUrl.includes('http') ||
+                                      (card.cardButtonUrl !== '/test' && card.cardButtonUrl !== '/test2' && card.cardButtonUrl !== '/frontpage')
                                     "
                                     class="icon-svg"
                                     focusable="false"
@@ -791,6 +801,13 @@ export default class Applikation extends Vue {
         },
         animations: {
           enabled: animationsEnabled
+        },
+        events: {
+          mounted: function () {
+            document.querySelectorAll('.apexcharts-xaxis-annotations line').forEach((line: any) => {
+              line.style.strokeDasharray = 2;
+            });
+          }
         }
       },
       plotOptions: {
@@ -878,6 +895,7 @@ export default class Applikation extends Vue {
             borderColor: this.chartColors.blueSolid,
             // offsetX: -16,
             // offsetY: -12,
+            strokeDashArray: 2,
             label: {
               text: 'Din vurdering',
               offsetY: 16,
@@ -1344,7 +1362,7 @@ export default class Applikation extends Vue {
           id: 'hist1_samlet_bins',
           title: `Alle virksomheder - Din sandsynlighed er ${this.results2.simpleList.din_ssh_samlet}%`,
           width: 50,
-          subtitle: `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2.simpleList.din_ssh_samlet} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle størrelser og fra alle industrier. Under ‘Vis uddybende information kan du se en sammenligning med virksomheder af din størrelse eller fra din industri (Der tages forbehold for, at disse  beregninger forudsætter data af en vis mængde)`,
+          subtitle: `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2.simpleList.din_ssh_samlet} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle størrelser og fra alle industrier. Under ‘Uddybende information kan du se en sammenligning med virksomheder af din størrelse eller fra din industri (Der tages forbehold for, at disse  beregninger forudsætter data af en vis mængde)`,
           myScore: this.results2.simpleList.hist1_my_bin,
           series: [
             {
@@ -1438,7 +1456,7 @@ export default class Applikation extends Vue {
             .filter((column: any) => column.Variable === this.results2.simpleList.hist7_my_bin)
             .map(
               (column: any) => column.Value
-            )} kr. højere efter tre år med innovation end uden. De øvrige søjler viser værdien, hvis andelen af ansatte med videregående uddannelse havde været anderledes. Under ‘Vis uddybende information’ kan du se en sammenligning med virksomheder af din størrelse eller fra din industri (Der tages forbehold for, at disse beregninger forudsætter data af en vis mængde).`,
+            )} kr. højere efter tre år med innovation end uden. De øvrige søjler viser værdien, hvis andelen af ansatte med videregående uddannelse havde været anderledes. Under ‘Uddybende information’ kan du se en sammenligning med virksomheder af din størrelse eller fra din industri (Der tages forbehold for, at disse beregninger forudsætter data af en vis mængde).`,
           myScore: this.results2.simpleList.hist7_my_bin,
           series: [
             {
@@ -1528,7 +1546,7 @@ export default class Applikation extends Vue {
             .filter((column: any) => column.Variable === this.results2.simpleList.hist4_my_bin)
             .map(
               (column: any) => column.Value
-            )}%-point med innovation end uden. De øvrige søjler viser værdien, hvis andelen af ansatte med videregående uddannelse havde været anderledes. Under ‘Vis uddybende information’ kan du se en sammenligning med virksomheder af din størrelse eller fra din industri (Der tages forbehold for, at disse beregninger forudsætter data af en vis mængde).`,
+            )}%-point med innovation end uden. De øvrige søjler viser værdien, hvis andelen af ansatte med videregående uddannelse havde været anderledes. Under ‘Uddybende information’ kan du se en sammenligning med virksomheder af din størrelse eller fra din industri (Der tages forbehold for, at disse beregninger forudsætter data af en vis mængde).`,
           myScore: this.results2.simpleList.hist4_my_bin,
           series: [
             {
@@ -1640,12 +1658,20 @@ export default class Applikation extends Vue {
       }
     }
 
+    window.addEventListener(
+      'popstate',
+      function (event) {
+        window.location = (document.referrer as unknown) as Location;
+        window.location.reload();
+      },
+      false
+    );
+
     const html = document.querySelector('html') as any;
     if (html) {
       html.style.scrollBehavior = 'smooth'; // add smooth scroll
     }
-    // fetch the data when the view is created and the data is
-    // already being observed
+
     this.fetchData();
 
     window.scrollTo(0, 0);
@@ -1689,18 +1715,21 @@ export default class Applikation extends Vue {
   goToFrontpage() {
     this.currentSection = 'frontpage';
     this.pageCount = 1;
+    history.pushState(null, '', location.href.replace(location.hash, ''));
     this.currentStep = 1;
   }
 
   goToTest1() {
     this.currentSection = 'test1';
     this.pageCount = 5;
+    history.pushState(null, '', location.href.replace(location.hash, '') + '#test1');
     this.currentStep = 1;
   }
 
   goToTest2() {
     this.currentSection = 'test2';
     this.pageCount = 1;
+    history.pushState(null, '', location.href.replace(location.hash, '') + '#test2');
     this.currentStep = 1;
   }
 
@@ -1847,7 +1876,8 @@ export default class Applikation extends Vue {
 </script>
 
 <style lang="scss" scoped>
-$colorOrange: #d23f1e;
+// $colorOrange: #d23f1e;
+$colorOrange: #d23617;
 $colorPrimary: $colorOrange;
 $colorHover: darken($colorPrimary, 10%);
 $colorGrey: #d0cfcf;
@@ -2010,6 +2040,7 @@ ul.nav-bottom {
   display: flex !important;
   justify-content: space-between;
   position: relative;
+  margin-top: -24px;
 
   .sliderBackground {
     height: 4px;
@@ -2119,7 +2150,7 @@ input[type='range'] {
   width: 100%;
   margin: 8px 0;
   background-color: transparent;
-  padding: 16px 0;
+  padding: 16px 0 40px;
   -webkit-appearance: none;
 
   &::-webkit-slider-runnable-track {
@@ -2211,7 +2242,6 @@ input[type='range'] {
 }
 
 .button.custom-button {
-  font-weight: 500;
   &[disabled] {
     cursor: wait;
   }
@@ -2450,6 +2480,10 @@ input[type='range'] {
   overflow: visible;
 }
 
+.apexcharts-xaxis-annotations line {
+  stroke-dasharray: 2;
+}
+
 .apexcharts-legend-marker {
   border-width: 1px !important;
   margin-right: 0.5rem !important;
@@ -2565,8 +2599,9 @@ select.form-select {
   text-decoration: none;
   position: relative;
   color: $colorOrange;
-  font-size: 12px;
+  font-size: 14px;
   min-height: auto;
+  font-weight: bold;
 }
 
 .chartBottom {
@@ -2642,5 +2677,16 @@ legend {
 
 .form-group {
   width: 100% !important;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
 }
 </style>
