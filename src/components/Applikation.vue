@@ -426,7 +426,7 @@
                               <hr />
                               <h2>Innovationseffekter i din virksomhed</h2>
                               <p>
-                                Innovationseffekter viser hvordan innovation forventes at påvirke profit pr. medarbejder og produktiviteten (vækst i
+                                Innovationseffekter viser, hvordan innovation forventes at påvirke profit pr. medarbejder og produktiviteten (vækst i
                                 værditilvækst i forhold til produktionsfaktorer).
                               </p>
                             </div>
@@ -742,7 +742,7 @@ export default class Applikation extends Vue {
       colors: [this.chartColors.blueSolid, this.chartColors.orangeSolid, this.chartColors.greenSolid]
     },
     xaxis: {
-      categories: ['Produkt', 'Markedsføring', 'Organisatorisk', 'Proces'],
+      categories: ['Produkt', 'Markedsføring', 'Organisation', 'Proces'],
       labels: {
         style: {
           colors: [this.chartColors.textColor, this.chartColors.textColor, this.chartColors.textColor, this.chartColors.textColor]
@@ -1169,7 +1169,7 @@ export default class Applikation extends Vue {
         id: 'org',
         series: [
           {
-            name: 'Organisatorisk',
+            name: 'Organisation',
             data: [this.results1.simpleList.org_vurd, this.results1.simpleList.org_gruppe, this.results1.simpleList.org_andre]
           }
         ],
@@ -1181,7 +1181,7 @@ export default class Applikation extends Vue {
           5,
           false,
           [this.chartColors.blueSolid, this.chartColors.orangeSolid, this.chartColors.greenSolid],
-          'Organisatorisk',
+          'Organisation',
           true,
           undefined,
           '',
@@ -1362,7 +1362,7 @@ export default class Applikation extends Vue {
           id: 'hist1_samlet_bins',
           title: `Alle virksomheder - Din sandsynlighed er ${this.results2.simpleList.din_ssh_samlet}%`,
           width: 50,
-          subtitle: `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2.simpleList.din_ssh_samlet} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle størrelser og fra alle industrier. Under ‘Uddybende information kan du se en sammenligning med virksomheder af din størrelse eller fra din industri (Der tages forbehold for, at disse  beregninger forudsætter data af en vis mængde)`,
+          subtitle: `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2.simpleList.din_ssh_samlet} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle størrelser og fra alle industrier. Under "Uddybende information" kan du se en sammenligning med virksomheder af din størrelse eller fra din industri (der tages forbehold for, at disse  beregninger forudsætter data af en vis mængde)`,
           myScore: this.results2.simpleList.hist1_my_bin,
           series: [
             {
@@ -1456,7 +1456,7 @@ export default class Applikation extends Vue {
             .filter((column: any) => column.Variable === this.results2.simpleList.hist7_my_bin)
             .map(
               (column: any) => column.Value
-            )} kr. højere efter tre år med innovation end uden. De øvrige søjler viser værdien, hvis andelen af ansatte med videregående uddannelse havde været anderledes. Under ‘Uddybende information’ kan du se en sammenligning med virksomheder af din størrelse eller fra din industri (Der tages forbehold for, at disse beregninger forudsætter data af en vis mængde).`,
+            )} kr. højere efter tre år med innovation end uden. De øvrige søjler viser værdien, hvis andelen af ansatte med videregående uddannelse havde været anderledes. Under "Uddybende information" kan du se en sammenligning med virksomheder af din størrelse eller fra din industri (der tages forbehold for, at disse beregninger forudsætter data af en vis mængde).`,
           myScore: this.results2.simpleList.hist7_my_bin,
           series: [
             {
@@ -1546,7 +1546,7 @@ export default class Applikation extends Vue {
             .filter((column: any) => column.Variable === this.results2.simpleList.hist4_my_bin)
             .map(
               (column: any) => column.Value
-            )}%-point med innovation end uden. De øvrige søjler viser værdien, hvis andelen af ansatte med videregående uddannelse havde været anderledes. Under ‘Uddybende information’ kan du se en sammenligning med virksomheder af din størrelse eller fra din industri (Der tages forbehold for, at disse beregninger forudsætter data af en vis mængde).`,
+            )}%-point med innovation end uden. De øvrige søjler viser værdien, hvis andelen af ansatte med videregående uddannelse havde været anderledes. Under "Uddybende information" kan du se en sammenligning med virksomheder af din størrelse eller fra din industri (der tages forbehold for, at disse beregninger forudsætter data af en vis mængde).`,
           myScore: this.results2.simpleList.hist4_my_bin,
           series: [
             {
