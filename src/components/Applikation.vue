@@ -874,7 +874,7 @@ export default class Applikation extends Vue {
           },
           formatter: function (value: any) {
             if (max || max !== 100) {
-              return value;
+              return value.toLocaleString('da-DK');
             }
 
             return !tooltipEnabled ? value + '%' : value;
