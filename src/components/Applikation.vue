@@ -75,7 +75,7 @@
       </template>
 
       <template v-if="currentSection == 'test1' || currentSection == 'test2'">
-        <SimpleForm :value="initialValues" :validate="validate" @submit="handleSubmit">
+        <SimpleForm :value="initialValues" @submit="handleSubmit">
           <template slot-scope="{ values, input, blur, setValue, handleSubmit }">
             <nav v-if="currentSection == 'test1'">
               <ul class="nav-list">
@@ -1791,13 +1791,6 @@ export default class Applikation extends Vue {
         this.errorHeading = 'Fejl';
         this.error = 'Noget gik galt. Prøv venligst igen.';
       });
-  }
-
-  validate(values: any) {
-    this.values = values;
-    return {
-      email: 'Email is invalid'
-    };
   }
 
   sanityBlocks(blocks: any[]) {
