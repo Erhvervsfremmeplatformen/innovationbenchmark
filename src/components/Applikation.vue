@@ -45,7 +45,7 @@
                       card.cardButtonUrl.includes('http') || card.cardButtonUrl == '/test' ? card.cardButtonUrl : apiBaseUrl + card.cardButtonUrl
                     "
                     :data-url="card.cardButtonUrl"
-                    :target="card.cardButtonUrl.includes('http') || card.cardButtonUrl !== '/test' ? '_blank' : ''"
+                    target="_blank"
                     :class="[
                       'button',
                       'custom-button',
@@ -513,11 +513,7 @@
                                       : apiBaseUrl + card.cardButtonUrl
                                   "
                                   :data-url="card.cardButtonUrl"
-                                  :target="
-                                    card.cardButtonUrl.includes('http') || card.cardButtonUrl !== '/test' || card.cardButtonUrl !== '/frontpage'
-                                      ? '_blank'
-                                      : ''
-                                  "
+                                  target="_blank"
                                   :class="[
                                     'button',
                                     'custom-button',
@@ -561,12 +557,7 @@
                                       : apiBaseUrl + frontPageMatter.cards[frontPageMatter.cards.length - 2].cardButtonUrl
                                   "
                                   :data-url="frontPageMatter.cards[frontPageMatter.cards.length - 2].cardButtonUrl"
-                                  :target="
-                                    frontPageMatter.cards[frontPageMatter.cards.length - 2].cardButtonUrl.includes('http') ||
-                                    frontPageMatter.cards[frontPageMatter.cards.length - 2].cardButtonUrl !== '/test'
-                                      ? '_blank'
-                                      : ''
-                                  "
+                                  target="_blank"
                                   :class="[
                                     'button',
                                     'custom-button',
@@ -708,7 +699,6 @@ export default class Applikation extends Vue {
     chart: {
       id: 'radar',
       foreColor: this.chartColors.textColor,
-      // fontFamily: 'Helvetica Neue, Helvetica, sans-serif',
       fontFamily: 'IBMPlexSans, system',
       offsetY: -25,
       toolbar: {
@@ -716,21 +706,21 @@ export default class Applikation extends Vue {
       },
       events: {
         mounted: function () {
-          const radarPolygon = document.querySelector('.apexcharts-radar-series polygon') as HTMLInputElement;
+          const radarPolygon = document.querySelector('.innovationtest .apexcharts-radar-series polygon') as HTMLInputElement;
           if (radarPolygon) {
             radarPolygon.style.fill = 'white';
           }
-          document.querySelectorAll('.apexcharts-legend-marker').forEach((marker: any) => {
+          document.querySelectorAll('.innovationtest .apexcharts-legend-marker').forEach((marker: any) => {
             marker.style.borderWidth = '1px';
             marker.style.marginRight = '8px';
           });
         },
         updated: function () {
-          const radarPolygon = document.querySelector('.apexcharts-radar-series polygon') as HTMLInputElement;
+          const radarPolygon = document.querySelector('.innovationtest .apexcharts-radar-series polygon') as HTMLInputElement;
           if (radarPolygon) {
             radarPolygon.style.fill = 'white';
           }
-          document.querySelectorAll('.apexcharts-legend-marker').forEach((marker: any) => {
+          document.querySelectorAll('.innovationtest .apexcharts-legend-marker').forEach((marker: any) => {
             marker.style.borderWidth = '1px';
             marker.style.marginRight = '8px';
           });
@@ -804,7 +794,7 @@ export default class Applikation extends Vue {
         },
         events: {
           mounted: function () {
-            document.querySelectorAll('.apexcharts-xaxis-annotations line').forEach((line: any) => {
+            document.querySelectorAll('.innovationtest .apexcharts-xaxis-annotations line').forEach((line: any) => {
               line.style.strokeDasharray = 2;
             });
           }
@@ -813,9 +803,7 @@ export default class Applikation extends Vue {
       plotOptions: {
         bar: {
           barHeight: '70%',
-          dataLabels: {
-            // position: 'top',
-          },
+          dataLabels: {},
           distributed: true
         }
       },
@@ -824,7 +812,6 @@ export default class Applikation extends Vue {
         type: types,
         pattern: {
           style: 'slantedLines',
-          // width: '100%',
           height: 8,
           strokeWidth: 1
         },
@@ -893,8 +880,6 @@ export default class Applikation extends Vue {
           {
             x: annotation && annotation[0] ? annotation[0] : '',
             borderColor: this.chartColors.blueSolid,
-            // offsetX: -16,
-            // offsetY: -12,
             strokeDashArray: 2,
             label: {
               text: 'Din vurdering',
@@ -913,8 +898,6 @@ export default class Applikation extends Vue {
           {
             x: annotation && annotation[1] ? annotation[1] : '',
             borderColor: this.chartColors.orangeSolid,
-            // offsetX: 8,
-            // offsetY: 24,
             label: {
               text: annotation && annotation[1] === annotation[0] ? 'Dit resultat &' : 'Dit resultat',
               orientation: 'horizontal',
@@ -1658,30 +1641,16 @@ export default class Applikation extends Vue {
       }
     }
 
-    window.addEventListener(
-      'popstate',
-      function (event) {
-        window.location = (document.referrer as unknown) as Location;
-        window.location.reload();
-      },
-      false
-    );
-
-    const html = document.querySelector('html') as any;
-    if (html) {
-      html.style.scrollBehavior = 'smooth'; // add smooth scroll
-    }
-
     this.fetchData();
 
     window.scrollTo(0, 0);
   }
 
   updated() {
-    if (document.querySelectorAll('.calculatingSlider').length > 0) {
+    if (document.querySelectorAll('.innovationtest .calculatingSlider').length > 0) {
       const newElem = document.createElement('div');
       newElem.classList.add('calculatingSliders');
-      const sliderArray = [...document.querySelectorAll('.calculatingSlider')] as any;
+      const sliderArray = [...document.querySelectorAll('.innovationtest .calculatingSlider')] as any;
       const position = sliderArray[0].parentNode;
       sliderArray.forEach((item: any) => {
         newElem.appendChild(item);
@@ -1693,7 +1662,6 @@ export default class Applikation extends Vue {
   @Watch('currentStep')
   @Watch('currentSection')
   onStepChanged(value: string, oldValue: string) {
-    // updated
     window.scrollTo(0, 0);
     this.maxStep = this.maxStep > this.currentStep ? this.maxStep : this.currentStep;
     this.error = '';
@@ -1715,21 +1683,18 @@ export default class Applikation extends Vue {
   goToFrontpage() {
     this.currentSection = 'frontpage';
     this.pageCount = 1;
-    history.pushState(null, '', location.href.replace(location.hash, ''));
     this.currentStep = 1;
   }
 
   goToTest1() {
     this.currentSection = 'test1';
     this.pageCount = 5;
-    history.pushState(null, '', location.href.replace(location.hash, '') + '#test1');
     this.currentStep = 1;
   }
 
   goToTest2() {
     this.currentSection = 'test2';
     this.pageCount = 1;
-    history.pushState(null, '', location.href.replace(location.hash, '') + '#test2');
     this.currentStep = 1;
   }
 
@@ -1760,6 +1725,7 @@ export default class Applikation extends Vue {
   }
 
   getPDF(id: any) {
+    this.isLoading = true;
     const pdfWindow = window.open('', '_blank') as any;
     pdfWindow.document.write('Henter PDF');
     pdfWindow.document.querySelector('body').style.cursor = 'wait';
@@ -1779,6 +1745,7 @@ export default class Applikation extends Vue {
           pdfWindow.location.href = PDFURL;
           pdfWindow.document.querySelector('body').style.cursor = 'auto';
         }
+        this.isLoading = true;
       })
       .catch((error: any) => {
         pdfWindow.close();
@@ -1840,9 +1807,7 @@ export default class Applikation extends Vue {
   }
 
   fetchData() {
-    // this.error = this.post = null;
     this.isLoading = true;
-    // replace `getPost` with your data fetching util / API wrapper
     const query = '*[_type == "test1"] | order(order asc)';
     const query2 = '*[_type == "test2"] | order(order asc)';
     const frontpageQuery = '*[_type == "frontpage"][0]';
