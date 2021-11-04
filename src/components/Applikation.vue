@@ -75,7 +75,7 @@
       </template>
 
       <template v-if="currentSection == 'test1' || currentSection == 'test2'">
-        <SimpleForm :value="initialValues" @submit="handleSubmit">
+        <SimpleForm :value="initialValues" :validate="validate" @submit="handleSubmit">
           <template slot-scope="{ values, input, blur, setValue, handleSubmit }">
             <nav v-if="currentSection == 'test1'">
               <ul class="nav-list">
@@ -616,13 +616,24 @@
 </template>
 
 <script lang="ts">
+export interface SliderField {
+  _key: string;
+  _type: string;
+  description: string;
+  key: string;
+  label: string;
+  options: string[];
+  page: string;
+}
+
 import { Component, Watch, Vue } from 'vue-property-decorator';
-import axios from 'axios';
+import axios, { AxiosError, AxiosResponse } from 'axios';
 import sanityClient from '@sanity/client';
 const blocksToHtml = require('@sanity/block-content-to-html');
 import SimpleForm from 'vue-simpleform';
 import VueApexCharts from 'vue-apexcharts';
-import * as DKFDS from 'dkfds';
+import { FrontPageMatter, Results1, Results2, Test1, Test2 } from '@/types/response';
+import { SanityBlock } from '@/types/sanity-block';
 
 const client = sanityClient({
   projectId: 'gu31rtaa',
@@ -649,12 +660,12 @@ export default class Applikation extends Vue {
   error = '';
   errorHeading = '';
   sessionId = this.generateId(32);
-  test1 = [];
-  test2 = [];
-  values = [];
-  frontPageMatter = {} as any;
-  results1 = {} as any;
-  results2 = {} as any;
+  test1: Test1 | null = null;
+  test2: Test2 | null = null;
+  values: string[] = [];
+  frontPageMatter: FrontPageMatter | null = null;
+  results1: Results1 | null = null;
+  results2: Results2 | null = null;
   initialValues = {
     virk_navn: '',
     industri: 0,
@@ -710,7 +721,7 @@ export default class Applikation extends Vue {
           if (radarPolygon) {
             radarPolygon.style.fill = 'white';
           }
-          document.querySelectorAll('.innovationtest .apexcharts-legend-marker').forEach((marker: any) => {
+          document.querySelectorAll<HTMLElement>('.innovationtest .apexcharts-legend-marker').forEach(marker => {
             marker.style.borderWidth = '1px';
             marker.style.marginRight = '8px';
           });
@@ -720,7 +731,7 @@ export default class Applikation extends Vue {
           if (radarPolygon) {
             radarPolygon.style.fill = 'white';
           }
-          document.querySelectorAll('.innovationtest .apexcharts-legend-marker').forEach((marker: any) => {
+          document.querySelectorAll<HTMLElement>('.innovationtest .apexcharts-legend-marker').forEach(marker => {
             marker.style.borderWidth = '1px';
             marker.style.marginRight = '8px';
           });
@@ -769,18 +780,18 @@ export default class Applikation extends Vue {
 
   barOptions(
     animationsEnabled = true,
-    annotation = [] as any,
-    categories = [] as any,
-    colors = [] as any,
-    max = undefined as any,
+    annotation: XAxisAnnotations['x'][] = [],
+    categories: ApexXAxis['categories'] = [],
+    colors: ApexFill['colors'] = [],
+    max: ApexYAxis['max'],
     showXLabels = true,
-    strokes = [] as any,
+    strokes: ApexStroke['colors'] = [],
     title = '',
     tooltipEnabled = false,
-    tooltips = '',
-    types = [] as any,
-    xaxis = '',
-    yaxis = ''
+    tooltips = '' as any,
+    types: ApexFill['type'] = [],
+    xaxis: ApexTitleSubtitle['text'] = '',
+    yaxis: ApexTitleSubtitle['text'] = ''
   ) {
     return {
       chart: {
@@ -794,8 +805,8 @@ export default class Applikation extends Vue {
         },
         events: {
           mounted: function () {
-            document.querySelectorAll('.innovationtest .apexcharts-xaxis-annotations line').forEach((line: any) => {
-              line.style.strokeDasharray = 2;
+            document.querySelectorAll<HTMLElement>('.innovationtest .apexcharts-xaxis-annotations line').forEach(line => {
+              line.style.strokeDasharray = '2';
             });
           }
         }
@@ -938,7 +949,7 @@ export default class Applikation extends Vue {
         followCursor: false,
         y: {
           title: {
-            formatter: (value: any) => {
+            formatter: (value: string) => {
               if (title) {
                 return title;
               }
@@ -948,8 +959,8 @@ export default class Applikation extends Vue {
           }
         },
         x: {
-          formatter: (value: any, { dataPointIndex }: any) => {
-            if (tooltips) {
+          formatter: (value: number, { dataPointIndex }: ApexDiscretePoint) => {
+            if (tooltips && dataPointIndex) {
               if (value === tooltips[dataPointIndex]) {
                 return tooltips[dataPointIndex];
               }
@@ -968,6 +979,7 @@ export default class Applikation extends Vue {
     if (!this.results1) {
       return null;
     }
+
     return [
       {
         id: 'prod',
@@ -993,7 +1005,7 @@ export default class Applikation extends Vue {
         ),
         intro:
           'Nedenfor kan du se, hvor produktinnovativ din virksomhed er sammenlignet med andre danske fremstillingsvirksomheder. Fordelingerne for de enkelte brancher er relativt ens, og derfor er der ingen yderligere opdeling.',
-        expands: [...Array(4)].map((chart, index) => {
+        expands: [...Array(4)].map((_, index) => {
           const labels = [
             'Produkter, der er nye på verdensplan',
             'Produkter, der er nye for virksomhedens marked',
@@ -1004,26 +1016,26 @@ export default class Applikation extends Vue {
             series: [
               {
                 name: labels[index],
-                data: this.results1.histogramList[`prod_hist${index + 1}_bins`].map((item: any) => item.Value)
+                data: this.results1?.histogramList[`prod_hist${index + 1}_bins`].map(item => item.Value)
               }
             ],
             options: this.barOptions(
               true, // animationsEnabled
-              [this.results1.simpleList[`prod_hist${index + 1}_vurd_bin`], this.results1.simpleList[`prod_hist${index + 1}_my_bin`]], // annotation
-              this.results1.histogramList[`prod_hist${index + 1}_bins`].map((item: any) => item.Variable), // categories
-              this.results1.histogramList[`prod_hist${index + 1}_bins`].map((item: any) => {
+              [this.results1?.simpleList[`prod_hist${index + 1}_vurd_bin`], this.results1?.simpleList[`prod_hist${index + 1}_my_bin`]], // annotation
+              this.results1?.histogramList[`prod_hist${index + 1}_bins`].map(item => item.Variable), // categories
+              this.results1?.histogramList[`prod_hist${index + 1}_bins`].map(item => {
                 if (
-                  item.Variable === this.results1.simpleList[`prod_hist${index + 1}_my_bin`] &&
-                  item.Variable === this.results1.simpleList[`prod_hist${index + 1}_vurd_bin`]
+                  item.Variable === this.results1?.simpleList[`prod_hist${index + 1}_my_bin`] &&
+                  item.Variable === this.results1?.simpleList[`prod_hist${index + 1}_vurd_bin`]
                 ) {
                   return this.chartColors.orangeSolid;
                 }
 
-                if (item.Variable === this.results1.simpleList[`prod_hist${index + 1}_my_bin`]) {
+                if (item.Variable === this.results1?.simpleList[`prod_hist${index + 1}_my_bin`]) {
                   return this.chartColors.orange;
                 }
 
-                if (item.Variable === this.results1.simpleList[`prod_hist${index + 1}_vurd_bin`]) {
+                if (item.Variable === this.results1?.simpleList[`prod_hist${index + 1}_vurd_bin`]) {
                   return this.chartColors.blue;
                 }
 
@@ -1031,12 +1043,12 @@ export default class Applikation extends Vue {
               }), // colors
               100, // max
               true, // showXLabels
-              this.results1.histogramList[`prod_hist${index + 1}_bins`].map((item: any) => {
-                if (item.Variable === this.results1.simpleList[`prod_hist${index + 1}_my_bin`]) {
+              this.results1?.histogramList[`prod_hist${index + 1}_bins`].map(item => {
+                if (item.Variable === this.results1?.simpleList[`prod_hist${index + 1}_my_bin`]) {
                   return this.chartColors.orangeSolid;
                 }
 
-                if (item.Variable === this.results1.simpleList[`prod_hist${index + 1}_vurd_bin`]) {
+                if (item.Variable === this.results1?.simpleList[`prod_hist${index + 1}_vurd_bin`]) {
                   return this.chartColors.blueSolid;
                 }
 
@@ -1044,11 +1056,11 @@ export default class Applikation extends Vue {
               }), // strokes
               labels[index], // title
               true, // tooltipsenabled
-              this.results1.histogramList[`prod_hist${index + 1}_tooltip`].map((item: any) => item.Value), // tooltips
-              this.results1.histogramList[`prod_hist${index + 1}_bins`].map((item: any) => {
+              this.results1?.histogramList[`prod_hist${index + 1}_tooltip`].map(item => item.Value), // tooltips
+              this.results1?.histogramList[`prod_hist${index + 1}_bins`].map(item => {
                 if (
-                  item.Variable === this.results1.simpleList[`prod_hist${index + 1}_my_bin`] &&
-                  item.Variable === this.results1.simpleList[`prod_hist${index + 1}_vurd_bin`]
+                  item.Variable === this.results1?.simpleList[`prod_hist${index + 1}_my_bin`] &&
+                  item.Variable === this.results1?.simpleList[`prod_hist${index + 1}_vurd_bin`]
                 ) {
                   return 'pattern';
                 }
@@ -1056,7 +1068,7 @@ export default class Applikation extends Vue {
                 return 'solid';
               }), // types
               '', // xasis
-              this.results1.simpleList[`prod_hist${index + 1}_text_left`] // yasis
+              this.results1?.simpleList[`prod_hist${index + 1}_text_left`] // yasis
             )
           };
         })
@@ -1066,7 +1078,7 @@ export default class Applikation extends Vue {
         series: [
           {
             name: 'Proces',
-            data: [this.results1.simpleList.prcs_vurd, this.results1.simpleList.prcs_gruppe, this.results1.simpleList.prcs_andre]
+            data: [this.results1?.simpleList.prcs_vurd, this.results1?.simpleList.prcs_gruppe, this.results1?.simpleList.prcs_andre]
           }
         ],
         options: this.barOptions(
@@ -1085,32 +1097,32 @@ export default class Applikation extends Vue {
         ),
         intro:
           'Nedenfor kan du se, hvor procesinnovativ og automatiseret din virksomhed er sammenlignet med andre danske fremstillingsvirksomheder. Fordelingerne for de enkelte brancher er relativt ens, og derfor er der ingen yderligere opdeling.',
-        expands: [...Array(4)].map((chart, index) => {
+        expands: [...Array(4)].map((_, index) => {
           const labels = ['Fremstillingen', 'Pakningen', 'Lagringen', 'Virksomhedens samlede placering'];
           return {
             series: [
               {
                 name: labels[index],
-                data: this.results1.histogramList[`prcs_hist${index + 1}_bins`].map((item: any) => item.Value)
+                data: this.results1?.histogramList[`prcs_hist${index + 1}_bins`].map(item => item.Value)
               }
             ],
             options: this.barOptions(
               true, // animationsEnabled
-              [this.results1.simpleList[`prcs_hist${index + 1}_vurd_bin`], this.results1.simpleList[`prcs_hist${index + 1}_my_bin`]], // annotation
-              this.results1.histogramList[`prcs_hist${index + 1}_bins`].map((item: any) => item.Variable), // categories
-              this.results1.histogramList[`prcs_hist${index + 1}_bins`].map((item: any) => {
+              [this.results1?.simpleList[`prcs_hist${index + 1}_vurd_bin`], this.results1?.simpleList[`prcs_hist${index + 1}_my_bin`]], // annotation
+              this.results1?.histogramList[`prcs_hist${index + 1}_bins`].map(item => item.Variable), // categories
+              this.results1?.histogramList[`prcs_hist${index + 1}_bins`].map(item => {
                 if (
-                  item.Variable === this.results1.simpleList[`prcs_hist${index + 1}_my_bin`] &&
-                  item.Variable === this.results1.simpleList[`prcs_hist${index + 1}_vurd_bin`]
+                  item.Variable === this.results1?.simpleList[`prcs_hist${index + 1}_my_bin`] &&
+                  item.Variable === this.results1?.simpleList[`prcs_hist${index + 1}_vurd_bin`]
                 ) {
                   return this.chartColors.orangeSolid;
                 }
 
-                if (item.Variable === this.results1.simpleList[`prcs_hist${index + 1}_my_bin`]) {
+                if (item.Variable === this.results1?.simpleList[`prcs_hist${index + 1}_my_bin`]) {
                   return this.chartColors.orange;
                 }
 
-                if (item.Variable === this.results1.simpleList[`prcs_hist${index + 1}_vurd_bin`]) {
+                if (item.Variable === this.results1?.simpleList[`prcs_hist${index + 1}_vurd_bin`]) {
                   return this.chartColors.blue;
                 }
 
@@ -1118,12 +1130,12 @@ export default class Applikation extends Vue {
               }), // colors
               100, // max
               true, // showXLabels
-              this.results1.histogramList[`prcs_hist${index + 1}_bins`].map((item: any) => {
-                if (item.Variable === this.results1.simpleList[`prcs_hist${index + 1}_my_bin`]) {
+              this.results1?.histogramList[`prcs_hist${index + 1}_bins`].map(item => {
+                if (item.Variable === this.results1?.simpleList[`prcs_hist${index + 1}_my_bin`]) {
                   return this.chartColors.orangeSolid;
                 }
 
-                if (item.Variable === this.results1.simpleList[`prcs_hist${index + 1}_vurd_bin`]) {
+                if (item.Variable === this.results1?.simpleList[`prcs_hist${index + 1}_vurd_bin`]) {
                   return this.chartColors.blueSolid;
                 }
 
@@ -1131,11 +1143,11 @@ export default class Applikation extends Vue {
               }), // strokes
               labels[index], // title
               true, // tooltipsenabled
-              this.results1.histogramList[`prcs_hist${index + 1}_tooltip`].map((item: any) => item.Value), // tooltips
-              this.results1.histogramList[`prcs_hist${index + 1}_bins`].map((item: any) => {
+              this.results1?.histogramList[`prcs_hist${index + 1}_tooltip`].map(item => item.Value), // tooltips
+              this.results1?.histogramList[`prcs_hist${index + 1}_bins`].map(item => {
                 if (
-                  item.Variable === this.results1.simpleList[`prcs_hist${index + 1}_my_bin`] &&
-                  item.Variable === this.results1.simpleList[`prcs_hist${index + 1}_vurd_bin`]
+                  item.Variable === this.results1?.simpleList[`prcs_hist${index + 1}_my_bin`] &&
+                  item.Variable === this.results1?.simpleList[`prcs_hist${index + 1}_vurd_bin`]
                 ) {
                   return 'pattern';
                 }
@@ -1143,7 +1155,7 @@ export default class Applikation extends Vue {
                 return 'solid';
               }), // types
               '', // xasis
-              this.results1.simpleList[`prcs_hist${index + 1}_text_left`] // yasis
+              this.results1?.simpleList[`prcs_hist${index + 1}_text_left`] // yasis
             )
           };
         })
@@ -1153,7 +1165,7 @@ export default class Applikation extends Vue {
         series: [
           {
             name: 'Organisation',
-            data: [this.results1.simpleList.org_vurd, this.results1.simpleList.org_gruppe, this.results1.simpleList.org_andre]
+            data: [this.results1?.simpleList.org_vurd, this.results1?.simpleList.org_gruppe, this.results1?.simpleList.org_andre]
           }
         ],
         options: this.barOptions(
@@ -1172,32 +1184,32 @@ export default class Applikation extends Vue {
         ),
         intro:
           'Nedenfor kan du se, hvor organisatorisk innovativ og decentraliseret din virksomhed er sammenlignet med andre danske fremstillingsvirksomheder. Fordelingerne for de enkelte brancher er relativt ens, og derfor er der ingen yderligere opdeling.',
-        expands: [...Array(4)].map((chart, index) => {
+        expands: [...Array(4)].map((_, index) => {
           const labels = ['Løsningsansvar', 'Tidsplanlægning', 'Selvstyrende grupper', 'Virksomhedens samlede placering'];
           return {
             series: [
               {
                 name: labels[index],
-                data: this.results1.histogramList[`org_hist${index + 1}_bins`].map((item: any) => item.Value)
+                data: this.results1?.histogramList[`org_hist${index + 1}_bins`].map(item => item.Value)
               }
             ],
             options: this.barOptions(
               true, // animationsEnabled
-              [this.results1.simpleList[`org_hist${index + 1}_vurd_bin`], this.results1.simpleList[`org_hist${index + 1}_my_bin`]], // annotation
-              this.results1.histogramList[`org_hist${index + 1}_bins`].map((item: any) => item.Variable), // categories
-              this.results1.histogramList[`org_hist${index + 1}_bins`].map((item: any) => {
+              [this.results1?.simpleList[`org_hist${index + 1}_vurd_bin`], this.results1?.simpleList[`org_hist${index + 1}_my_bin`]], // annotation
+              this.results1?.histogramList[`org_hist${index + 1}_bins`].map(item => item.Variable), // categories
+              this.results1?.histogramList[`org_hist${index + 1}_bins`].map(item => {
                 if (
-                  item.Variable === this.results1.simpleList[`org_hist${index + 1}_my_bin`] &&
-                  item.Variable === this.results1.simpleList[`org_hist${index + 1}_vurd_bin`]
+                  item.Variable === this.results1?.simpleList[`org_hist${index + 1}_my_bin`] &&
+                  item.Variable === this.results1?.simpleList[`org_hist${index + 1}_vurd_bin`]
                 ) {
                   return this.chartColors.orangeSolid;
                 }
 
-                if (item.Variable === this.results1.simpleList[`org_hist${index + 1}_my_bin`]) {
+                if (item.Variable === this.results1?.simpleList[`org_hist${index + 1}_my_bin`]) {
                   return this.chartColors.orange;
                 }
 
-                if (item.Variable === this.results1.simpleList[`org_hist${index + 1}_vurd_bin`]) {
+                if (item.Variable === this.results1?.simpleList[`org_hist${index + 1}_vurd_bin`]) {
                   return this.chartColors.blue;
                 }
 
@@ -1205,12 +1217,12 @@ export default class Applikation extends Vue {
               }), // colors
               100, // max
               true, // showXLabels
-              this.results1.histogramList[`org_hist${index + 1}_bins`].map((item: any) => {
-                if (item.Variable === this.results1.simpleList[`org_hist${index + 1}_my_bin`]) {
+              this.results1?.histogramList[`org_hist${index + 1}_bins`].map(item => {
+                if (item.Variable === this.results1?.simpleList[`org_hist${index + 1}_my_bin`]) {
                   return this.chartColors.orangeSolid;
                 }
 
-                if (item.Variable === this.results1.simpleList[`org_hist${index + 1}_vurd_bin`]) {
+                if (item.Variable === this.results1?.simpleList[`org_hist${index + 1}_vurd_bin`]) {
                   return this.chartColors.blueSolid;
                 }
 
@@ -1218,11 +1230,11 @@ export default class Applikation extends Vue {
               }), // strokes
               labels[index], // title
               true, // tooltipsenabled
-              this.results1.histogramList[`org_hist${index + 1}_tooltip`].map((item: any) => item.Value), // tooltips
-              this.results1.histogramList[`org_hist${index + 1}_bins`].map((item: any) => {
+              this.results1?.histogramList[`org_hist${index + 1}_tooltip`].map(item => item.Value), // tooltips
+              this.results1?.histogramList[`org_hist${index + 1}_bins`].map(item => {
                 if (
-                  item.Variable === this.results1.simpleList[`org_hist${index + 1}_my_bin`] &&
-                  item.Variable === this.results1.simpleList[`org_hist${index + 1}_vurd_bin`]
+                  item.Variable === this.results1?.simpleList[`org_hist${index + 1}_my_bin`] &&
+                  item.Variable === this.results1?.simpleList[`org_hist${index + 1}_vurd_bin`]
                 ) {
                   return 'pattern';
                 }
@@ -1230,7 +1242,7 @@ export default class Applikation extends Vue {
                 return 'solid';
               }), // types
               '', // xasis
-              this.results1.simpleList[`org_hist${index + 1}_text_left`] // yasis
+              this.results1?.simpleList[`org_hist${index + 1}_text_left`] // yasis
             )
           };
         })
@@ -1240,7 +1252,7 @@ export default class Applikation extends Vue {
         series: [
           {
             name: 'Markedsføring',
-            data: [this.results1.simpleList.mar_vurd, this.results1.simpleList.mar_gruppe, this.results1.simpleList.mar_andre]
+            data: [this.results1?.simpleList.mar_vurd, this.results1?.simpleList.mar_gruppe, this.results1?.simpleList.mar_andre]
           }
         ],
         options: this.barOptions(
@@ -1259,7 +1271,7 @@ export default class Applikation extends Vue {
         ),
         intro:
           'Nedenfor kan du se, hvor innovativ virksomheden er ifm. introduktion af nye markedsføringstiltag sammenlignet med andre danske fremstillingsvirksomheder. Fordelingerne for de enkelte brancher er relativt ens, og derfor er der ingen yderligere opdeling.',
-        expands: [...Array(7)].map((chart, index) => {
+        expands: [...Array(7)].map((_, index) => {
           const labels = [
             'Produktdesign',
             'Indpakning',
@@ -1273,27 +1285,27 @@ export default class Applikation extends Vue {
             series: [
               {
                 name: labels[index],
-                data: this.results1.histogramList[`mar_hist${index + 1}_bins`].map((item: any) => item.Value)
+                data: this.results1?.histogramList[`mar_hist${index + 1}_bins`].map(item => item.Value)
               }
             ],
             width: index === 6 ? 50 : 25,
             options: this.barOptions(
               true, // animationsEnabled
-              [this.results1.simpleList[`mar_hist${index + 1}_vurd_bin`], this.results1.simpleList[`mar_hist${index + 1}_my_bin`]], // annotation
-              this.results1.histogramList[`mar_hist${index + 1}_bins`].map((item: any) => item.Variable), // categories
-              this.results1.histogramList[`mar_hist${index + 1}_bins`].map((item: any) => {
+              [this.results1?.simpleList[`mar_hist${index + 1}_vurd_bin`], this.results1?.simpleList[`mar_hist${index + 1}_my_bin`]], // annotation
+              this.results1?.histogramList[`mar_hist${index + 1}_bins`].map(item => item.Variable), // categories
+              this.results1?.histogramList[`mar_hist${index + 1}_bins`].map(item => {
                 if (
-                  item.Variable === this.results1.simpleList[`mar_hist${index + 1}_my_bin`] &&
-                  item.Variable === this.results1.simpleList[`mar_hist${index + 1}_vurd_bin`]
+                  item.Variable === this.results1?.simpleList[`mar_hist${index + 1}_my_bin`] &&
+                  item.Variable === this.results1?.simpleList[`mar_hist${index + 1}_vurd_bin`]
                 ) {
                   return this.chartColors.orangeSolid;
                 }
 
-                if (item.Variable === this.results1.simpleList[`mar_hist${index + 1}_my_bin`]) {
+                if (item.Variable === this.results1?.simpleList[`mar_hist${index + 1}_my_bin`]) {
                   return this.chartColors.orange;
                 }
 
-                if (item.Variable === this.results1.simpleList[`mar_hist${index + 1}_vurd_bin`]) {
+                if (item.Variable === this.results1?.simpleList[`mar_hist${index + 1}_vurd_bin`]) {
                   return this.chartColors.blue;
                 }
 
@@ -1301,12 +1313,12 @@ export default class Applikation extends Vue {
               }), // colors
               100, // max
               true, // showXLabels
-              this.results1.histogramList[`mar_hist${index + 1}_bins`].map((item: any) => {
-                if (item.Variable === this.results1.simpleList[`mar_hist${index + 1}_my_bin`]) {
+              this.results1?.histogramList[`mar_hist${index + 1}_bins`].map(item => {
+                if (item.Variable === this.results1?.simpleList[`mar_hist${index + 1}_my_bin`]) {
                   return this.chartColors.orangeSolid;
                 }
 
-                if (item.Variable === this.results1.simpleList[`mar_hist${index + 1}_vurd_bin`]) {
+                if (item.Variable === this.results1?.simpleList[`mar_hist${index + 1}_vurd_bin`]) {
                   return this.chartColors.blueSolid;
                 }
 
@@ -1314,11 +1326,11 @@ export default class Applikation extends Vue {
               }), // strokes
               labels[index], // title
               true, // tooltipsenabled
-              this.results1.histogramList[`mar_hist${index + 1}_tooltip`].map((item: any) => item.Value), // tooltips
-              this.results1.histogramList[`mar_hist${index + 1}_bins`].map((item: any) => {
+              this.results1?.histogramList[`mar_hist${index + 1}_tooltip`].map(item => item.Value), // tooltips
+              this.results1?.histogramList[`mar_hist${index + 1}_bins`].map(item => {
                 if (
-                  item.Variable === this.results1.simpleList[`mar_hist${index + 1}_my_bin`] &&
-                  item.Variable === this.results1.simpleList[`mar_hist${index + 1}_vurd_bin`]
+                  item.Variable === this.results1?.simpleList[`mar_hist${index + 1}_my_bin`] &&
+                  item.Variable === this.results1?.simpleList[`mar_hist${index + 1}_vurd_bin`]
                 ) {
                   return 'pattern';
                 }
@@ -1326,7 +1338,7 @@ export default class Applikation extends Vue {
                 return 'solid';
               }), // types
               '', // xasis
-              this.results1.simpleList[`mar_hist${index + 1}_text_left`] // yasis
+              this.results1?.simpleList[`mar_hist${index + 1}_text_left`] // yasis
             )
           };
         })
@@ -1350,61 +1362,61 @@ export default class Applikation extends Vue {
           series: [
             {
               name: `Alle virksomheder - Din sandsynlighed er ${this.results2.simpleList.din_ssh_samlet}%`,
-              data: this.results2.histogramList.hist1_samlet_bins.map((item: any) => item.Value)
+              data: this.results2.histogramList.hist1_samlet_bins.map(item => item.Value)
             }
           ],
           options: this.barOptions(
             true, // annimationenabled
             [undefined, this.results2.simpleList.hist1_my_bin], // annotation
-            this.results2.histogramList.hist1_samlet_bins.map((item: any) => item.Variable), // categories
-            this.results2.histogramList.hist1_samlet_bins.map((item: any) => {
+            this.results2.histogramList.hist1_samlet_bins.map(item => item.Variable), // categories
+            this.results2.histogramList.hist1_samlet_bins.map(item => {
               // colors
-              if (item.Variable === this.results2.simpleList.hist1_my_bin) {
+              if (item.Variable === this.results2?.simpleList.hist1_my_bin) {
                 return this.chartColors.orange;
               }
               return this.chartColors.green;
             }),
             undefined, // max
             true, // showXLabels
-            this.results2.histogramList.hist1_samlet_bins.map((item: any) => {
+            this.results2?.histogramList.hist1_samlet_bins.map(item => {
               // strokes
-              if (item.Variable === this.results2.simpleList.hist1_my_bin) {
+              if (item.Variable === this.results2?.simpleList.hist1_my_bin) {
                 return this.chartColors.orangeSolid;
               }
 
               return this.chartColors.greenSolid;
             }),
-            `Alle virksomheder - Din sandsynlighed er ${this.results2.simpleList.din_ssh_samlet}%`, // title
+            `Alle virksomheder - Din sandsynlighed er ${this.results2?.simpleList.din_ssh_samlet}%`, // title
             false, // tooltipenabled
             undefined, // tooltips
             undefined, // types
-            this.results2.simpleList.hist1_samlet_text_x_axis, // xaxis,
-            this.results2.simpleList.hist1_samlet_text_left // yaxis,
+            this.results2?.simpleList.hist1_samlet_text_x_axis, // xaxis,
+            this.results2?.simpleList.hist1_samlet_text_left // yaxis,
           ),
           expands: ['hist2_str', 'hist3_industri'].map((chartId, index) => {
             const labels = [
-              `Samme størrelse - Din sandsynlighed er ${this.results2.simpleList.din_ssh_str}%`,
-              `Samme industri - Din sandsynlighed er ${this.results2.simpleList.din_ssh_industri}%`
+              `Samme størrelse - Din sandsynlighed er ${this.results2?.simpleList.din_ssh_str}%`,
+              `Samme industri - Din sandsynlighed er ${this.results2?.simpleList.din_ssh_industri}%`
             ];
             const chartPrefix = ['hist2', 'hist3'];
             return {
               series: [
                 {
                   name: labels[index],
-                  data: this.results2.histogramList[`${chartId}_bins`].map((item: any) => item.Value)
+                  data: this.results2?.histogramList[`${chartId}_bins`].map(item => item.Value)
                 }
               ],
               subtitle: [
-                `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2.simpleList.din_ssh_str} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle industrier for din størrelsesgruppe.`,
-                `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2.simpleList.din_ssh_industri} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle størrelser i din industrigruppe.`
+                `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2?.simpleList.din_ssh_str} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle industrier for din størrelsesgruppe.`,
+                `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2?.simpleList.din_ssh_industri} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle størrelser i din industrigruppe.`
               ][index],
-              value: this.results2.simpleList[`${chartPrefix[index]}_my_bin`],
+              value: this.results2?.simpleList[`${chartPrefix[index]}_my_bin`],
               options: this.barOptions(
                 true, // animationsEnabled
-                [undefined, this.results2.simpleList[`${chartPrefix[index]}_my_bin`]], // annotation
-                this.results2.histogramList[`${chartId}_bins`].map((item: any) => item.Variable), // categories
-                this.results2.histogramList[`${chartId}_bins`].map((item: any) => {
-                  if (item.Variable === this.results2.simpleList[`${chartPrefix[index]}_my_bin`]) {
+                [undefined, this.results2?.simpleList[`${chartPrefix[index]}_my_bin`]], // annotation
+                this.results2?.histogramList[`${chartId}_bins`].map(item => item.Variable), // categories
+                this.results2?.histogramList[`${chartId}_bins`].map(item => {
+                  if (item.Variable === this.results2?.simpleList[`${chartPrefix[index]}_my_bin`]) {
                     return this.chartColors.orange;
                   }
 
@@ -1412,8 +1424,8 @@ export default class Applikation extends Vue {
                 }), // colors
                 undefined, // max
                 true, // showXLabels
-                this.results2.histogramList[`${chartId}_bins`].map((item: any) => {
-                  if (item.Variable === this.results2.simpleList[`${chartPrefix[index]}_my_bin`]) {
+                this.results2?.histogramList[`${chartId}_bins`].map(item => {
+                  if (item.Variable === this.results2?.simpleList[`${chartPrefix[index]}_my_bin`]) {
                     return this.chartColors.orangeSolid;
                   }
 
@@ -1423,8 +1435,8 @@ export default class Applikation extends Vue {
                 false, // tooltipsenabled
                 undefined, // tooltips
                 undefined, // types
-                this.results2.simpleList[`${chartId}_text_x_axis`], // xasis
-                this.results2.simpleList[`${chartId}_text_left`] // yasis
+                this.results2?.simpleList[`${chartId}_text_x_axis`], // xasis
+                this.results2?.simpleList[`${chartId}_text_left`] // yasis
               )
             };
           })
@@ -1435,34 +1447,34 @@ export default class Applikation extends Vue {
           id: 'hist7_samlet_bins',
           title: 'Ændring i profit pr. medarbejder',
           width: 50,
-          subtitle: `Værdien for din virksomhed betyder, at din profit pr. medarbejder er ${this.results2.histogramList.hist7_samlet_bins
-            .filter((column: any) => column.Variable === this.results2.simpleList.hist7_my_bin)
+          subtitle: `Værdien for din virksomhed betyder, at din profit pr. medarbejder er ${this.results2?.histogramList.hist7_samlet_bins
+            .filter(column => column.Variable === this.results2?.simpleList.hist7_my_bin)
             .map(
-              (column: any) => column.Value
+              column => column.Value
             )} kr. højere efter tre år med innovation end uden. De øvrige søjler viser værdien, hvis andelen af ansatte med videregående uddannelse havde været anderledes. Under "Uddybende information" kan du se en sammenligning med virksomheder af din størrelse eller fra din industri (der tages forbehold for, at disse beregninger forudsætter data af en vis mængde).`,
-          myScore: this.results2.simpleList.hist7_my_bin,
+          myScore: this.results2?.simpleList.hist7_my_bin,
           series: [
             {
               name: 'Ændring i profit pr. medarbejder',
-              data: this.results2.histogramList.hist7_samlet_bins.map((item: any) => item.Value)
+              data: this.results2?.histogramList.hist7_samlet_bins.map(item => item.Value)
             }
           ],
           options: this.barOptions(
             true, // annimationenabled
-            [undefined, this.results2.simpleList.hist7_my_bin], // annotation
-            this.results2.histogramList.hist7_samlet_bins.map((item: any) => item.Variable), // categories
-            this.results2.histogramList.hist7_samlet_bins.map((item: any) => {
+            [undefined, this.results2?.simpleList.hist7_my_bin], // annotation
+            this.results2?.histogramList.hist7_samlet_bins.map(item => item.Variable), // categories
+            this.results2?.histogramList.hist7_samlet_bins.map(item => {
               // colors
-              if (item.Variable === this.results2.simpleList.hist7_my_bin) {
+              if (item.Variable === this.results2?.simpleList.hist7_my_bin) {
                 return this.chartColors.orange;
               }
               return this.chartColors.green;
             }),
             undefined, // max
             true, // showXLabels
-            this.results2.histogramList.hist7_samlet_bins.map((item: any) => {
+            this.results2?.histogramList.hist7_samlet_bins.map(item => {
               // strokes
-              if (item.Variable === this.results2.simpleList.hist7_my_bin) {
+              if (item.Variable === this.results2?.simpleList.hist7_my_bin) {
                 return this.chartColors.orangeSolid;
               }
 
@@ -1472,8 +1484,8 @@ export default class Applikation extends Vue {
             false, // tooltipenabled
             undefined, // tooltips
             undefined, // types
-            this.results2.simpleList.hist7_samlet_text_x_axis, // xaxis,
-            this.results2.simpleList.hist7_samlet_text_left // yaxis,
+            this.results2?.simpleList.hist7_samlet_text_x_axis, // xaxis,
+            this.results2?.simpleList.hist7_samlet_text_left // yaxis,
           ),
           expands: ['hist8_str', 'hist9_industri'].map((chartId, index) => {
             const labels = ['Samme størrelse - Ændring i profit pr. medarbejder', 'Samme industri - Ændring i profit pr. medarbejder'];
@@ -1482,21 +1494,21 @@ export default class Applikation extends Vue {
               series: [
                 {
                   name: labels[index],
-                  data: this.results2.histogramList[`${chartId}_bins`].map((item: any) => item.Value)
+                  data: this.results2?.histogramList[`${chartId}_bins`].map(item => item.Value)
                 }
               ],
-              subtitle: `Værdien for din virksomhed betyder, at din profit pr. medarbejder er ${this.results2.histogramList[`${chartId}_bins`]
-                .filter((column: any) => column.Variable === this.results2.simpleList[`${chartId}_my_bin`])
+              subtitle: `Værdien for din virksomhed betyder, at din profit pr. medarbejder er ${this.results2?.histogramList[`${chartId}_bins`]
+                .filter(column => column.Variable === this.results2?.simpleList[`${chartId}_my_bin`])
                 .map(
-                  (column: any) => column.Value
+                  column => column.Value
                 )} kr. højere efter tre år med innovation end uden. De øvrige søjler viser værdien, hvis andelen af ansatte med videregående uddannelse havde været anderledes.`,
-              value: this.results2.simpleList[`${chartPrefix[index]}_my_bin`],
+              value: this.results2?.simpleList[`${chartPrefix[index]}_my_bin`],
               options: this.barOptions(
                 true, // animationsEnabled
-                [undefined, this.results2.simpleList[`${chartPrefix[index]}_my_bin`]], // annotation
-                this.results2.histogramList[`${chartId}_bins`].map((item: any) => item.Variable), // categories
-                this.results2.histogramList[`${chartId}_bins`].map((item: any) => {
-                  if (item.Variable === this.results2.simpleList[`${chartPrefix[index]}_my_bin`]) {
+                [undefined, this.results2?.simpleList[`${chartPrefix[index]}_my_bin`]], // annotation
+                this.results2?.histogramList[`${chartId}_bins`].map(item => item.Variable), // categories
+                this.results2?.histogramList[`${chartId}_bins`].map(item => {
+                  if (item.Variable === this.results2?.simpleList[`${chartPrefix[index]}_my_bin`]) {
                     return this.chartColors.orange;
                   }
 
@@ -1504,8 +1516,8 @@ export default class Applikation extends Vue {
                 }), // colors
                 undefined, // max
                 true, // showXLabels
-                this.results2.histogramList[`${chartId}_bins`].map((item: any) => {
-                  if (item.Variable === this.results2.simpleList[`${chartPrefix[index]}_my_bin`]) {
+                this.results2?.histogramList[`${chartId}_bins`].map(item => {
+                  if (item.Variable === this.results2?.simpleList[`${chartPrefix[index]}_my_bin`]) {
                     return this.chartColors.orangeSolid;
                   }
 
@@ -1515,8 +1527,8 @@ export default class Applikation extends Vue {
                 false, // tooltipsenabled
                 undefined, // tooltips
                 undefined, // types
-                this.results2.simpleList[`${chartId}_text_x_axis`], // xasis
-                this.results2.simpleList[`${chartId}_text_left`] // yasis
+                this.results2?.simpleList[`${chartId}_text_x_axis`], // xasis
+                this.results2?.simpleList[`${chartId}_text_left`] // yasis
               )
             };
           })
@@ -1525,34 +1537,34 @@ export default class Applikation extends Vue {
           id: 'hist4_samlet_bins',
           title: 'Ændring i produktivitetsvækst',
           width: 50,
-          subtitle: `Værdien for din virksomhed betyder, at din produktivitetsvækst over tre år ${this.results2.histogramList.hist4_samlet_bins
-            .filter((column: any) => column.Variable === this.results2.simpleList.hist4_my_bin)
+          subtitle: `Værdien for din virksomhed betyder, at din produktivitetsvækst over tre år ${this.results2?.histogramList.hist4_samlet_bins
+            .filter(column => column.Variable === this.results2?.simpleList.hist4_my_bin)
             .map(
-              (column: any) => column.Value
+              column => column.Value
             )}%-point med innovation end uden. De øvrige søjler viser værdien, hvis andelen af ansatte med videregående uddannelse havde været anderledes. Under "Uddybende information" kan du se en sammenligning med virksomheder af din størrelse eller fra din industri (der tages forbehold for, at disse beregninger forudsætter data af en vis mængde).`,
-          myScore: this.results2.simpleList.hist4_my_bin,
+          myScore: this.results2?.simpleList.hist4_my_bin,
           series: [
             {
               name: 'Ændring i produktivitetsvækst',
-              data: this.results2.histogramList.hist4_samlet_bins.map((item: any) => item.Value)
+              data: this.results2?.histogramList.hist4_samlet_bins.map(item => item.Value)
             }
           ],
           options: this.barOptions(
             true, // annimationenabled
-            [undefined, this.results2.simpleList.hist4_my_bin], // annotation
-            this.results2.histogramList.hist4_samlet_bins.map((item: any) => item.Variable), // categories
-            this.results2.histogramList.hist4_samlet_bins.map((item: any) => {
+            [undefined, this.results2?.simpleList.hist4_my_bin], // annotation
+            this.results2?.histogramList.hist4_samlet_bins.map(item => item.Variable), // categories
+            this.results2?.histogramList.hist4_samlet_bins.map(item => {
               // colors
-              if (item.Variable === this.results2.simpleList.hist4_my_bin) {
+              if (item.Variable === this.results2?.simpleList.hist4_my_bin) {
                 return this.chartColors.orange;
               }
               return this.chartColors.green;
             }),
             undefined, // max
             true, // showXLabels
-            this.results2.histogramList.hist4_samlet_bins.map((item: any) => {
+            this.results2?.histogramList.hist4_samlet_bins.map(item => {
               // strokes
-              if (item.Variable === this.results2.simpleList.hist4_my_bin) {
+              if (item.Variable === this.results2?.simpleList.hist4_my_bin) {
                 return this.chartColors.orangeSolid;
               }
 
@@ -1562,8 +1574,8 @@ export default class Applikation extends Vue {
             false, // tooltipenabled
             undefined, // tooltips
             undefined, // types
-            this.results2.simpleList.hist4_samlet_text_x_axis, // xaxis,
-            this.results2.simpleList.hist4_samlet_text_left // yaxis,
+            this.results2?.simpleList.hist4_samlet_text_x_axis, // xaxis,
+            this.results2?.simpleList.hist4_samlet_text_left // yaxis,
           ),
           expands: ['hist5_str', 'hist6_industri'].map((chartId, index) => {
             const labels = ['Samme størrelse - Ændring i produktivitetsvækst', 'Samme industri - Ændring i produktivitetsvækst'];
@@ -1572,23 +1584,23 @@ export default class Applikation extends Vue {
               series: [
                 {
                   name: labels[index],
-                  data: this.results2.histogramList[`${chartId}_bins`].map((item: any) => item.Value)
+                  data: this.results2?.histogramList[`${chartId}_bins`].map(item => item.Value)
                 }
               ],
-              subtitle: `Værdien for din virksomhed betyder, at din produktivitetsvækst over tre år er ${this.results2.histogramList[
+              subtitle: `Værdien for din virksomhed betyder, at din produktivitetsvækst over tre år er ${this.results2?.histogramList[
                 `${chartId}_bins`
               ]
-                .filter((column: any) => column.Variable === this.results2.simpleList[`${chartId}_my_bin`])
+                .filter(column => column.Variable === this.results2?.simpleList[`${chartId}_my_bin`])
                 .map(
-                  (column: any) => column.Value
+                  column => column.Value
                 )}%-point med innovation end uden. De øvrige søjler viser værdien, hvis andelen af ansatte med videregående uddannelse havde været anderledes.`,
-              value: this.results2.simpleList[`${chartPrefix[index]}_my_bin`],
+              value: this.results2?.simpleList[`${chartPrefix[index]}_my_bin`],
               options: this.barOptions(
                 true, // animationsEnabled
-                [undefined, this.results2.simpleList[`${chartPrefix[index]}_my_bin`]], // annotation
-                this.results2.histogramList[`${chartId}_bins`].map((item: any) => item.Variable), // categories
-                this.results2.histogramList[`${chartId}_bins`].map((item: any) => {
-                  if (item.Variable === this.results2.simpleList[`${chartPrefix[index]}_my_bin`]) {
+                [undefined, this.results2?.simpleList[`${chartPrefix[index]}_my_bin`]], // annotation
+                this.results2?.histogramList[`${chartId}_bins`].map(item => item.Variable), // categories
+                this.results2?.histogramList[`${chartId}_bins`].map(item => {
+                  if (item.Variable === this.results2?.simpleList[`${chartPrefix[index]}_my_bin`]) {
                     return this.chartColors.orange;
                   }
 
@@ -1596,8 +1608,8 @@ export default class Applikation extends Vue {
                 }), // colors
                 undefined, // max
                 true, // showXLabels
-                this.results2.histogramList[`${chartId}_bins`].map((item: any) => {
-                  if (item.Variable === this.results2.simpleList[`${chartPrefix[index]}_my_bin`]) {
+                this.results2?.histogramList[`${chartId}_bins`].map(item => {
+                  if (item.Variable === this.results2?.simpleList[`${chartPrefix[index]}_my_bin`]) {
                     return this.chartColors.orangeSolid;
                   }
 
@@ -1607,8 +1619,8 @@ export default class Applikation extends Vue {
                 false, // tooltipsenabled
                 undefined, // tooltips
                 undefined, // types
-                this.results2.simpleList[`${chartId}_text_x_axis`], // xasis
-                this.results2.simpleList[`${chartId}_text_left`] // yasis
+                this.results2?.simpleList[`${chartId}_text_x_axis`], // xasis
+                this.results2?.simpleList[`${chartId}_text_left`] // yasis
               )
             };
           })
@@ -1650,18 +1662,21 @@ export default class Applikation extends Vue {
     if (document.querySelectorAll('.innovationtest .calculatingSlider').length > 0) {
       const newElem = document.createElement('div');
       newElem.classList.add('calculatingSliders');
-      const sliderArray = [...document.querySelectorAll('.innovationtest .calculatingSlider')] as any;
+      const sliderArray: Element[] = [...document.querySelectorAll('.innovationtest .calculatingSlider')];
       const position = sliderArray[0].parentNode;
-      sliderArray.forEach((item: any) => {
+      sliderArray.forEach(item => {
         newElem.appendChild(item);
       });
-      position.appendChild(newElem);
+
+      if (position) {
+        position.appendChild(newElem);
+      }
     }
   }
 
   @Watch('currentStep')
   @Watch('currentSection')
-  onStepChanged(value: string, oldValue: string) {
+  onStepChanged() {
     window.scrollTo(0, 0);
     this.maxStep = this.maxStep > this.currentStep ? this.maxStep : this.currentStep;
     this.error = '';
@@ -1669,12 +1684,11 @@ export default class Applikation extends Vue {
   }
 
   @Watch('expandedContent')
-  onExpandChanged(value: string, oldValue: string) {
+  onExpandChanged(value: string) {
     if (value) {
       this.$nextTick(() => {
-        const element: any = this.$refs.expandedContentArea;
+        const element = this.$refs.expandedContentArea as HTMLElement[];
         const top = element[0].offsetTop;
-
         window.scrollTo(0, top);
       });
     }
@@ -1724,32 +1738,37 @@ export default class Applikation extends Vue {
     }
   }
 
-  getPDF(id: any) {
+  getPDF(id: string) {
     this.isLoading = true;
-    const pdfWindow = window.open('', '_blank') as any;
-    pdfWindow.document.write('Henter PDF');
-    pdfWindow.document.querySelector('body').style.cursor = 'wait';
-
-    axios
-      .post(`${this.apiBaseUrl}/api/pdf`, {
-        method: 'PUT',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ ...this.values, id, session_id: this.sessionId })
-      })
-      .then((rsp: any) => {
-        if (!rsp.data.error) {
-          const { PDFURL } = rsp.data;
-          pdfWindow.location.href = PDFURL;
-          pdfWindow.document.querySelector('body').style.cursor = 'auto';
-        }
-        this.isLoading = true;
-      })
-      .catch((error: any) => {
-        pdfWindow.close();
-      });
+    const pdfWindow = window.open('', '_blank');
+    if (pdfWindow && pdfWindow.document) {
+      pdfWindow.document.write('Henter PDF');
+      const body = pdfWindow.document.querySelector('body');
+      if (body) {
+        body.style.cursor = 'wait';
+        axios
+          .post(`${this.apiBaseUrl}/api/pdf`, {
+            method: 'PUT',
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ ...this.values, id, session_id: this.sessionId })
+          })
+          .then((rsp: AxiosResponse) => {
+            if (!rsp.data.error) {
+              const { PDFURL } = rsp.data;
+              pdfWindow.location.href = PDFURL;
+              body.style.cursor = 'auto';
+            }
+            this.isLoading = false;
+          })
+          .catch((error: AxiosError) => {
+            pdfWindow.close();
+            this.isLoading = false;
+          });
+      }
+    }
   }
 
   handleNextClick(event: Event) {
@@ -1760,7 +1779,7 @@ export default class Applikation extends Vue {
     event.preventDefault();
     this.currentStep--;
   }
-  handleSubmit({ values, errors, setSubmitting, setSubmitted }: any) {
+  handleSubmit() {
     this.isLoading = true;
     const url = this.currentSection === 'test1' ? `${this.apiBaseUrl}/api/put` : `${this.apiBaseUrl}/api/put-parathed`;
     axios
@@ -1771,7 +1790,7 @@ export default class Applikation extends Vue {
         },
         body: JSON.stringify({ ...this.values, session_id: this.sessionId })
       })
-      .then((rsp: any) => {
+      .then((rsp: AxiosResponse) => {
         this.errorHeading = '';
         this.error = '';
         this.isLoading = false;
@@ -1786,14 +1805,21 @@ export default class Applikation extends Vue {
           this.isLoading = false;
         }
       })
-      .catch((error: any) => {
+      .catch((error: AxiosError) => {
         this.isLoading = false;
         this.errorHeading = 'Fejl';
         this.error = 'Noget gik galt. Prøv venligst igen.';
       });
   }
 
-  sanityBlocks(blocks: any[]) {
+  validate(values: string[]) {
+    this.values = values;
+    return {
+      email: 'Email is invalid'
+    };
+  }
+
+  sanityBlocks(blocks: SanityBlock[]) {
     return blocksToHtml({
       blocks: blocks
     });
@@ -1805,21 +1831,21 @@ export default class Applikation extends Vue {
     const query2 = '*[_type == "test2"] | order(order asc)';
     const frontpageQuery = '*[_type == "frontpage"][0]';
 
-    Promise.all([client.fetch(frontpageQuery), client.fetch(query), client.fetch(query2)])
+    Promise.all<FrontPageMatter, Test1, Test2>([client.fetch(frontpageQuery), client.fetch(query), client.fetch(query2)])
       .then(response => {
         this.isLoading = false;
         this.frontPageMatter = response[0];
         this.test1 = response[1];
         this.test2 = response[2];
       })
-      .catch((error: any) => {
-        this.error = error;
+      .catch((error: AxiosError) => {
+        this.error = error.message;
       });
   }
 
-  calculateSliders(name: string, values: string[], fields: any, setValue: any) {
-    const sliders = fields.filter((field: any) => field._type === 'slider');
-    const sum = sliders.reduce((accumulator: any, field: any) => accumulator + (Number(values[field.key]) - 1), 0);
+  calculateSliders(name: string, values: string[], fields: SliderField[], setValue: any) {
+    const sliders = fields.filter(field => field._type === 'slider');
+    const sum = sliders.reduce((accumulator, field: any) => accumulator + (Number(values[field.key]) - 1), 0);
     if (sum > 10) {
       setValue(name, '1');
       this.errorHeading = 'Bemærk!';
