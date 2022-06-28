@@ -1960,24 +1960,12 @@ export default class Applikation extends Vue {
   }
 
   fetchData() {
-    this.isLoading = true;
+    this.isLoading = false;
     const query = '*[_type == "test1"] | order(order asc)';
     const query2 = '*[_type == "test2"] | order(order asc)';
     const frontpageQuery = '*[_type == "frontpage"][0]';
 
-    Promise.all<FrontPageMatter, Test1, Test2>([client.fetch(frontpageQuery), client.fetch(query), client.fetch(query2)])
-      .then(response => {
-        this.isLoading = false;
-        this.frontPageMatter = response[0];
-        this.test1 = response[1];
-        this.test2 = response[2];
-      })
-      .catch((error: AxiosError) => {
-        this.error = error.message;
-      })
-      .finally(() => {
-        this.isLoading = false;
-        this.frontPageMatter = {
+       this.frontPageMatter = {
           ms: 27,
           query: '*[_type == "frontpage"][0]',
           result: {
@@ -3137,7 +3125,6 @@ export default class Applikation extends Vue {
             }
           ]
         };
-      });
   }
 
   calculateSliders(name: string, values: string[], fields: SliderField[], setValue: any) {
