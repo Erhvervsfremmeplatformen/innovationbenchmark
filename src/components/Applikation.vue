@@ -1054,7 +1054,6 @@ export default class Applikation extends Vue {
         this.errorHeading = '';
         this.error = '';
         this.isLoading = false;
-        console.log('X ', rsp.data);
         if (!rsp.data.error) {
           if (this.currentSection === 'test1') {
             this.results1 = rsp.data;
