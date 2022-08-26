@@ -31,8 +31,8 @@
         </div>
         <div class="hero-padding mb-8"></div>
         <div class="row frontPageMatter">
-          <template v-for="(card, index) of frontPageMatter.cards">
-            <div :key="'frontPageMatterCards' + index" class="col-md-6" style="margin-bottom: 32px">
+          <template v-for="(card, index) of frontPageMatter.cards" :key="'frontPageMatterCards' + index">
+            <div class="col-md-6" style="margin-bottom: 32px">
               <div :class="['card', [0, 6, 7].includes(index) ? 'card-transparent' : '', [1].includes(index) ? 'prosAndCons' : '']">
                 <div class="card-header">
                   <h2 v-if="[0].includes(index)">{{ card.cardHeadline }}</h2>
@@ -97,8 +97,8 @@
             <div v-if="isLoading" class="spinner" aria-label="Henter indhold" />
 
             <form v-if="!isLoading">
-              <template v-for="(currentTest, index) of [test1, test2]">
-                <div :key="index" :class="'test' + (index + 1)">
+              <template v-for="(currentTest, index) of [test1, test2]" :key="index">
+                <div :class="'test' + (index + 1)">
                   <template v-if="currentSection == 'test' + (index + 1)">
                     <template v-for="(step, index) in currentTest">
                       <div v-if="currentStep === index + 1" :key="index">
@@ -393,9 +393,22 @@
                                           type="bar"
                                           height="300"
                                           :series="[{ data: [1, 2, 3, 4, 5], name: chart.series[0].name }]"
-                                          :options="barOptions( false,
-                                      undefined, chart.options.xaxis.categories, [chartColors.green], 5, true, [chartColors.greenSolid],
-                                      chart.series[0].name, true, undefined, '', '' ),"
+                                          :options="
+                                            barOptions(
+                                              false,
+                                              undefined,
+                                              chart.options.xaxis.categories,
+                                              [chartColors.green],
+                                              5,
+                                              true,
+                                              [chartColors.greenSolid],
+                                              chart.series[0].name,
+                                              true,
+                                              undefined,
+                                              '',
+                                              ''
+                                            )
+                                          "
                                         />
                                         <div
                                           style="
@@ -466,9 +479,22 @@
                                         type="bar"
                                         height="300"
                                         :series="[{ data: [1, 2, 3, 4, 5], name: chart.series[0].name }]"
-                                        :options="barOptions( false,
-                                      undefined, chart.options.xaxis.categories, [chartColors.green], 5, true, [chartColors.greenSolid],
-                                      chart.series[0].name, true, undefined, '', '' ),"
+                                        :options="
+                                          barOptions(
+                                            false,
+                                            undefined,
+                                            chart.options.xaxis.categories,
+                                            [chartColors.green],
+                                            5,
+                                            true,
+                                            [chartColors.greenSolid],
+                                            chart.series[0].name,
+                                            true,
+                                            undefined,
+                                            '',
+                                            ''
+                                          )
+                                        "
                                       />
                                       <div
                                         style="
@@ -616,7 +642,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Watch, Vue } from 'vue-property-decorator';
+import { Watch, Vue, Options } from 'vue-property-decorator';
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import sanityClient from '@sanity/client';
 const blocksToHtml = require('@sanity/block-content-to-html');
@@ -626,6 +652,7 @@ import { FrontPageMatter, Results1, Results2, Test1, Test2 } from '@/types/respo
 import { SanityBlock } from '@/types/sanity-block';
 import { SliderField } from '@/types/types';
 import { barOptions, chartColors } from '../bar-utils';
+import { nextTick } from 'vue';
 
 const client = sanityClient({
   projectId: 'gu31rtaa',
@@ -636,11 +663,14 @@ const client = sanityClient({
 
 export const API_BASE_URL = 'https://innovationbenchmark.dk';
 
-@Component({
+@Options({
   name: 'Applikation',
   components: {
     SimpleForm,
     apexchart: VueApexCharts
+  },
+  methods: {
+    barOptions
   }
 })
 export default class Applikation extends Vue {
@@ -1475,7 +1505,7 @@ export default class Applikation extends Vue {
   @Watch('expandedContent')
   onExpandChanged(value: string) {
     if (value) {
-      this.$nextTick(() => {
+      nextTick(() => {
         const element = this.$refs.expandedContentArea as HTMLElement[];
         const top = element[0].offsetTop;
         window.scrollTo(0, top);

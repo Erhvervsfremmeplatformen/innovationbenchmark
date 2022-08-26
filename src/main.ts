@@ -1,14 +1,15 @@
+// INFO: Bemærk ændringer til denne fil, vil ikke blive inkluderet i den endelige applikation
 import 'core-js';
 import 'dkfds/dist/css/dkfds.css';
-import Vue from 'vue';
+import { createApp } from 'vue';
+import App from './App.vue';
 
 // TODO: AJP - ERF-7566 - ser ikke ud til at være nøvendig
 //import axios from 'axios';
 //import VueAxios from 'vue-axios';
 //Vue.use(VueAxios, axios);
 
-const App = () => import(/* webpackPreload: true */ './App.vue');
-
+/*
 Vue.config.productionTip = false;
 
 const vue = new Vue({
@@ -16,3 +17,8 @@ const vue = new Vue({
 });
 
 vue.$mount('#app');
+*/
+
+const app = createApp(App);
+app.config.globalProperties.productionTip = false;
+app.mount('#app');

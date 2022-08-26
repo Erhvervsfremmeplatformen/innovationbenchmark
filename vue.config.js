@@ -1,6 +1,6 @@
 const path = require('path');
 
-module.exports = {
+const options = {
   css: {
     extract: { ignoreOrder: true },
     loaderOptions: {
@@ -46,3 +46,14 @@ module.exports = {
   },
   runtimeCompiler: true
 };
+
+if (process.env.VG_VUE_TRANSPILE === 'true') {
+  console.log('⚙️ Transpiling Vue applikation ...');
+  options.css.extract = false;
+
+  options.configureWebpack.externals = {
+    vue: 'Vue'
+  }
+}
+
+module.exports = options;

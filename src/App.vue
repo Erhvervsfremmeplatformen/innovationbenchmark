@@ -10,12 +10,12 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator';
+import { Options, Vue } from 'vue-property-decorator';
 import * as DKFDS from 'dkfds';
 import Applikation from '@/components/Applikation.vue';
 import GlobalSvgIcons from '@/components/GlobalSvgIcons.vue';
 
-@Component({
+@Options({
   components: {
     GlobalSvgIcons,
     Applikation
