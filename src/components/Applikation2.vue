@@ -616,16 +616,159 @@
 </template>
 
 <script lang="ts">
+export interface SliderField {
+  _key: string;
+  _type: string;
+  description: string;
+  key: string;
+  label: string;
+  options: string[];
+  page: string;
+}
+
+export interface FrontPageMatter {
+  _createdAt: string;
+  _id: string;
+  _rev: string;
+  _type: string;
+  _updatedAt: string;
+  cards?: Card[] | null;
+  cta_text: string;
+  headline: string;
+  lead: string;
+}
+
+export interface Results1 {
+  simpleList: {
+    [key: string]: string;
+  };
+
+  histogramList: {
+    [key: string]: HistogramItem[];
+  };
+}
+
+export interface Results2 {
+  simpleList: {
+    [key: string]: string;
+  };
+  histogramList: {
+    [key: string]: HistogramItem[];
+  };
+}
+
+export interface Test1 {
+  _createdAt: Date;
+  _id: string;
+  _rev: string;
+  _type: string;
+  _updatedAt: Date;
+  fields: Field[];
+  headline: string;
+  order: number;
+  shortTitle: string;
+  text: Text[];
+  calculatingSliders?: boolean;
+  cards: Card[];
+}
+
+export interface Test2 {
+  _createdAt: Date;
+  _id: string;
+  _rev: string;
+  _type: string;
+  _updatedAt: Date;
+  calculatingSliders: boolean;
+  fields: Field[];
+  headline: string;
+  order: number;
+  text: Text[];
+  cards: Card[];
+}
+
+export interface Field {
+  _key: string;
+  _type: string;
+  key?: string;
+  label?: string;
+  page?: string;
+  placeholder?: string;
+  width?: number;
+  options?: string[];
+  description?: string;
+  processColor?: boolean;
+  required?: boolean;
+}
+
+export interface Card {
+  _key: string;
+  _type: string;
+  cardBody?: CardBody[] | null;
+  cardButtonText?: string | null;
+  cardButtonUrl?: string | null;
+  cardHeadline: string;
+}
+export interface CardBody {
+  _key: string;
+  _type: string;
+  children?: CardChildren[] | null;
+  markDefs?: null[] | null;
+  style?: string | null;
+  level?: number | null;
+  listItem?: string | null;
+}
+export interface CardChildren {
+  _key: string;
+  _type: string;
+  marks?: (string | null)[] | null;
+  text: string;
+}
+
+export interface Child {
+  _key: string;
+  _type: string;
+  marks: string[];
+  text: string;
+}
+
+export interface Text {
+  _key: string;
+  _type: string;
+  children: Child[];
+  markDefs: any[];
+  style?: string;
+  level?: number;
+  listItem?: string;
+}
+
+interface HistogramItem {
+  Variable: string;
+  Value: string;
+}
+
+export interface SanityChild {
+  _key: string;
+  _type: string;
+  marks: string[];
+  text: string;
+}
+
+export interface SanityBlock {
+  _key: string;
+  _type: string;
+  children: SanityChild[];
+  markDefs: any[];
+  style: string;
+  level?: number;
+  listItem: string;
+}
+
 import { Component, Watch, Vue } from 'vue-property-decorator';
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import sanityClient from '@sanity/client';
 const blocksToHtml = require('@sanity/block-content-to-html');
 import SimpleForm from 'vue-simpleform';
 import VueApexCharts from 'vue-apexcharts';
-import { FrontPageMatter, Results1, Results2, Test1, Test2 } from '@/types/response';
-import { SanityBlock } from '@/types/sanity-block';
-import { SliderField } from '@/types/types';
-import { barOptions, chartColors } from '../bar-utils';
 
 const client = sanityClient({
   projectId: 'gu31rtaa',
@@ -633,8 +776,6 @@ const client = sanityClient({
   apiVersion: '2021-05-28',
   useCdn: true
 });
-
-export const API_BASE_URL = 'https://innovationbenchmark.dk';
 
 @Component({
   name: 'Applikation',
@@ -649,7 +790,6 @@ export default class Applikation extends Vue {
   currentStep = 1; // initial 1
   pageCount = 1; // initial 1
   maxStep = 1;
-  // TODO: som const
   apiBaseUrl = 'https://innovationbenchmark.dk';
   isLoading = false;
   error = '';
@@ -691,11 +831,20 @@ export default class Applikation extends Vue {
     feature2_kvu: '1',
     feature2_mlvu: '1'
   };
+  chartColors = {
+    blue: 'rgba(0, 82, 255, 0.3)',
+    orange: 'rgba(143, 43, 143, 0.3)',
+    green: 'rgba(33, 150, 83, 0.3)',
+    blueSolid: '#0052FF',
+    orangeSolid: '#8F2B8F',
+    greenSolid: '#219653',
+    textColor: '#292929'
+  };
   radarOptions = {
-    colors: [chartColors.blue, chartColors.orange, chartColors.green],
+    colors: [this.chartColors.blue, this.chartColors.orange, this.chartColors.green],
     chart: {
       id: 'radar',
-      foreColor: chartColors.textColor,
+      foreColor: this.chartColors.textColor,
       fontFamily: 'IBMPlexSans, system',
       offsetY: -25,
       toolbar: {
@@ -726,13 +875,13 @@ export default class Applikation extends Vue {
     },
     stroke: {
       width: 1,
-      colors: [chartColors.blueSolid, chartColors.orangeSolid, chartColors.greenSolid]
+      colors: [this.chartColors.blueSolid, this.chartColors.orangeSolid, this.chartColors.greenSolid]
     },
     xaxis: {
       categories: ['Produkt', 'Markedsføring', 'Organisation', 'Proces'],
       labels: {
         style: {
-          colors: [chartColors.textColor, chartColors.textColor, chartColors.textColor, chartColors.textColor]
+          colors: [this.chartColors.textColor, this.chartColors.textColor, this.chartColors.textColor, this.chartColors.textColor]
         }
       }
     },
@@ -740,7 +889,7 @@ export default class Applikation extends Vue {
       labels: {
         offsetX: 8,
         style: {
-          colors: [chartColors.textColor],
+          colors: [this.chartColors.textColor],
           fontWeight: 700,
           fontSize: 14
         }
@@ -758,11 +907,208 @@ export default class Applikation extends Vue {
         height: 20,
         radius: 5,
         strokeWidth: 1,
-        strokeColor: [chartColors.blueSolid, chartColors.orangeSolid, chartColors.greenSolid]
+        strokeColor: [this.chartColors.blueSolid, this.chartColors.orangeSolid, this.chartColors.greenSolid]
       }
     }
   };
   expandedContent = '';
+
+  barOptions(
+    animationsEnabled = true,
+    annotation: XAxisAnnotations['x'][] = [],
+    categories: ApexXAxis['categories'] = [],
+    colors: ApexFill['colors'] = [],
+    max: ApexYAxis['max'],
+    showXLabels = true,
+    strokes: ApexStroke['colors'] = [],
+    title = '',
+    tooltipEnabled = false,
+    tooltips = '' as any,
+    types: ApexFill['type'] = [],
+    xaxis: ApexTitleSubtitle['text'] = '',
+    yaxis: ApexTitleSubtitle['text'] = ''
+  ) {
+    return {
+      chart: {
+        id: 'basic-bar',
+        fontFamily: 'IBMPlexSans, system',
+        toolbar: {
+          show: false
+        },
+        animations: {
+          enabled: animationsEnabled
+        },
+        events: {
+          mounted: function () {
+            document.querySelectorAll<HTMLElement>('.innovationtest .apexcharts-xaxis-annotations line').forEach(line => {
+              line.style.strokeDasharray = '2';
+            });
+          }
+        }
+      },
+      plotOptions: {
+        bar: {
+          barHeight: '70%',
+          dataLabels: {},
+          distributed: true
+        }
+      },
+      fill: {
+        opacity: 1,
+        type: types,
+        pattern: {
+          style: 'slantedLines',
+          height: 8,
+          strokeWidth: 1
+        },
+        colors: colors
+      },
+      stroke: {
+        width: 1,
+        colors: strokes
+      },
+      legend: {
+        show: false
+      },
+      dataLabels: {
+        style: {
+          colors: [this.chartColors.textColor],
+          fontWeight: 'normal'
+        }
+      },
+      yaxis: {
+        min: 0,
+        max: max,
+        tickAmount: 6,
+        forceNiceScale: true,
+        decimalsInFloat: 0,
+        axisBorder: {
+          show: true,
+          color: '#D0CFCF',
+          offsetY: -2
+        },
+        title: {
+          text: yaxis,
+          style: {
+            fontWeight: 400
+          }
+        },
+        axisTicks: {
+          show: true,
+          borderType: 'solid',
+          color: '#D0CFCF',
+          width: 6,
+          offsetX: 0,
+          offsetY: 0
+        },
+        labels: {
+          style: {
+            colors: ['#5F5F5F']
+          },
+          formatter: function (value: any) {
+            if (max || max !== 100) {
+              return value.toLocaleString('da-DK');
+            }
+
+            return !tooltipEnabled ? value + '%' : value;
+          }
+        }
+      },
+      grid: {
+        show: false
+      },
+      title: {
+        text: title
+      },
+      annotations: {
+        position: 'back',
+        xaxis: [
+          {
+            x: annotation && annotation[0] ? annotation[0] : '',
+            borderColor: this.chartColors.blueSolid,
+            strokeDashArray: 2,
+            label: {
+              text: 'Din vurdering',
+              offsetY: 16,
+              orientation: 'horizontal',
+              borderColor: 'transparent',
+              style: {
+                background: '#f5f5f5',
+                padding: {
+                  top: 24,
+                  right: 12
+                }
+              }
+            }
+          },
+          {
+            x: annotation && annotation[1] ? annotation[1] : '',
+            borderColor: this.chartColors.orangeSolid,
+            label: {
+              text: annotation && annotation[1] === annotation[0] ? 'Dit resultat &' : 'Dit resultat',
+              orientation: 'horizontal',
+              borderColor: 'transparent',
+              style: {
+                background: '#f5f5f5',
+                padding: {
+                  top: 24,
+                  right: 12
+                }
+              }
+            }
+          }
+        ]
+      },
+      xaxis: {
+        labels: {
+          show: showXLabels
+        },
+        axisBorder: {
+          show: true,
+          color: '#D0CFCF',
+          offsetY: -1
+        },
+        title: {
+          text: xaxis,
+          style: {
+            fontWeight: 400
+          }
+        },
+        categories: categories,
+        axisTicks: {
+          show: false
+        }
+      },
+      tooltip: {
+        enabled: tooltipEnabled,
+        followCursor: false,
+        y: {
+          title: {
+            formatter: (value: string) => {
+              if (title) {
+                return title;
+              }
+
+              return value;
+            }
+          }
+        },
+        x: {
+          formatter: (value: number, { dataPointIndex }: ApexDiscretePoint) => {
+            if (tooltips && dataPointIndex) {
+              if (value === tooltips[dataPointIndex]) {
+                return tooltips[dataPointIndex];
+              }
+
+              return tooltips && value + ': ' + tooltips[dataPointIndex];
+            }
+
+            return value;
+          }
+        }
+      }
+    };
+  }
 
   get test1BarCharts() {
     if (!this.results1) {
@@ -778,14 +1124,14 @@ export default class Applikation extends Vue {
             data: [this.results1.simpleList.prod_vurd, this.results1.simpleList.prod_gruppe, this.results1.simpleList.prod_andre]
           }
         ],
-        options: barOptions(
+        options: this.barOptions(
           true,
           undefined,
           ['Din vurdering', 'Dit resultat', 'Andre virksomheder'],
-          [chartColors.blue, chartColors.orange, chartColors.green],
+          [this.chartColors.blue, this.chartColors.orange, this.chartColors.green],
           5,
           false,
-          [chartColors.blueSolid, chartColors.orangeSolid, chartColors.greenSolid],
+          [this.chartColors.blueSolid, this.chartColors.orangeSolid, this.chartColors.greenSolid],
           'Produkt',
           true,
           undefined,
@@ -808,7 +1154,7 @@ export default class Applikation extends Vue {
                 data: this.results1?.histogramList[`prod_hist${index + 1}_bins`].map(item => item.Value)
               }
             ],
-            options: barOptions(
+            options: this.barOptions(
               true, // animationsEnabled
               [this.results1?.simpleList[`prod_hist${index + 1}_vurd_bin`], this.results1?.simpleList[`prod_hist${index + 1}_my_bin`]], // annotation
               this.results1?.histogramList[`prod_hist${index + 1}_bins`].map(item => item.Variable), // categories
@@ -817,31 +1163,31 @@ export default class Applikation extends Vue {
                   item.Variable === this.results1?.simpleList[`prod_hist${index + 1}_my_bin`] &&
                   item.Variable === this.results1?.simpleList[`prod_hist${index + 1}_vurd_bin`]
                 ) {
-                  return chartColors.orangeSolid;
+                  return this.chartColors.orangeSolid;
                 }
 
                 if (item.Variable === this.results1?.simpleList[`prod_hist${index + 1}_my_bin`]) {
-                  return chartColors.orange;
+                  return this.chartColors.orange;
                 }
 
                 if (item.Variable === this.results1?.simpleList[`prod_hist${index + 1}_vurd_bin`]) {
-                  return chartColors.blue;
+                  return this.chartColors.blue;
                 }
 
-                return chartColors.green;
+                return this.chartColors.green;
               }), // colors
               100, // max
               true, // showXLabels
               this.results1?.histogramList[`prod_hist${index + 1}_bins`].map(item => {
                 if (item.Variable === this.results1?.simpleList[`prod_hist${index + 1}_my_bin`]) {
-                  return chartColors.orangeSolid;
+                  return this.chartColors.orangeSolid;
                 }
 
                 if (item.Variable === this.results1?.simpleList[`prod_hist${index + 1}_vurd_bin`]) {
-                  return chartColors.blueSolid;
+                  return this.chartColors.blueSolid;
                 }
 
-                return chartColors.greenSolid;
+                return this.chartColors.greenSolid;
               }), // strokes
               labels[index], // title
               true, // tooltipsenabled
@@ -870,14 +1216,14 @@ export default class Applikation extends Vue {
             data: [this.results1?.simpleList.prcs_vurd, this.results1?.simpleList.prcs_gruppe, this.results1?.simpleList.prcs_andre]
           }
         ],
-        options: barOptions(
+        options: this.barOptions(
           true,
           undefined,
           ['Din vurdering', 'Dit resultat', 'Andre virksomheder'],
-          [chartColors.blue, chartColors.orange, chartColors.green],
+          [this.chartColors.blue, this.chartColors.orange, this.chartColors.green],
           5,
           false,
-          [chartColors.blueSolid, chartColors.orangeSolid, chartColors.greenSolid],
+          [this.chartColors.blueSolid, this.chartColors.orangeSolid, this.chartColors.greenSolid],
           'Proces',
           true,
           undefined,
@@ -895,7 +1241,7 @@ export default class Applikation extends Vue {
                 data: this.results1?.histogramList[`prcs_hist${index + 1}_bins`].map(item => item.Value)
               }
             ],
-            options: barOptions(
+            options: this.barOptions(
               true, // animationsEnabled
               [this.results1?.simpleList[`prcs_hist${index + 1}_vurd_bin`], this.results1?.simpleList[`prcs_hist${index + 1}_my_bin`]], // annotation
               this.results1?.histogramList[`prcs_hist${index + 1}_bins`].map(item => item.Variable), // categories
@@ -904,31 +1250,31 @@ export default class Applikation extends Vue {
                   item.Variable === this.results1?.simpleList[`prcs_hist${index + 1}_my_bin`] &&
                   item.Variable === this.results1?.simpleList[`prcs_hist${index + 1}_vurd_bin`]
                 ) {
-                  return chartColors.orangeSolid;
+                  return this.chartColors.orangeSolid;
                 }
 
                 if (item.Variable === this.results1?.simpleList[`prcs_hist${index + 1}_my_bin`]) {
-                  return chartColors.orange;
+                  return this.chartColors.orange;
                 }
 
                 if (item.Variable === this.results1?.simpleList[`prcs_hist${index + 1}_vurd_bin`]) {
-                  return chartColors.blue;
+                  return this.chartColors.blue;
                 }
 
-                return chartColors.green;
+                return this.chartColors.green;
               }), // colors
               100, // max
               true, // showXLabels
               this.results1?.histogramList[`prcs_hist${index + 1}_bins`].map(item => {
                 if (item.Variable === this.results1?.simpleList[`prcs_hist${index + 1}_my_bin`]) {
-                  return chartColors.orangeSolid;
+                  return this.chartColors.orangeSolid;
                 }
 
                 if (item.Variable === this.results1?.simpleList[`prcs_hist${index + 1}_vurd_bin`]) {
-                  return chartColors.blueSolid;
+                  return this.chartColors.blueSolid;
                 }
 
-                return chartColors.greenSolid;
+                return this.chartColors.greenSolid;
               }), // strokes
               labels[index], // title
               true, // tooltipsenabled
@@ -957,14 +1303,14 @@ export default class Applikation extends Vue {
             data: [this.results1?.simpleList.org_vurd, this.results1?.simpleList.org_gruppe, this.results1?.simpleList.org_andre]
           }
         ],
-        options: barOptions(
+        options: this.barOptions(
           true,
           undefined,
           ['Din vurdering', 'Dit resultat', 'Andre virksomheder'],
-          [chartColors.blue, chartColors.orange, chartColors.green],
+          [this.chartColors.blue, this.chartColors.orange, this.chartColors.green],
           5,
           false,
-          [chartColors.blueSolid, chartColors.orangeSolid, chartColors.greenSolid],
+          [this.chartColors.blueSolid, this.chartColors.orangeSolid, this.chartColors.greenSolid],
           'Organisation',
           true,
           undefined,
@@ -982,7 +1328,7 @@ export default class Applikation extends Vue {
                 data: this.results1?.histogramList[`org_hist${index + 1}_bins`].map(item => item.Value)
               }
             ],
-            options: barOptions(
+            options: this.barOptions(
               true, // animationsEnabled
               [this.results1?.simpleList[`org_hist${index + 1}_vurd_bin`], this.results1?.simpleList[`org_hist${index + 1}_my_bin`]], // annotation
               this.results1?.histogramList[`org_hist${index + 1}_bins`].map(item => item.Variable), // categories
@@ -991,31 +1337,31 @@ export default class Applikation extends Vue {
                   item.Variable === this.results1?.simpleList[`org_hist${index + 1}_my_bin`] &&
                   item.Variable === this.results1?.simpleList[`org_hist${index + 1}_vurd_bin`]
                 ) {
-                  return chartColors.orangeSolid;
+                  return this.chartColors.orangeSolid;
                 }
 
                 if (item.Variable === this.results1?.simpleList[`org_hist${index + 1}_my_bin`]) {
-                  return chartColors.orange;
+                  return this.chartColors.orange;
                 }
 
                 if (item.Variable === this.results1?.simpleList[`org_hist${index + 1}_vurd_bin`]) {
-                  return chartColors.blue;
+                  return this.chartColors.blue;
                 }
 
-                return chartColors.green;
+                return this.chartColors.green;
               }), // colors
               100, // max
               true, // showXLabels
               this.results1?.histogramList[`org_hist${index + 1}_bins`].map(item => {
                 if (item.Variable === this.results1?.simpleList[`org_hist${index + 1}_my_bin`]) {
-                  return chartColors.orangeSolid;
+                  return this.chartColors.orangeSolid;
                 }
 
                 if (item.Variable === this.results1?.simpleList[`org_hist${index + 1}_vurd_bin`]) {
-                  return chartColors.blueSolid;
+                  return this.chartColors.blueSolid;
                 }
 
-                return chartColors.greenSolid;
+                return this.chartColors.greenSolid;
               }), // strokes
               labels[index], // title
               true, // tooltipsenabled
@@ -1044,14 +1390,14 @@ export default class Applikation extends Vue {
             data: [this.results1?.simpleList.mar_vurd, this.results1?.simpleList.mar_gruppe, this.results1?.simpleList.mar_andre]
           }
         ],
-        options: barOptions(
+        options: this.barOptions(
           true,
           undefined,
           ['Din vurdering', 'Dit resultat', 'Andre virksomheder'],
-          [chartColors.blue, chartColors.orange, chartColors.green],
+          [this.chartColors.blue, this.chartColors.orange, this.chartColors.green],
           5,
           false,
-          [chartColors.blueSolid, chartColors.orangeSolid, chartColors.greenSolid],
+          [this.chartColors.blueSolid, this.chartColors.orangeSolid, this.chartColors.greenSolid],
           'Markedsføring',
           true,
           undefined,
@@ -1078,7 +1424,7 @@ export default class Applikation extends Vue {
               }
             ],
             width: index === 6 ? 50 : 25,
-            options: barOptions(
+            options: this.barOptions(
               true, // animationsEnabled
               [this.results1?.simpleList[`mar_hist${index + 1}_vurd_bin`], this.results1?.simpleList[`mar_hist${index + 1}_my_bin`]], // annotation
               this.results1?.histogramList[`mar_hist${index + 1}_bins`].map(item => item.Variable), // categories
@@ -1087,31 +1433,31 @@ export default class Applikation extends Vue {
                   item.Variable === this.results1?.simpleList[`mar_hist${index + 1}_my_bin`] &&
                   item.Variable === this.results1?.simpleList[`mar_hist${index + 1}_vurd_bin`]
                 ) {
-                  return chartColors.orangeSolid;
+                  return this.chartColors.orangeSolid;
                 }
 
                 if (item.Variable === this.results1?.simpleList[`mar_hist${index + 1}_my_bin`]) {
-                  return chartColors.orange;
+                  return this.chartColors.orange;
                 }
 
                 if (item.Variable === this.results1?.simpleList[`mar_hist${index + 1}_vurd_bin`]) {
-                  return chartColors.blue;
+                  return this.chartColors.blue;
                 }
 
-                return chartColors.green;
+                return this.chartColors.green;
               }), // colors
               100, // max
               true, // showXLabels
               this.results1?.histogramList[`mar_hist${index + 1}_bins`].map(item => {
                 if (item.Variable === this.results1?.simpleList[`mar_hist${index + 1}_my_bin`]) {
-                  return chartColors.orangeSolid;
+                  return this.chartColors.orangeSolid;
                 }
 
                 if (item.Variable === this.results1?.simpleList[`mar_hist${index + 1}_vurd_bin`]) {
-                  return chartColors.blueSolid;
+                  return this.chartColors.blueSolid;
                 }
 
-                return chartColors.greenSolid;
+                return this.chartColors.greenSolid;
               }), // strokes
               labels[index], // title
               true, // tooltipsenabled
@@ -1154,26 +1500,26 @@ export default class Applikation extends Vue {
               data: this.results2.histogramList.hist1_samlet_bins.map(item => item.Value)
             }
           ],
-          options: barOptions(
+          options: this.barOptions(
             true, // annimationenabled
             [undefined, this.results2.simpleList.hist1_my_bin], // annotation
             this.results2.histogramList.hist1_samlet_bins.map(item => item.Variable), // categories
             this.results2.histogramList.hist1_samlet_bins.map(item => {
               // colors
               if (item.Variable === this.results2?.simpleList.hist1_my_bin) {
-                return chartColors.orange;
+                return this.chartColors.orange;
               }
-              return chartColors.green;
+              return this.chartColors.green;
             }),
             undefined, // max
             true, // showXLabels
             this.results2?.histogramList.hist1_samlet_bins.map(item => {
               // strokes
               if (item.Variable === this.results2?.simpleList.hist1_my_bin) {
-                return chartColors.orangeSolid;
+                return this.chartColors.orangeSolid;
               }
 
-              return chartColors.greenSolid;
+              return this.chartColors.greenSolid;
             }),
             `Alle virksomheder - Din sandsynlighed er ${this.results2?.simpleList.din_ssh_samlet}%`, // title
             false, // tooltipenabled
@@ -1200,25 +1546,25 @@ export default class Applikation extends Vue {
                 `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2?.simpleList.din_ssh_industri} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle størrelser i din industrigruppe.`
               ][index],
               value: this.results2?.simpleList[`${chartPrefix[index]}_my_bin`],
-              options: barOptions(
+              options: this.barOptions(
                 true, // animationsEnabled
                 [undefined, this.results2?.simpleList[`${chartPrefix[index]}_my_bin`]], // annotation
                 this.results2?.histogramList[`${chartId}_bins`].map(item => item.Variable), // categories
                 this.results2?.histogramList[`${chartId}_bins`].map(item => {
                   if (item.Variable === this.results2?.simpleList[`${chartPrefix[index]}_my_bin`]) {
-                    return chartColors.orange;
+                    return this.chartColors.orange;
                   }
 
-                  return chartColors.green;
+                  return this.chartColors.green;
                 }), // colors
                 undefined, // max
                 true, // showXLabels
                 this.results2?.histogramList[`${chartId}_bins`].map(item => {
                   if (item.Variable === this.results2?.simpleList[`${chartPrefix[index]}_my_bin`]) {
-                    return chartColors.orangeSolid;
+                    return this.chartColors.orangeSolid;
                   }
 
-                  return chartColors.greenSolid;
+                  return this.chartColors.greenSolid;
                 }), // strokes
                 labels[index], // title
                 false, // tooltipsenabled
@@ -1248,26 +1594,26 @@ export default class Applikation extends Vue {
               data: this.results2?.histogramList.hist7_samlet_bins.map(item => item.Value)
             }
           ],
-          options: barOptions(
+          options: this.barOptions(
             true, // annimationenabled
             [undefined, this.results2?.simpleList.hist7_my_bin], // annotation
             this.results2?.histogramList.hist7_samlet_bins.map(item => item.Variable), // categories
             this.results2?.histogramList.hist7_samlet_bins.map(item => {
               // colors
               if (item.Variable === this.results2?.simpleList.hist7_my_bin) {
-                return chartColors.orange;
+                return this.chartColors.orange;
               }
-              return chartColors.green;
+              return this.chartColors.green;
             }),
             undefined, // max
             true, // showXLabels
             this.results2?.histogramList.hist7_samlet_bins.map(item => {
               // strokes
               if (item.Variable === this.results2?.simpleList.hist7_my_bin) {
-                return chartColors.orangeSolid;
+                return this.chartColors.orangeSolid;
               }
 
-              return chartColors.greenSolid;
+              return this.chartColors.greenSolid;
             }),
             'Ændring i profit pr. medarbejder', // title
             false, // tooltipenabled
@@ -1292,25 +1638,25 @@ export default class Applikation extends Vue {
                   column => column.Value
                 )} kr. højere efter tre år med innovation end uden. De øvrige søjler viser værdien, hvis andelen af ansatte med videregående uddannelse havde været anderledes.`,
               value: this.results2?.simpleList[`${chartPrefix[index]}_my_bin`],
-              options: barOptions(
+              options: this.barOptions(
                 true, // animationsEnabled
                 [undefined, this.results2?.simpleList[`${chartPrefix[index]}_my_bin`]], // annotation
                 this.results2?.histogramList[`${chartId}_bins`].map(item => item.Variable), // categories
                 this.results2?.histogramList[`${chartId}_bins`].map(item => {
                   if (item.Variable === this.results2?.simpleList[`${chartPrefix[index]}_my_bin`]) {
-                    return chartColors.orange;
+                    return this.chartColors.orange;
                   }
 
-                  return chartColors.green;
+                  return this.chartColors.green;
                 }), // colors
                 undefined, // max
                 true, // showXLabels
                 this.results2?.histogramList[`${chartId}_bins`].map(item => {
                   if (item.Variable === this.results2?.simpleList[`${chartPrefix[index]}_my_bin`]) {
-                    return chartColors.orangeSolid;
+                    return this.chartColors.orangeSolid;
                   }
 
-                  return chartColors.greenSolid;
+                  return this.chartColors.greenSolid;
                 }), // strokes
                 labels[index], // title
                 false, // tooltipsenabled
@@ -1338,26 +1684,26 @@ export default class Applikation extends Vue {
               data: this.results2?.histogramList.hist4_samlet_bins.map(item => item.Value)
             }
           ],
-          options: barOptions(
+          options: this.barOptions(
             true, // annimationenabled
             [undefined, this.results2?.simpleList.hist4_my_bin], // annotation
             this.results2?.histogramList.hist4_samlet_bins.map(item => item.Variable), // categories
             this.results2?.histogramList.hist4_samlet_bins.map(item => {
               // colors
               if (item.Variable === this.results2?.simpleList.hist4_my_bin) {
-                return chartColors.orange;
+                return this.chartColors.orange;
               }
-              return chartColors.green;
+              return this.chartColors.green;
             }),
             undefined, // max
             true, // showXLabels
             this.results2?.histogramList.hist4_samlet_bins.map(item => {
               // strokes
               if (item.Variable === this.results2?.simpleList.hist4_my_bin) {
-                return chartColors.orangeSolid;
+                return this.chartColors.orangeSolid;
               }
 
-              return chartColors.greenSolid;
+              return this.chartColors.greenSolid;
             }),
             'Ændring i produktivitetsvækst', // title
             false, // tooltipenabled
@@ -1384,25 +1730,25 @@ export default class Applikation extends Vue {
                   column => column.Value
                 )}%-point med innovation end uden. De øvrige søjler viser værdien, hvis andelen af ansatte med videregående uddannelse havde været anderledes.`,
               value: this.results2?.simpleList[`${chartPrefix[index]}_my_bin`],
-              options: barOptions(
+              options: this.barOptions(
                 true, // animationsEnabled
                 [undefined, this.results2?.simpleList[`${chartPrefix[index]}_my_bin`]], // annotation
                 this.results2?.histogramList[`${chartId}_bins`].map(item => item.Variable), // categories
                 this.results2?.histogramList[`${chartId}_bins`].map(item => {
                   if (item.Variable === this.results2?.simpleList[`${chartPrefix[index]}_my_bin`]) {
-                    return chartColors.orange;
+                    return this.chartColors.orange;
                   }
 
-                  return chartColors.green;
+                  return this.chartColors.green;
                 }), // colors
                 undefined, // max
                 true, // showXLabels
                 this.results2?.histogramList[`${chartId}_bins`].map(item => {
                   if (item.Variable === this.results2?.simpleList[`${chartPrefix[index]}_my_bin`]) {
-                    return chartColors.orangeSolid;
+                    return this.chartColors.orangeSolid;
                   }
 
-                  return chartColors.greenSolid;
+                  return this.chartColors.greenSolid;
                 }), // strokes
                 labels[index], // title
                 false, // tooltipsenabled
@@ -1536,7 +1882,6 @@ export default class Applikation extends Vue {
       if (body) {
         body.style.cursor = 'wait';
         axios
-          // TODO: som const
           .post(`${this.apiBaseUrl}/api/pdf`, {
             method: 'PUT',
             headers: {
@@ -1570,7 +1915,6 @@ export default class Applikation extends Vue {
   }
   handleSubmit() {
     this.isLoading = true;
-    // TODO: som const
     const url = this.currentSection === 'test1' ? `${this.apiBaseUrl}/api/put` : `${this.apiBaseUrl}/api/put-parathed`;
     axios
       .post(url, {
@@ -1650,5 +1994,817 @@ export default class Applikation extends Vue {
 </script>
 
 <style lang="scss" scoped>
-@import '../styles/components/_applikation.scss';
+// $colorOrange: #d23f1e;
+$colorOrange: #d23617;
+$colorPrimary: $colorOrange;
+$colorHover: darken($colorPrimary, 10%);
+$colorGrey: #d0cfcf;
+$colorBackground: #f5f5f5;
+$colorGrey_light: #fafafa;
+$colorGrey_dark: #4b4848;
+$colorWhite: #ffffff;
+$colorBlack: #292929;
+
+$baseFontSize: 16;
+
+$baseUrl: 'https://innovationbenchmark.dk';
+html {
+  scroll-behavior: smooth;
+}
+
+hr {
+  border-color: $colorGrey;
+  margin-top: 16px;
+
+  @include media-breakpoint-up(sm) {
+    margin-top: 40px;
+    margin-bottom: 40px;
+  }
+}
+
+ul.nav-list {
+  margin: 0;
+  padding: 24px 0 16px;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid $colorGrey;
+  color: #292929;
+  counter-reset: page;
+  position: relative;
+  max-width: none !important;
+  margin-bottom: 48px;
+
+  @include media-breakpoint-up(sm) {
+    padding: 24px 20%;
+  }
+
+  li {
+    flex: 0 1 auto;
+    width: calc(100% / 6);
+    max-width: calc(100% / 6);
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    margin-top: 0;
+
+    &:before {
+      content: none;
+    }
+  }
+
+  &:after {
+    content: '';
+    width: 90%;
+    height: 1px;
+    background-color: $colorPrimary;
+    position: absolute;
+    left: 5%;
+    right: 5%;
+    top: 36px;
+
+    @include media-breakpoint-up(sm) {
+      left: 25%;
+      right: 25%;
+      width: 50%;
+    }
+  }
+}
+
+ul.nav-bottom {
+  margin: 0;
+  padding: 24px 0;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: row-reverse;
+  max-width: none !important;
+  padding-top: 32px;
+  margin-top: 32px;
+  border-top: 1px solid $colorGrey;
+
+  li {
+    padding: 0;
+    &:before {
+      content: none;
+    }
+  }
+}
+
+.nav-button {
+  background: transparent;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  position: relative;
+  color: transparent;
+  cursor: pointer;
+  font-family: inherit;
+
+  @include media-breakpoint-up(sm) {
+    color: inherit;
+  }
+
+  &:before {
+    content: counter(page);
+    counter-increment: page;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: block;
+    color: $colorPrimary;
+    line-height: 24px;
+    border: 1px solid $colorPrimary;
+    margin-bottom: 4px;
+    background-color: $colorBackground;
+    z-index: 1;
+    box-sizing: content-box;
+  }
+
+  &-current {
+    color: inherit;
+    &:before {
+      background-color: $colorPrimary;
+      color: $colorGrey_light;
+    }
+  }
+
+  &-past {
+    svg {
+      position: absolute;
+      top: 4px;
+      fill: $color-white;
+      z-index: 1;
+      height: 20px;
+    }
+    &:before {
+      background: $colorPrimary;
+      content: '';
+      color: $colorGrey_light;
+      // background: $colorPrimary url('../../public/img/check-white.svg') center/16px no-repeat;
+    }
+  }
+
+  &[disabled] {
+    pointer-events: none;
+  }
+}
+
+.sliderOptions {
+  display: flex !important;
+  justify-content: space-between;
+  position: relative;
+  margin-top: -24px;
+
+  .sliderBackground {
+    height: 4px;
+    background-color: $colorGrey_dark;
+    display: block;
+    position: absolute;
+    top: -28px;
+    pointer-events: none;
+
+    @-moz-document url-prefix() {
+      // Target Firefox
+      background: none;
+    }
+  }
+
+  @at-root .calculatingSliders & {
+    &:after {
+      content: '';
+      width: 24px;
+      display: block;
+      position: absolute;
+      background-color: $colorGrey;
+      left: -32px;
+      top: -28px;
+      height: 2px;
+
+      @include media-breakpoint-up(sm) {
+        width: 40px;
+        left: -48px;
+      }
+    }
+  }
+
+  .thumbBackground {
+    width: 20px;
+    height: 4px;
+    background-color: $colorWhite;
+    display: block;
+    position: absolute;
+    top: calc(-10px);
+    left: calc(75% - 13px);
+    pointer-events: none;
+  }
+
+  &_item {
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    width: 1px;
+    margin-top: -8px;
+    white-space: nowrap;
+    position: relative;
+    visibility: hidden;
+    font-size: 14px;
+
+    &:nth-of-type(2) {
+      justify-content: flex-start;
+    }
+
+    &:last-of-type {
+      justify-content: flex-end;
+    }
+
+    &:before {
+      content: '';
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      display: block;
+      background-color: $colorGrey;
+      position: absolute;
+      visibility: visible;
+      top: -20px;
+      z-index: 0;
+    }
+
+    &.selected {
+      visibility: visible;
+
+      &:before {
+        visibility: hidden !important;
+      }
+    }
+  }
+}
+
+@-moz-document url-prefix() {
+  .sliderOptions {
+    .sliderBackground {
+      background: none;
+      top: -40px !important;
+    }
+
+    &_item {
+      &:before {
+        top: -32px !important;
+      }
+    }
+
+    @at-root .calculatingSliders &:after {
+      top: -40px !important;
+    }
+  }
+}
+
+input[type='range'] {
+  width: 100%;
+  margin: 8px 0;
+  background-color: transparent;
+  padding: 16px 0 40px;
+  -webkit-appearance: none;
+
+  &::-webkit-slider-runnable-track {
+    background: #d23f1e;
+    border: 0;
+    border-radius: 2px;
+    width: 100%;
+    height: 4px;
+    cursor: pointer;
+  }
+
+  &::-webkit-slider-thumb {
+    margin-top: -8px;
+    width: 20px;
+    height: 20px;
+    background: #ffffff;
+    border: 2px solid #797272;
+    border-radius: 10px;
+    cursor: pointer;
+    -webkit-appearance: none;
+    transition: all 220ms ease-in-out;
+    box-shadow: 0px 0px 8px rgba($colorBlack, 0.4);
+  }
+  &:hover::-webkit-slider-thumb {
+    background: #797272;
+  }
+  &:focus::-webkit-slider-runnable-track {
+    background: #e04b29;
+  }
+  &::-moz-range-track {
+    background: #d23f1e;
+    border: 0;
+    border-radius: 2px;
+    width: 100%;
+    height: 4px;
+    cursor: pointer;
+  }
+  &::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: #ffffff;
+    border: 2px solid #797272;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0px 0px 8px rgba($colorBlack, 0.4);
+  }
+  &::-ms-track {
+    background: transparent;
+    border-color: transparent;
+    border-width: 20.8px 0;
+    color: transparent;
+    width: 100%;
+    height: 4px;
+    cursor: pointer;
+  }
+  &::-ms-fill-lower {
+    background: #bc381b;
+    border: 0;
+    border-radius: 4px;
+  }
+  &::-ms-fill-upper {
+    background: #d23f1e;
+    border: 0;
+    border-radius: 4px;
+  }
+  &::-ms-thumb {
+    width: 20px;
+    height: 20px;
+    background: #ffffff;
+    border: 2px solid #797272;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 0px;
+    /*Needed to keep the Edge thumb centred*/
+  }
+  &:focus::-ms-fill-lower {
+    background: #d23f1e;
+  }
+  &:focus::-ms-fill-upper {
+    background: #e04b29;
+  }
+}
+@supports (-ms-ime-align: auto) {
+  /* Pre-Chromium Edge only styles, selector taken from hhttps://stackoverflow.com/a/32202953/7077589 */
+  input[type='range'] {
+    margin: 0;
+    /*Edge starts the margin from the thumb, not the track as other browsers do*/
+  }
+}
+
+.button.custom-button {
+  &[disabled] {
+    cursor: wait;
+  }
+
+  &.disabled {
+    opacity: 0.2;
+    cursor: default;
+  }
+
+  &-primary {
+    background-color: $colorPrimary;
+    border: none;
+    color: $colorWhite;
+
+    &:hover,
+    &:active {
+      background-color: $colorHover;
+      color: $colorWhite;
+      box-shadow: 0 0 0 1px $colorHover;
+    }
+
+    &:focus {
+      background-color: $colorPrimary;
+    }
+  }
+
+  &-secondary {
+    background-color: transparent;
+    color: $colorPrimary !important;
+    border-color: $colorPrimary;
+    transition: all 220ms ease-in-out;
+
+    &:hover,
+    &:active {
+      background-color: $colorPrimary;
+      color: $colorWhite !important;
+      border-color: $colorPrimary;
+    }
+
+    &:focus {
+      background-color: transparent;
+    }
+  }
+
+  &-right {
+    margin-right: 0;
+    margin-left: auto;
+    display: block;
+  }
+}
+
+.formWrapper {
+  margin-bottom: 32px;
+
+  // Vertical line
+  @at-root .calculatingSliders &.calculatingSlider {
+    &:not(:first-of-type) {
+      &:before {
+        content: '';
+        width: 2px;
+        position: absolute;
+        background-color: $colorGrey;
+        left: -16px;
+        bottom: 38px;
+        height: calc(100% + 32px);
+
+        @include media-breakpoint-up(sm) {
+          left: -32px;
+          height: calc(100% + 32px);
+        }
+      }
+    }
+
+    &:nth-of-type(2) {
+      &:after {
+        content: 'Max 100%';
+        position: absolute;
+        bottom: 0;
+        font-size: 12px;
+        left: -56px;
+        transform: rotate(-90deg) translateX(50%);
+
+        @include media-breakpoint-up(sm) {
+          left: -80px;
+        }
+
+        @at-root .test2 & {
+          bottom: auto;
+          top: 0;
+          transform: rotate(-90deg) translateX(-50%);
+        }
+      }
+    }
+  }
+
+  &_description {
+    hyphens: auto;
+  }
+}
+
+@-moz-document url-prefix() {
+  .formWrapper {
+    @at-root .calculatingSliders &.calculatingSlider {
+      &:not(:first-of-type) {
+        &:before {
+          bottom: 46px !important;
+        }
+      }
+    }
+  }
+
+  .calculatingSliders:before {
+    @at-root .test2 & {
+      top: 986px !important;
+    }
+  }
+
+  .nav-button:before {
+    line-height: 28px !important;
+  }
+}
+
+.calculatingSliders {
+  position: relative;
+  padding-left: 40px;
+
+  @include media-breakpoint-up(sm) {
+    padding-left: 66px;
+  }
+
+  // &:before {
+  //   content: 'Max 100%';
+  //   width: auto;
+  //   height: auto;
+  //   position: absolute;
+  //   bottom: 42%;
+  //   transform: translateX(calc(-100%)) rotate(-90deg);
+  //   font-size: 12px;
+  //   left: 40px;
+  //   @include media-breakpoint-up(sm) {
+  //     left: 48px;
+  //   }
+  //   @at-root .test2 & {
+  //     bottom: auto;
+  //     top: 1130px;
+
+  //     @include media-breakpoint-up(md) {
+  //       top: 910px;
+  //     }
+  //   }
+  // }
+}
+
+.card {
+  box-shadow: none;
+  border-color: #d7dadf;
+  @at-root .frontPageMatter &,
+    .test2 & {
+    height: 100%;
+  }
+  &-text {
+    padding: 0 32px 32px;
+
+    & >>> h3 {
+      margin-top: 16px;
+    }
+
+    & >>> ul {
+      @at-root .prosAndCons & {
+        list-style: none;
+        padding: 0;
+        margin-bottom: 32px;
+
+        li {
+          margin-bottom: 16px;
+          padding-left: 40px;
+          position: relative;
+
+          &:before {
+            content: '';
+            display: block;
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            left: 0;
+          }
+        }
+      }
+
+      @at-root .prosAndCons &:first-of-type {
+        li:before {
+          background: transparent url($baseUrl + '/img/listItem-pro.svg') center / contain no-repeat;
+        }
+      }
+
+      @at-root .prosAndCons &:last-of-type {
+        li:before {
+          background: transparent url($baseUrl + '/img/listItem-con.svg') center / contain no-repeat;
+        }
+      }
+    }
+
+    @at-root .card-transparent & {
+      background-color: transparent;
+      padding-left: 0;
+      padding-right: 0;
+    }
+  }
+
+  &-footer {
+    padding: 0 32px 32px;
+
+    @at-root .card-transparent & {
+      background-color: transparent;
+      padding-left: 0;
+      padding-right: 0;
+    }
+  }
+  &-header {
+    padding: 32px 32px 16px;
+
+    @at-root .card-transparent & {
+      background-color: transparent;
+      padding-left: 0;
+      padding-right: 0;
+    }
+  }
+
+  &-transparent {
+    background-color: transparent;
+    border: none;
+  }
+}
+
+.apexcharts-canvas svg {
+  overflow: visible;
+}
+
+.apexcharts-xaxis-annotations line {
+  stroke-dasharray: 2;
+}
+
+.apexcharts-legend-marker {
+  border-width: 1px !important;
+  margin-right: 0.5rem !important;
+
+  &:nth-of-type(1) {
+    border: 1px solid #0d42ff !important;
+  }
+  &:nth-of-type(2) {
+    border: 1px solid #fba21c !important;
+  }
+  &:nth-of-type(3) {
+    border: 1px solid #1ab759 !important;
+  }
+}
+
+.apexcharts-radar-series polygon {
+  fill: $colorWhite;
+}
+
+.hero {
+  height: 65vh;
+  min-height: 304px;
+  background-position: 50%;
+  background-repeat: no-repeat;
+  background-size: cover;
+  position: relative;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+
+  &-element {
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+  }
+  &-boks {
+    border: 1px solid #d7dadf;
+    position: absolute;
+    background-color: #fff;
+    padding: 40px;
+    bottom: -40px;
+    margin-right: 16px;
+    width: calc(100% - 32px);
+  }
+}
+
+.arrowLink {
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  color: $colorPrimary;
+  max-width: none;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: inherit;
+  padding: 0;
+
+  &:after {
+    content: '';
+    display: inline-block;
+    width: 16px;
+    height: 24px;
+    background: transparent url($baseUrl + '/img/arrow--orange.svg') center / 16px no-repeat;
+    margin-left: 12px;
+    transition: all 220ms ease-in-out;
+  }
+
+  &:hover {
+    &:after {
+      margin-left: 24px;
+    }
+  }
+
+  &_back {
+    @include media-breakpoint-up(sm) {
+      margin-top: 32px;
+    }
+
+    &:after {
+      content: none;
+    }
+
+    &:before {
+      content: '';
+      display: inline-block;
+      width: 16px;
+      height: 24px;
+      background: transparent url($baseUrl + '/img/arrow--orange.svg') center / 16px no-repeat;
+      margin-right: 12px;
+      transition: all 220ms ease-in-out;
+      transform: rotate(180deg);
+    }
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.hero-padding {
+  padding-top: 80px !important;
+}
+
+select.form-select {
+  color: rgb(117, 117, 117);
+
+  &.active {
+    color: $colorBlack;
+  }
+}
+
+.button.expandButton {
+  text-decoration: none;
+  position: relative;
+  color: $colorOrange;
+  font-size: 14px;
+  min-height: auto;
+  font-weight: bold;
+}
+
+.chartBottom {
+  font-size: 12px;
+  line-height: 16px;
+  margin-top: -24px;
+
+  @include media-breakpoint-up(sm) {
+    padding-left: 36px;
+  }
+
+  &-subtitle {
+    font-size: 12px;
+    line-height: 16px;
+    margin-top: 24px;
+    color: $colorGrey_dark;
+  }
+}
+
+.alert {
+  width: 100%;
+}
+
+.expandedContent {
+  transition: all 220ms ease-in-out;
+
+  &.isExpanded {
+    padding-top: 24px;
+
+    @include media-breakpoint-up(sm) {
+      padding-top: 64px;
+    }
+  }
+}
+
+.expandedChart {
+  position: relative;
+  @include media-breakpoint-up(sm) {
+    &:after {
+      content: '';
+      width: 1px;
+      display: block;
+      position: absolute;
+      left: 50%;
+      bottom: -62px;
+      background: $colorPrimary;
+      height: 48px;
+      transform: translateX(8px);
+    }
+  }
+
+  @at-root .test2 & {
+    @include media-breakpoint-up(sm) {
+      &:after {
+        left: 25%;
+      }
+    }
+  }
+}
+
+legend {
+  font-weight: 600;
+  margin-bottom: 0;
+
+  & + p {
+    margin-top: 0;
+  }
+}
+
+.form-select {
+  background-color: $colorWhite;
+}
+
+.form-group {
+  width: 100% !important;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
 </style>

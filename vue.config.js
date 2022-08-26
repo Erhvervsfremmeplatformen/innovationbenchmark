@@ -1,7 +1,5 @@
 const path = require('path');
 
-const LodashModuleReplacementPlugin = require('lodash-webpack-plugin');
-
 module.exports = {
   css: {
     extract: { ignoreOrder: true },
@@ -18,7 +16,6 @@ module.exports = {
       filename: 'build.js'
     },
     plugins: [
-      new LodashModuleReplacementPlugin()
     ],
     optimization: {
       minimize: true
