@@ -15,7 +15,7 @@
     "apexcharts": "^3.35.5",
     "axios": "^0.19.2",
     "axios-retry": "^3.1.8",
-    "dkfds": "^6.1.1",
+    "dkfds": "8.0.1",
     "dkfds-plugins": "^6.0.1",
     "sanitize-html": "^1.27.0",
     "sanity-blocks-vue-component": "^1.0.1",

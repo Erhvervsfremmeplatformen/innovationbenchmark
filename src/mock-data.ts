@@ -1,3 +1,849 @@
+export const pdfData = {
+  CurrentResult: [
+    { Variable: 'prod1_score', Value: 'Score 0' },
+    { Variable: 'prod2_score', Value: 'Score 0' },
+    { Variable: 'prod3_score', Value: 'Score 0' },
+    { Variable: 'var_summen_kategori', Value: 'Gruppe 0' }
+  ],
+  ExistingData: [
+    {
+      Variable: 'prod1_score',
+      Ordering: 'Score 0&&Score 1&&Score 2&&Score 3&&Score 4&&Score 5',
+      Values: [
+        { Variable: 'Score 2', Value: '81' },
+        { Variable: 'Score 1', Value: '225' },
+        { Variable: 'Score 0', Value: '370' },
+        { Variable: 'Score 5', Value: '35' },
+        { Variable: 'Score 4', Value: '12' },
+        { Variable: 'Score 3', Value: '26' }
+      ]
+    },
+    {
+      Variable: 'prod2_score',
+      Ordering: 'Score 0&&Score 1&&Score 2&&Score 3&&Score 4&&Score 5',
+      Values: [
+        { Variable: 'Score 2', Value: '96' },
+        { Variable: 'Score 1', Value: '245' },
+        { Variable: 'Score 0', Value: '325' },
+        { Variable: 'Score 5', Value: '33' },
+        { Variable: 'Score 4', Value: '9' },
+        { Variable: 'Score 3', Value: '37' }
+      ]
+    },
+    {
+      Variable: 'prod3_score',
+      Ordering: 'Score 0&&Score 1&&Score 2&&Score 3&&Score 4&&Score 5',
+      Values: [
+        { Variable: 'Score 2', Value: '68' },
+        { Variable: 'Score 1', Value: '230' },
+        { Variable: 'Score 0', Value: '362' },
+        { Variable: 'Score 5', Value: '30' },
+        { Variable: 'Score 4', Value: '9' },
+        { Variable: 'Score 3', Value: '29' }
+      ]
+    },
+    {
+      Variable: 'var_summen_kategori',
+      Ordering: 'Gruppe 0&&Gruppe 1&&Gruppe 2&&Gruppe 3&&Gruppe 4&&Gruppe 5',
+      Values: [
+        { Variable: 'Gruppe 3', Value: '60' },
+        { Variable: 'Gruppe 5', Value: '107' },
+        { Variable: 'Gruppe 0', Value: '232' },
+        { Variable: 'Gruppe 1', Value: '123' },
+        { Variable: 'Gruppe 2', Value: '227' },
+        { Variable: 'Gruppe 4', Value: '71' }
+      ]
+    }
+  ],
+  PDFURL: 'https://prodapi.ibenweb.com/Files/Histogram/1281/334305b6-47fc-4d3a-93c0-f14575e527de/HIBReport.pdf',
+  Error: 'No error.'
+};
+
+export const dataResult = {
+  simpleList: {
+    prod_vurd: '3',
+    prcs_vurd: '2',
+    org_vurd: '3',
+    mar_vurd: '2',
+    prod_andre: '2.9',
+    prcs_andre: '2.3',
+    org_andre: '2.4',
+    mar_andre: '2.8',
+    prod_gruppe: '4',
+    prcs_gruppe: '3',
+    org_gruppe: '3',
+    mar_gruppe: '2',
+    prod_hist1_text_left: 'Andel af virksomheder i %',
+    prod_hist1_my_bin: 'Score 2',
+    prod_hist2_text_left: 'Andel af virksomheder i %',
+    prod_hist2_my_bin: 'Score 1',
+    prod_hist3_text_left: 'Andel af virksomheder i %',
+    prod_hist3_my_bin: 'Score 2',
+    prod_hist4_text_left: 'Andel af virksomheder i %',
+    prod_hist4_my_bin: 'Score 4',
+    prod_hist4_vurd_bin: 'Score 3',
+    prcs_hist1_text_left: 'Andel af virksomheder i %',
+    prcs_hist1_my_bin: 'Score 2',
+    prcs_hist2_text_left: 'Andel af virksomheder i %',
+    prcs_hist2_my_bin: 'Score 2',
+    prcs_hist3_text_left: 'Andel af virksomheder i %',
+    prcs_hist3_my_bin: 'Score 4',
+    prcs_hist4_text_left: 'Andel af virksomheder i %',
+    prcs_hist4_my_bin: 'Score 3',
+    prcs_hist4_vurd_bin: 'Score 2',
+    org_hist1_text_left: 'Andel af virksomheder i %',
+    org_hist1_my_bin: 'Score 2',
+    org_hist2_text_left: 'Andel af virksomheder i %',
+    org_hist2_my_bin: 'Score 2',
+    org_hist3_text_left: 'Andel af virksomheder i %',
+    org_hist3_my_bin: 'Score 5',
+    org_hist4_text_left: 'Andel af virksomheder i %',
+    org_hist4_my_bin: 'Score 3',
+    org_hist4_vurd_bin: 'Score 3',
+    mar_hist1_text_left: 'Andel af virksomheder i %',
+    mar_hist1_my_bin: 'Ja',
+    mar_hist2_text_left: 'Andel af virksomheder i %',
+    mar_hist2_my_bin: 'Nej',
+    mar_hist3_text_left: 'Andel af virksomheder i %',
+    mar_hist3_my_bin: 'Nej',
+    mar_hist4_text_left: 'Andel af virksomheder i %',
+    mar_hist4_my_bin: 'Nej',
+    mar_hist5_text_left: 'Andel af virksomheder i %',
+    mar_hist5_my_bin: 'Nej',
+    mar_hist6_text_left: 'Andel af virksomheder i %',
+    mar_hist6_my_bin: 'Ja',
+    mar_hist7_text_left: 'Andel af virksomheder i %',
+    mar_hist7_my_bin: 'Score 2',
+    mar_hist7_vurd_bin: 'Score 2'
+  },
+  histogramList: {
+    prod_hist1_bins: [
+      {
+        Variable: 'Score 0',
+        Value: '66.8'
+      },
+      {
+        Variable: 'Score 1',
+        Value: '20.2'
+      },
+      {
+        Variable: 'Score 2',
+        Value: '8.2'
+      },
+      {
+        Variable: 'Score 3',
+        Value: '2.4'
+      },
+      {
+        Variable: 'Score 4',
+        Value: '1.0'
+      },
+      {
+        Variable: 'Score 5',
+        Value: '1.5'
+      }
+    ],
+    prod_hist2_bins: [
+      {
+        Variable: 'Score 0',
+        Value: '60.6'
+      },
+      {
+        Variable: 'Score 1',
+        Value: '22.5'
+      },
+      {
+        Variable: 'Score 2',
+        Value: '10.8'
+      },
+      {
+        Variable: 'Score 3',
+        Value: '4.3'
+      },
+      {
+        Variable: 'Score 4',
+        Value: '0.7'
+      },
+      {
+        Variable: 'Score 5',
+        Value: '1.1'
+      }
+    ],
+    prod_hist3_bins: [
+      {
+        Variable: 'Score 0',
+        Value: '63.4'
+      },
+      {
+        Variable: 'Score 1',
+        Value: '21.6'
+      },
+      {
+        Variable: 'Score 2',
+        Value: '8.0'
+      },
+      {
+        Variable: 'Score 3',
+        Value: '3.8'
+      },
+      {
+        Variable: 'Score 4',
+        Value: '0.9'
+      },
+      {
+        Variable: 'Score 5',
+        Value: '2.2'
+      }
+    ],
+    prod_hist4_bins: [
+      {
+        Variable: 'Score 0',
+        Value: '42.0'
+      },
+      {
+        Variable: 'Score 1',
+        Value: '10.1'
+      },
+      {
+        Variable: 'Score 2',
+        Value: '22.2'
+      },
+      {
+        Variable: 'Score 3',
+        Value: '5.4'
+      },
+      {
+        Variable: 'Score 4',
+        Value: '6.3'
+      },
+      {
+        Variable: 'Score 5',
+        Value: '14.0'
+      }
+    ],
+    prcs_hist1_bins: [
+      {
+        Variable: 'Score 1',
+        Value: '13.3'
+      },
+      {
+        Variable: 'Score 2',
+        Value: '8.4'
+      },
+      {
+        Variable: 'Score 3',
+        Value: '29.1'
+      },
+      {
+        Variable: 'Score 4',
+        Value: '38.0'
+      },
+      {
+        Variable: 'Score 5',
+        Value: '11.2'
+      }
+    ],
+    prcs_hist2_bins: [
+      {
+        Variable: 'Score 1',
+        Value: '58.7'
+      },
+      {
+        Variable: 'Score 2',
+        Value: '8.3'
+      },
+      {
+        Variable: 'Score 3',
+        Value: '16.0'
+      },
+      {
+        Variable: 'Score 4',
+        Value: '11.6'
+      },
+      {
+        Variable: 'Score 5',
+        Value: '5.3'
+      }
+    ],
+    prcs_hist3_bins: [
+      {
+        Variable: 'Score 1',
+        Value: '72.1'
+      },
+      {
+        Variable: 'Score 2',
+        Value: '7.4'
+      },
+      {
+        Variable: 'Score 3',
+        Value: '12.1'
+      },
+      {
+        Variable: 'Score 4',
+        Value: '5.5'
+      },
+      {
+        Variable: 'Score 5',
+        Value: '2.9'
+      }
+    ],
+    prcs_hist4_bins: [
+      {
+        Variable: 'Score 1',
+        Value: '18.9'
+      },
+      {
+        Variable: 'Score 2',
+        Value: '45.7'
+      },
+      {
+        Variable: 'Score 3',
+        Value: '23.0'
+      },
+      {
+        Variable: 'Score 4',
+        Value: '10.1'
+      },
+      {
+        Variable: 'Score 5',
+        Value: '2.3'
+      }
+    ],
+    org_hist1_bins: [
+      {
+        Variable: 'Score 1',
+        Value: '28.4'
+      },
+      {
+        Variable: 'Score 2',
+        Value: '15.7'
+      },
+      {
+        Variable: 'Score 3',
+        Value: '50.4'
+      },
+      {
+        Variable: 'Score 4',
+        Value: '3.3'
+      },
+      {
+        Variable: 'Score 5',
+        Value: '2.3'
+      }
+    ],
+    org_hist2_bins: [
+      {
+        Variable: 'Score 1',
+        Value: '54.1'
+      },
+      {
+        Variable: 'Score 2',
+        Value: '16.9'
+      },
+      {
+        Variable: 'Score 3',
+        Value: '20.2'
+      },
+      {
+        Variable: 'Score 4',
+        Value: '3.2'
+      },
+      {
+        Variable: 'Score 5',
+        Value: '5.5'
+      }
+    ],
+    org_hist3_bins: [
+      {
+        Variable: 'Score 1',
+        Value: '30.2'
+      },
+      {
+        Variable: 'Score 2',
+        Value: '14.8'
+      },
+      {
+        Variable: 'Score 3',
+        Value: '14.6'
+      },
+      {
+        Variable: 'Score 4',
+        Value: '20.8'
+      },
+      {
+        Variable: 'Score 5',
+        Value: '19.5'
+      }
+    ],
+    org_hist4_bins: [
+      {
+        Variable: 'Score 1',
+        Value: '15.1'
+      },
+      {
+        Variable: 'Score 2',
+        Value: '42.2'
+      },
+      {
+        Variable: 'Score 3',
+        Value: '33.2'
+      },
+      {
+        Variable: 'Score 4',
+        Value: '8.5'
+      },
+      {
+        Variable: 'Score 5',
+        Value: '1.0'
+      }
+    ],
+    mar_hist1_bins: [
+      {
+        Variable: 'Ja',
+        Value: '49.6'
+      },
+      {
+        Variable: 'Nej',
+        Value: '50.4'
+      }
+    ],
+    mar_hist2_bins: [
+      {
+        Variable: 'Ja',
+        Value: '26.1'
+      },
+      {
+        Variable: 'Nej',
+        Value: '73.9'
+      }
+    ],
+    mar_hist3_bins: [
+      {
+        Variable: 'Ja',
+        Value: '55.8'
+      },
+      {
+        Variable: 'Nej',
+        Value: '44.2'
+      }
+    ],
+    mar_hist4_bins: [
+      {
+        Variable: 'Ja',
+        Value: '52.3'
+      },
+      {
+        Variable: 'Nej',
+        Value: '47.7'
+      }
+    ],
+    mar_hist5_bins: [
+      {
+        Variable: 'Ja',
+        Value: '53.9'
+      },
+      {
+        Variable: 'Nej',
+        Value: '46.2'
+      }
+    ],
+    mar_hist6_bins: [
+      {
+        Variable: 'Ja',
+        Value: '30.8'
+      },
+      {
+        Variable: 'Nej',
+        Value: '69.2'
+      }
+    ],
+    mar_hist7_bins: [
+      {
+        Variable: 'Score 1',
+        Value: '17.2'
+      },
+      {
+        Variable: 'Score 2',
+        Value: '27.7'
+      },
+      {
+        Variable: 'Score 3',
+        Value: '19.6'
+      },
+      {
+        Variable: 'Score 4',
+        Value: '28.4'
+      },
+      {
+        Variable: 'Score 5',
+        Value: '7.2'
+      }
+    ],
+    prod_hist1_tooltip: [
+      {
+        Variable: 'Score 0',
+        Value: 'Ingen'
+      },
+      {
+        Variable: 'Score 1',
+        Value: '0%-20%'
+      },
+      {
+        Variable: 'Score 2',
+        Value: '20%-40%'
+      },
+      {
+        Variable: 'Score 3',
+        Value: '40%-60%'
+      },
+      {
+        Variable: 'Score 4',
+        Value: '60%-80%'
+      },
+      {
+        Variable: 'Score 5',
+        Value: '80%-100%'
+      }
+    ],
+    prod_hist2_tooltip: [
+      {
+        Variable: 'Score 0',
+        Value: 'Ingen'
+      },
+      {
+        Variable: 'Score 1',
+        Value: '0%-20%'
+      },
+      {
+        Variable: 'Score 2',
+        Value: '20%-40%'
+      },
+      {
+        Variable: 'Score 3',
+        Value: '40%-60%'
+      },
+      {
+        Variable: 'Score 4',
+        Value: '60%-80%'
+      },
+      {
+        Variable: 'Score 5',
+        Value: '80%-100%'
+      }
+    ],
+    prod_hist3_tooltip: [
+      {
+        Variable: 'Score 0',
+        Value: 'Ingen'
+      },
+      {
+        Variable: 'Score 1',
+        Value: '0%-20%'
+      },
+      {
+        Variable: 'Score 2',
+        Value: '20%-40%'
+      },
+      {
+        Variable: 'Score 3',
+        Value: '40%-60%'
+      },
+      {
+        Variable: 'Score 4',
+        Value: '60%-80%'
+      },
+      {
+        Variable: 'Score 5',
+        Value: '80%-100%'
+      }
+    ],
+    prod_hist4_tooltip: [
+      {
+        Variable: 'Score 0',
+        Value: 'Ingen andel af omsætningen stammer fra nye produkter'
+      },
+      {
+        Variable: 'Score 1',
+        Value: 'Begrænset andel af omsætningen stammer fra nye produkter'
+      },
+      {
+        Variable: 'Score 2',
+        Value: 'En vis andel af omsætningen stammer fra nye produkter'
+      },
+      {
+        Variable: 'Score 3',
+        Value: 'Omkring halvdelen af omsætningen stammer fra nye produkter'
+      },
+      {
+        Variable: 'Score 4',
+        Value: 'Stor andel af omsætningen stammer fra nye produkter'
+      },
+      {
+        Variable: 'Score 5',
+        Value: 'Betydelig andel af omsætningen stammer fra nye produkter'
+      }
+    ],
+    prcs_hist1_tooltip: [
+      {
+        Variable: 'Score 1',
+        Value: 'Ingen'
+      },
+      {
+        Variable: 'Score 2',
+        Value: 'Mindst en proces'
+      },
+      {
+        Variable: 'Score 3',
+        Value: 'Flere, men under halvdelen af processerne'
+      },
+      {
+        Variable: 'Score 4',
+        Value: 'Mere end halvdelen, men ikke alle processerne'
+      },
+      {
+        Variable: 'Score 5',
+        Value: 'Alle processer'
+      }
+    ],
+    prcs_hist2_tooltip: [
+      {
+        Variable: 'Score 1',
+        Value: 'Ingen'
+      },
+      {
+        Variable: 'Score 2',
+        Value: 'Mindst en proces'
+      },
+      {
+        Variable: 'Score 3',
+        Value: 'Flere, men under halvdelen af processerne'
+      },
+      {
+        Variable: 'Score 4',
+        Value: 'Mere end halvdelen, men ikke alle processerne'
+      },
+      {
+        Variable: 'Score 5',
+        Value: 'Alle processer'
+      }
+    ],
+    prcs_hist3_tooltip: [
+      {
+        Variable: 'Score 1',
+        Value: 'Ingen'
+      },
+      {
+        Variable: 'Score 2',
+        Value: 'Mindst en proces'
+      },
+      {
+        Variable: 'Score 3',
+        Value: 'Flere, men under halvdelen af processerne'
+      },
+      {
+        Variable: 'Score 4',
+        Value: 'Mere end halvdelen, men ikke alle processerne'
+      },
+      {
+        Variable: 'Score 5',
+        Value: 'Alle processer'
+      }
+    ],
+    prcs_hist4_tooltip: [
+      {
+        Variable: 'Score 1',
+        Value: 'Begrænset andel af arbejdsprocesserne er automatiserede'
+      },
+      {
+        Variable: 'Score 2',
+        Value: 'En vis andel af arbejdsprocesserne er automatiserede'
+      },
+      {
+        Variable: 'Score 3',
+        Value: 'Omkring halvdelen af arbejdsprocesserne er automatiserede '
+      },
+      {
+        Variable: 'Score 4',
+        Value: 'Stor andel af arbejdsprocesserne er automatiserede'
+      },
+      {
+        Variable: 'Score 5',
+        Value: 'Betydelig andel af arbejdsprocesserne er automatiserede'
+      }
+    ],
+    org_hist1_tooltip: [
+      {
+        Variable: 'Score 1',
+        Value: 'Lederen af produktionen bestemmer alt'
+      },
+      {
+        Variable: 'Score 2',
+        Value: 'Lederen af produktionen bestemmer, men benytter mellemledere'
+      },
+      {
+        Variable: 'Score 3',
+        Value: 'Samarbejde mellem mellemledere og medarbejdere'
+      },
+      {
+        Variable: 'Score 4',
+        Value: 'Medarbejderne i produktionen bestemmer hovedsageligt'
+      },
+      {
+        Variable: 'Score 5',
+        Value: 'Fuld automatisk produktion. Bestemt af afsætningen'
+      }
+    ],
+    org_hist2_tooltip: [
+      {
+        Variable: 'Score 1',
+        Value: 'Lederen af produktionen bestemmer alt'
+      },
+      {
+        Variable: 'Score 2',
+        Value: 'Lederen af produktionen bestemmer, men benytter mellemledere'
+      },
+      {
+        Variable: 'Score 3',
+        Value: 'Samarbejde mellem mellemledere og medarbejdere'
+      },
+      {
+        Variable: 'Score 4',
+        Value: 'Medarbejderne i produktionen bestemmer hovedsageligt'
+      },
+      {
+        Variable: 'Score 5',
+        Value: 'Fuld automatisk produktion. Bestemt af afsætningen'
+      }
+    ],
+    org_hist3_tooltip: [
+      {
+        Variable: 'Score 1',
+        Value: 'Benyttes ikke'
+      },
+      {
+        Variable: 'Score 2',
+        Value: 'Benyttes i lav grad '
+      },
+      {
+        Variable: 'Score 3',
+        Value: 'De ansatte i produktionen er overvejende organiseret i selvstyrende grupper'
+      },
+      {
+        Variable: 'Score 4',
+        Value: 'Selvstyrende grupper har nogen autonomi'
+      },
+      {
+        Variable: 'Score 5',
+        Value: 'De selvstyrende grupper har omfattende autonomi'
+      }
+    ],
+    org_hist4_tooltip: [
+      {
+        Variable: 'Score 1',
+        Value: 'Begrænset andel af procesansvaret er decentraliseret'
+      },
+      {
+        Variable: 'Score 2',
+        Value: 'En vis andel af procesansvaret er decentraliseret '
+      },
+      {
+        Variable: 'Score 3',
+        Value: 'Omkring halvdelen af procesansvaret er decentraliseret'
+      },
+      {
+        Variable: 'Score 4',
+        Value: 'Stor andel af procesansvaret er decentraliseret'
+      },
+      {
+        Variable: 'Score 5',
+        Value: 'Betydelig andel af procesansvaret er decentraliseret'
+      }
+    ],
+    mar_hist1_tooltip: [
+      {
+        Variable: 'Ja',
+        Value: 'Ja'
+      },
+      {
+        Variable: 'Nej',
+        Value: 'Nej'
+      }
+    ],
+    mar_hist2_tooltip: [
+      {
+        Variable: 'Ja',
+        Value: 'Ja'
+      },
+      {
+        Variable: 'Nej',
+        Value: 'Nej'
+      }
+    ],
+    mar_hist3_tooltip: [
+      {
+        Variable: 'Ja',
+        Value: 'Ja'
+      },
+      {
+        Variable: 'Nej',
+        Value: 'Nej'
+      }
+    ],
+    mar_hist4_tooltip: [
+      {
+        Variable: 'Ja',
+        Value: 'Ja'
+      },
+      {
+        Variable: 'Nej',
+        Value: 'Nej'
+      }
+    ],
+    mar_hist5_tooltip: [
+      {
+        Variable: 'Ja',
+        Value: 'Ja'
+      },
+      {
+        Variable: 'Nej',
+        Value: 'Nej'
+      }
+    ],
+    mar_hist6_tooltip: [
+      {
+        Variable: 'Ja',
+        Value: 'Ja'
+      },
+      {
+        Variable: 'Nej',
+        Value: 'Nej'
+      }
+    ],
+    mar_hist7_tooltip: [
+      {
+        Variable: 'Score 1',
+        Value: 'Begrænset fornyelse af design, markedsføring mm. '
+      },
+      {
+        Variable: 'Score 2',
+        Value: 'En vis fornyelse af design, markedsføring mm.'
+      },
+      {
+        Variable: 'Score 3',
+        Value: 'Stort omfang af fornyelse af design, markedsføring mm.'
+      },
+      {
+        Variable: 'Score 4',
+        Value: 'Betydelig fornyelse af design, markedsføring mm.'
+      },
+      {
+        Variable: 'Score 5',
+        Value: 'Radikal fornyelse af design, markedsføring mm'
+      }
+    ]
+  }
+};
+
 export const data1 = {
   ms: 28,
   query: '*[_type == "frontpage"][0]',
