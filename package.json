@@ -5,7 +5,8 @@
     "serve": "vue-cli-service serve",
     "lint": "eslint \"**/*.{ts,js,vue}\" --fix --format=pretty",
     "prettierfix": "prettier --write \"**/*.{vue,ts}\" ",
-    "prettiercheck": "prettier --check \"**/*.{vue,ts}\" "
+    "prettiercheck": "prettier --check \"**/*.{vue,ts}\" ",
+    "transpile-test": "cross-env VG_VUE_TRANSPILE=true vue-cli-service build --target lib --formats umd-min --dest build/transpiled --name=f957085aeab09f8d18000e98508c85b95655da84 src/components/Applikation.vue"
   },
   "dependencies": {
     "@sanity/block-content-to-html": "^2.0.0",

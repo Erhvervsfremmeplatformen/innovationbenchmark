@@ -76,10 +76,13 @@
 
       <template v-if="currentSection == 'test1' || currentSection == 'test2'">
         <!-- ADD SIMPLE FORM -->
+        TODO: AJP - ERF-7566 - handle simple form
       </template>
     </div>
   </div>
 </template>
+
+// TODO: AJP - ERF-7566 - use mock data ...
 
 <script lang="ts">
 import { Watch, Vue, Options } from 'vue-property-decorator';
@@ -92,6 +95,7 @@ import { FrontPageMatter, Results1, Results2, Test1, Test2 } from '@/types/respo
 import { SanityBlock } from '@/types/sanity-block';
 import { SliderField } from '@/types/types';
 import { barOptions, chartColors } from '../bar-utils';
+import { data1, data2, data3 } from '../mock-data';
 import { nextTick } from 'vue';
 
 const client = sanityClient({
@@ -100,8 +104,6 @@ const client = sanityClient({
   apiVersion: '2021-05-28',
   useCdn: true
 });
-
-export const API_BASE_URL = 'https://innovationbenchmark.dk';
 
 @Options({
   name: 'Applikation',
@@ -119,7 +121,6 @@ export default class Applikation extends Vue {
   currentStep = 1; // initial 1
   pageCount = 1; // initial 1
   maxStep = 1;
-  // TODO: som const
   apiBaseUrl = 'https://innovationbenchmark.dk';
   isLoading = false;
   error = '';
@@ -1091,6 +1092,13 @@ export default class Applikation extends Vue {
     const query2 = '*[_type == "test2"] | order(order asc)';
     const frontpageQuery = '*[_type == "frontpage"][0]';
 
+    // TODO: AJP - ERF-7566 - Use API
+    this.frontPageMatter = data1.result;
+    this.test1 = data2.result as any;
+    this.test2 = data3.result as any;
+
+    // TODO: AJP - ERF-7566 - use mock data ...
+    /*
     Promise.all<FrontPageMatter, Test1, Test2>([client.fetch(frontpageQuery), client.fetch(query), client.fetch(query2)])
       .then(response => {
         this.isLoading = false;
@@ -1101,6 +1109,7 @@ export default class Applikation extends Vue {
       .catch((error: AxiosError) => {
         this.error = error.message;
       });
+      */
   }
 
   calculateSliders(name: string, values: string[], fields: SliderField[], setValue: any) {
