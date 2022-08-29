@@ -73,9 +73,7 @@
           </template>
         </div>
       </template>
-
       <template v-if="currentSection == 'test1' || currentSection == 'test2'">
-        <!-- ADD SIMPLE FORM -->
         <nav v-if="currentSection == 'test1'">
           <ul class="nav-list">
             <li v-for="(page, index) in test1" :key="index">
@@ -133,18 +131,15 @@
                             ]"
                           >
                             <div v-if="field._type === 'textinput'" class="form-group">
-                              <label class="form-label" :for="field.key">
-                                {{ field.label }}
-                              </label>
+                              <label class="form-label" :for="field.key"> {{ field.label }}-XXX </label>
 
                               <input
                                 :id="field.key"
                                 class="form-input"
-                                :value="values[field.key]"
+                                v-model="initialValues[field.key]"
                                 :name="field.key"
                                 type="text"
                                 :placeholder="field.placeholder"
-                                v-on="{ input, blur }"
                               />
                             </div>
 
@@ -152,11 +147,11 @@
                               <label class="form-label" for="options">{{ field.label }}</label>
                               <select
                                 id="options"
-                                :class="['form-select ', values[field.key] !== 0 ? 'active' : '']"
+                                :class="['form-select ', initialValues[field.key] !== 0 ? 'active' : '']"
                                 :name="field.key"
-                                v-on="{ input, blur }"
+                                v-model="initialValues[field.key]"
                               >
-                                <option disabled sel ec te d va lu e=" 0 ">{{ field.placeholder }}</option>
+                                <option disabled selected value="0">{{ field.placeholder }}</option>
                                 <option v-for="(option, index) in field.options" :key="index + 1" :value="index + 1">{{ option }}</option>
                               </select>
                             </div>
@@ -172,10 +167,9 @@
                                       type="radio"
                                       :name="field.key"
                                       :aria-describedby="`label-description-${field.key}`"
-                                      :value="index + 1"
+                                      v-model="initialValues[field.key]"
+                                      :value="index + 1 + ''"
                                       class="form-radio"
-                                      :checked="values[field.key] === (index + 1).toString()"
-                                      v-on="{ input, blur }"
                                     />
                                     <label id="form-label-radio-1" :for="field.key + '_' + index" class="">{{ option }}</label>
                                   </li>
@@ -191,40 +185,39 @@
                                 type="range"
                                 class="slider"
                                 :name="field.key"
-                                :value="values[field.key]"
+                                v-model="initialValues[field.key]"
                                 :max="field.options.length"
                                 :aria-valuemax="field.options.length"
                                 aria-valuemin="1"
                                 :aria-describedby="`label-description-${field.key}`"
                                 min="1"
                                 aria-role="slider"
-                                :aria-valuenow="values[field.key]"
-                                :aria-valuetext="field.options[values[field.key] - 1]"
-                                v-on="{ input, blur }"
-                                @change="step.calculatingSliders ? calculateSliders(field.key, values, step.fields, setValue) : null"
+                                :aria-valuenow="initialValues[field.key]"
+                                :aria-valuetext="field.options[initialValues[field.key] - 1]"
+                                @change="step.calculatingSliders ? calculateSliders(field.key, initialValues, step.fields, setValue) : null"
                               />
-                              <div :class="['sliderOptions', values[field.key] !== 0 ? 'active' : '']">
+                              <div :class="['sliderOptions', initialValues[field.key] !== 0 ? 'active' : '']">
                                 <div
                                   class="sliderBackground"
                                   :style="{
                                     width:
-                                      values[field.key] === 0
+                                      initialValues[field.key] === 0
                                         ? 'calc(100% - 20px)'
-                                        : `calc(100% - ${((values[field.key] - 1) / (field.options.length - 1)) * 100}% - ${
-                                            20 * (1 - (values[field.key] - 1) / (field.options.length - 1))
+                                        : `calc(100% - ${((initialValues[field.key] - 1) / (field.options.length - 1)) * 100}% - ${
+                                            20 * (1 - (initialValues[field.key] - 1) / (field.options.length - 1))
                                           }px)`,
                                     left:
-                                      values[field.key] === 0
+                                      initialValues[field.key] === 0
                                         ? '20px'
-                                        : `calc(${((values[field.key] - 1) / (field.options.length - 1)) * 100}% + ${
-                                            20 * (1 - (values[field.key] - 1) / (field.options.length - 1))
+                                        : `calc(${((initialValues[field.key] - 1) / (field.options.length - 1)) * 100}% + ${
+                                            20 * (1 - (initialValues[field.key] - 1) / (field.options.length - 1))
                                           }px)`
                                   }"
                                 />
                                 <div
                                   v-for="(option, index) in field.options"
                                   :key="option"
-                                  :class="['sliderOptions_item', index + 1 == values[field.key] ? 'selected' : '']"
+                                  :class="['sliderOptions_item', index + 1 == initialValues[field.key] ? 'selected' : '']"
                                 >
                                   {{ option }}
                                 </div>
@@ -635,8 +628,6 @@
   </div>
 </template>
 
-// TODO: AJP - ERF-7566 - use mock data ...
-
 <script lang="ts">
 import { Watch, Vue, Options } from 'vue-property-decorator';
 import axios, { AxiosError, AxiosResponse } from 'axios';
@@ -681,7 +672,6 @@ export default class Applikation extends Vue {
   sessionId = this.generateId(32);
   test1: Test1 | null = null;
   test2: Test2 | null = null;
-  values: string[] = [];
   frontPageMatter: FrontPageMatter | null = null;
   results1: Results1 | null = null;
   results2: Results2 | null = null;
@@ -1559,16 +1549,14 @@ export default class Applikation extends Vue {
       const body = pdfWindow.document.querySelector('body');
       if (body) {
         body.style.cursor = 'wait';
-        /*
         axios
-          // TODO: som const
           .post(`${this.apiBaseUrl}/api/pdf`, {
             method: 'PUT',
             headers: {
               Accept: 'application/json',
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ ...this.values, id, session_id: this.sessionId })
+            body: JSON.stringify({ ...this.initialValues, id, session_id: this.sessionId })
           })
           .then((rsp: AxiosResponse) => {
             if (!rsp.data.error) {
@@ -1580,15 +1568,10 @@ export default class Applikation extends Vue {
           })
           .catch((error: AxiosError) => {
             pdfWindow.close();
+          })
+          .finally(() => {
+            this.isLoading = false;
           });
-      */
-
-        // TODO: AJP - ERF-7566 - use mock data ...
-        const { PDFURL } = pdfData;
-        pdfWindow.location.href = PDFURL;
-        body.style.cursor = 'auto';
-        // TODO: AJP - ERF-7566 - ligner en fejl fra PROD
-        this.isLoading = false;
       }
     }
   }
@@ -1602,14 +1585,7 @@ export default class Applikation extends Vue {
     this.currentStep--;
   }
   handleSubmit() {
-    // TODO: AJP - ERF-7566 - use mock data ...
-    this.results1 = dataResult;
-    this.currentStep = this.pageCount + 1;
-    this.isLoading = false;
-
-    /*
     this.isLoading = true;
-    // TODO: som const
     const url = this.currentSection === 'test1' ? `${this.apiBaseUrl}/api/put` : `${this.apiBaseUrl}/api/put-parathed`;
     axios
       .post(url, {
@@ -1617,7 +1593,7 @@ export default class Applikation extends Vue {
           Accept: 'application/json',
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ ...this.values, session_id: this.sessionId })
+        body: JSON.stringify({ ...this.initialValues, session_id: this.sessionId })
       })
       .then((rsp: AxiosResponse) => {
         this.errorHeading = '';
@@ -1639,14 +1615,6 @@ export default class Applikation extends Vue {
         this.errorHeading = 'Fejl';
         this.error = 'Noget gik galt. Prøv venligst igen.';
       });
-      */
-  }
-
-  validate(values: string[]) {
-    this.values = values;
-    return {
-      email: 'Email is invalid'
-    };
   }
 
   sanityBlocks(blocks: SanityBlock[]) {
@@ -1656,37 +1624,35 @@ export default class Applikation extends Vue {
   }
 
   fetchData() {
-    this.isLoading = true;
-    const query = '*[_type == "test1"] | order(order asc)';
-    const query2 = '*[_type == "test2"] | order(order asc)';
-    const frontpageQuery = '*[_type == "frontpage"][0]';
+    if ((this as any).$useMockData) {
+      console.log('Use mock data due to configuration');
+      this.frontPageMatter = data1.result;
+      this.test1 = data2.result as any;
+      this.test2 = data3.result as any;
+    } else {
+      this.isLoading = true;
+      const query = '*[_type == "test1"] | order(order asc)';
+      const query2 = '*[_type == "test2"] | order(order asc)';
+      const frontpageQuery = '*[_type == "frontpage"][0]';
 
-    // TODO: AJP - ERF-7566 - Use API
-    this.frontPageMatter = data1.result;
-    this.test1 = data2.result as any;
-    this.test2 = data3.result as any;
-    this.isLoading = false;
-
-    // TODO: AJP - ERF-7566 - use mock data ...
-    /*
-    Promise.all<FrontPageMatter, Test1, Test2>([client.fetch(frontpageQuery), client.fetch(query), client.fetch(query2)])
-      .then(response => {
-        this.isLoading = false;
-        this.frontPageMatter = response[0];
-        this.test1 = response[1];
-        this.test2 = response[2];
-      })
-      .catch((error: AxiosError) => {
-        this.error = error.message;
-      });
-      */
+      Promise.all<FrontPageMatter, Test1, Test2>([client.fetch(frontpageQuery), client.fetch(query), client.fetch(query2)])
+        .then(response => {
+          this.isLoading = false;
+          this.frontPageMatter = response[0];
+          this.test1 = response[1];
+          this.test2 = response[2];
+        })
+        .catch((error: AxiosError) => {
+          this.error = error.message;
+        });
+    }
   }
 
   calculateSliders(name: string, values: string[], fields: SliderField[], setValue: any) {
     const sliders = fields.filter(field => field._type === 'slider');
     const sum = sliders.reduce((accumulator, field: any) => accumulator + (Number(values[field.key]) - 1), 0);
     if (sum > 10) {
-      setValue(name, '1');
+      (this.initialValues as any)[name] = '1';
       this.errorHeading = 'Bemærk!';
       this.error = `Svarprocenten for de ${sliders.length === 3 ? 'tre' : 'to'} spørgsmål må max. give 100% i alt`;
       window.scrollTo(0, 0);
@@ -1694,19 +1660,6 @@ export default class Applikation extends Vue {
       this.errorHeading = '';
       this.error = '';
     }
-  }
-
-  // TODO: AJP - ERF-7566 - simpleForm functions
-  input(e: any) {
-    console.log('On input ', e);
-  }
-
-  blur(e: any) {
-    console.log('On blur ', e);
-  }
-
-  setValue(value: any) {
-    console.log('Set value ', value);
   }
 }
 </script>

@@ -1,3 +1,5 @@
+// TODO: AJP - ERF-7566 - fjern andet end fetch data
+
 export const pdfData = {
   CurrentResult: [
     { Variable: 'prod1_score', Value: 'Score 0' },
