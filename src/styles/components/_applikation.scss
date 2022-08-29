@@ -142,6 +142,7 @@ ul.nav-bottom {
       position: absolute;
       top: 4px;
       fill: $color-white;
+      color: $color-white;
       z-index: 1;
       height: 20px;
     }
@@ -527,11 +528,11 @@ input[type='range'] {
   &-text {
     padding: 0 32px 32px;
 
-    & >>> h3 {
+    & :deep() h3 {
       margin-top: 16px;
     }
 
-    & >>> ul {
+    & :deep() ul {
       @at-root .prosAndCons & {
         list-style: none;
         padding: 0;

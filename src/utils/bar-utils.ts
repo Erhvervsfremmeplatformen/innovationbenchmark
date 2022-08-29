@@ -1,5 +1,3 @@
-// TODO: AJP - ERF-7566 - flyt og rename?
-
 export const chartColors = {
   blue: 'rgba(0, 82, 255, 0.3)',
   orange: 'rgba(143, 43, 143, 0.3)',

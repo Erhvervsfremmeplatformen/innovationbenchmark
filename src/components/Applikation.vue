@@ -131,7 +131,7 @@
                             ]"
                           >
                             <div v-if="field._type === 'textinput'" class="form-group">
-                              <label class="form-label" :for="field.key"> {{ field.label }}-XXX </label>
+                              <label class="form-label" :for="field.key"> {{ field.label }}</label>
 
                               <input
                                 :id="field.key"
@@ -629,18 +629,17 @@
 </template>
 
 <script lang="ts">
-import { Watch, Vue, Options } from 'vue-property-decorator';
-import axios, { AxiosError, AxiosResponse } from 'axios';
-import sanityClient from '@sanity/client';
-const blocksToHtml = require('@sanity/block-content-to-html');
-import SimpleForm from 'vue-simpleform';
-import VueApexCharts from 'vue3-apexcharts';
 import { FrontPageMatter, Results1, Results2, Test1, Test2 } from '@/types/response';
 import { SanityBlock } from '@/types/sanity-block';
 import { SliderField } from '@/types/types';
-import { barOptions, chartColors } from '../bar-utils';
-import { data1, data2, data3, dataResult, pdfData } from '../mock-data';
+import sanityClient from '@sanity/client';
+import axios, { AxiosError, AxiosResponse } from 'axios';
 import { nextTick } from 'vue';
+import { Options, Vue, Watch } from 'vue-property-decorator';
+import VueApexCharts from 'vue3-apexcharts';
+import { barOptions, chartColors } from '../utils/bar-utils';
+import { data1, data2, data3 } from '../utils/mock-data';
+const blocksToHtml = require('@sanity/block-content-to-html');
 
 const client = sanityClient({
   projectId: 'gu31rtaa',
@@ -652,7 +651,6 @@ const client = sanityClient({
 @Options({
   name: 'Applikation',
   components: {
-    SimpleForm,
     apexchart: VueApexCharts
   },
   methods: {
