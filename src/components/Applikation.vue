@@ -638,7 +638,6 @@ import { nextTick } from 'vue';
 import { Options, Vue, Watch } from 'vue-property-decorator';
 import VueApexCharts from 'vue3-apexcharts';
 import { barOptions, chartColors } from '../utils/bar-utils';
-import { data1, data2, data3 } from '../utils/mock-data';
 const blocksToHtml = require('@sanity/block-content-to-html');
 
 const client = sanityClient({
@@ -1622,28 +1621,21 @@ export default class Applikation extends Vue {
   }
 
   fetchData() {
-    if ((this as any).$useMockData) {
-      console.log('Use mock data due to configuration');
-      this.frontPageMatter = data1.result;
-      this.test1 = data2.result as any;
-      this.test2 = data3.result as any;
-    } else {
-      this.isLoading = true;
-      const query = '*[_type == "test1"] | order(order asc)';
-      const query2 = '*[_type == "test2"] | order(order asc)';
-      const frontpageQuery = '*[_type == "frontpage"][0]';
+    this.isLoading = true;
+    const query = '*[_type == "test1"] | order(order asc)';
+    const query2 = '*[_type == "test2"] | order(order asc)';
+    const frontpageQuery = '*[_type == "frontpage"][0]';
 
-      Promise.all<FrontPageMatter, Test1, Test2>([client.fetch(frontpageQuery), client.fetch(query), client.fetch(query2)])
-        .then(response => {
-          this.isLoading = false;
-          this.frontPageMatter = response[0];
-          this.test1 = response[1];
-          this.test2 = response[2];
-        })
-        .catch((error: AxiosError) => {
-          this.error = error.message;
-        });
-    }
+    Promise.all([client.fetch(frontpageQuery), client.fetch(query), client.fetch(query2)])
+      .then(response => {
+        this.isLoading = false;
+        this.frontPageMatter = response[0];
+        this.test1 = response[1];
+        this.test2 = response[2];
+      })
+      .catch((error: AxiosError) => {
+        this.error = error.message;
+      });
   }
 
   calculateSliders(name: string, values: string[], fields: SliderField[], setValue: any) {

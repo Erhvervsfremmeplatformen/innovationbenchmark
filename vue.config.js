@@ -13,7 +13,7 @@ const options = {
   },
   configureWebpack: {
     output: {
-      filename: 'build.js'
+      filename: "[name].[fullhash].js",
     },
     plugins: [
     ],
