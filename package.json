@@ -24,6 +24,7 @@
     "@babel/core": "7.17.9",
     "@types/sanitize-html": "1.23.3",
     "@typescript-eslint/eslint-plugin": "5.38.1",
+    "@typescript-eslint/eslint-plugin-tslint": "5.38.1",
     "@typescript-eslint/parser": "5.38.1",
     "@vue/cli-plugin-babel": "5.0.8",
     "@vue/cli-plugin-typescript": "5.0.8",
