@@ -1655,5 +1655,11 @@ export default class Applikation extends Vue {
 </script>
 
 <style lang="scss" scoped>
+// AJP: Hele stylesheet bør importeres under .innovationtest via deep selector, men der er underlig styling, så har kun overskrevet en enkelt klasse.
+:deep(.innovationtest) {
+  .apexcharts-legend-marker {
+    border-width: 1px;
+  }
+}
 @import '../styles/components/_applikation.scss';
 </style>
