@@ -1,30 +1,24 @@
 <template>
   <div>
-    <div id="app" class="app-body app-flex" tabindex="-1">
+    <div id="app" class="app-body" tabindex="-1">
       <GlobalSvgIcons></GlobalSvgIcons>
-      <GlobalNav></GlobalNav>
       <div class="flexgrow container pt-8 pb-8">
-        <Applikation></Applikation>
+        <Applikation />
       </div>
-      <GlobalFooter></GlobalFooter>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator';
-import GlobalNav from '@/components/GlobalNav.vue';
-import GlobalFooter from '@/components/GlobalFooter.vue';
+import { Options, Vue } from 'vue-property-decorator';
 import * as DKFDS from 'dkfds';
 import Applikation from '@/components/Applikation.vue';
 import GlobalSvgIcons from '@/components/GlobalSvgIcons.vue';
 
-@Component({
+@Options({
   components: {
     GlobalSvgIcons,
-    Applikation,
-    GlobalNav,
-    GlobalFooter
+    Applikation
   }
 })
 export default class App extends Vue {
