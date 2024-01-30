@@ -617,6 +617,7 @@ import { nextTick } from 'vue';
 import { Options, Vue, Watch } from 'vue-property-decorator';
 import VueApexCharts from 'vue3-apexcharts';
 import { barOptions, chartColors } from '../utils/bar-utils';
+import { defineComponent } from 'vue';
 const blocksToHtml = require('@sanity/block-content-to-html');
 
 const client = sanityClient({
@@ -626,800 +627,786 @@ const client = sanityClient({
   useCdn: true
 });
 
-@Options({
+export default defineComponent({
   name: 'Applikation',
   components: {
     GlobalSvgIcons,
     apexchart: VueApexCharts
   },
-  methods: {
-    barOptions
-  }
-})
-export default class Applikation extends Vue {
-  // initial data values
-  currentSection = 'frontpage'; // frontpage, test1, test2 - initial frontpage
-  currentStep = 1; // initial 1
-  pageCount = 1; // initial 1
-  maxStep = 1;
-  apiBaseUrl = 'https://innovationbenchmark.dk';
-  isLoading = false;
-  error = '';
-  errorHeading = '';
-  sessionId = this.generateId(32);
-  test1: Test1 | null = null;
-  test2: Test2 | null = null;
-  frontPageMatter: FrontPageMatter | null = null;
-  results1: Results1 | null = null;
-  results2: Results2 | null = null;
-  initialValues = {
-    virk_navn: '',
-    industri: 0,
-    navn: '',
-    stilling: '',
-    prod_vurd: 1,
-    prcs_vurd: 1,
-    org_vurd: 1,
-    mar_vurd: 1,
-    prod1: 1,
-    prod2: 1,
-    prod3: 1,
-    prcs1: 0,
-    prcs2: 0,
-    prcs3: 0,
-    org1: 0,
-    org2: 0,
-    org3: 0,
-    mar1: 0,
-    mar2: 0,
-    mar3: 0,
-    mar4: 0,
-    mar5: 0,
-    mar6: 0,
-    feature2_inno: 0,
-    feature2_industri: 0,
-    feature2_storrelse: 0,
-    feature2_kvu: '1',
-    feature2_mlvu: '1'
-  };
-  radarOptions = {
-    colors: [chartColors.blue, chartColors.orange, chartColors.green],
-    chart: {
-      id: 'radar',
-      foreColor: chartColors.textColor,
-      fontFamily: 'IBMPlexSans, system',
-      offsetY: -25,
-      toolbar: {
-        show: false
-      },
-      events: {
-        mounted: function () {
-          const radarPolygon = document.querySelector('.innovationtest .apexcharts-radar-series polygon') as HTMLInputElement;
-          if (radarPolygon) {
-            radarPolygon.style.fill = 'white';
-          }
-          document.querySelectorAll<HTMLElement>('.innovationtest .apexcharts-legend-marker').forEach(marker => {
-            marker.style.borderWidth = '1px';
-            marker.style.marginRight = '8px';
-          });
-        },
-        updated: function () {
-          const radarPolygon = document.querySelector('.innovationtest .apexcharts-radar-series polygon') as HTMLInputElement;
-          if (radarPolygon) {
-            radarPolygon.style.fill = 'white';
-          }
-          document.querySelectorAll<HTMLElement>('.innovationtest .apexcharts-legend-marker').forEach(marker => {
-            marker.style.borderWidth = '1px';
-            marker.style.marginRight = '8px';
-          });
-        }
-      }
-    },
-    stroke: {
-      width: 1,
-      colors: [chartColors.blueSolid, chartColors.orangeSolid, chartColors.greenSolid]
-    },
-    xaxis: {
-      categories: ['Produkt', 'Markedsføring', 'Organisation', 'Proces'],
-      labels: {
-        style: {
-          colors: [chartColors.textColor, chartColors.textColor, chartColors.textColor, chartColors.textColor]
-        }
-      }
-    },
-    yaxis: {
-      labels: {
-        offsetX: 8,
-        style: {
-          colors: [chartColors.textColor],
-          fontWeight: 700,
-          fontSize: 14
-        }
-      }
-    },
-    legend: {
-      fontSize: '14px',
-      itemMargin: {
-        horizontal: 8,
-        vertical: 8
-      },
-      offsetY: -25,
-      markers: {
-        width: 20,
-        height: 20,
-        radius: 5,
-        strokeWidth: 1,
-        strokeColor: [chartColors.blueSolid, chartColors.orangeSolid, chartColors.greenSolid]
-      }
-    }
-  };
-  expandedContent = '';
-
-  get test1BarCharts() {
-    if (!this.results1) {
-      return null;
-    }
-
-    return [
-      {
-        id: 'prod',
-        series: [
-          {
-            name: 'Produkt',
-            data: [this.results1.simpleList.prod_vurd, this.results1.simpleList.prod_gruppe, this.results1.simpleList.prod_andre]
-          }
-        ],
-        options: barOptions(
-          true,
-          undefined,
-          ['Din vurdering', 'Dit resultat', 'Andre virksomheder'],
-          [chartColors.blue, chartColors.orange, chartColors.green],
-          5,
-          false,
-          [chartColors.blueSolid, chartColors.orangeSolid, chartColors.greenSolid],
-          'Produkt',
-          true,
-          undefined,
-          '',
-          ''
-        ),
-        intro:
-          'Nedenfor kan du se, hvor produktinnovativ din virksomhed er sammenlignet med andre danske fremstillingsvirksomheder. Fordelingerne for de enkelte brancher er relativt ens, og derfor er der ingen yderligere opdeling.',
-        expands: [...Array(4)].map((_, index) => {
-          const labels = [
-            'Produkter, der er nye på verdensplan',
-            'Produkter, der er nye for virksomhedens marked',
-            'Produkter, der er nye for virksomheden',
-            'Virksomhedens samlede placering'
-          ];
-          return {
-            series: [
-              {
-                name: labels[index],
-                data: this.results1?.histogramList[`prod_hist${index + 1}_bins`].map(item => item.Value)
-              }
-            ],
-            options: barOptions(
-              true, // animationsEnabled
-              [this.results1?.simpleList[`prod_hist${index + 1}_vurd_bin`], this.results1?.simpleList[`prod_hist${index + 1}_my_bin`]], // annotation
-              this.results1?.histogramList[`prod_hist${index + 1}_bins`].map(item => item.Variable), // categories
-              this.results1?.histogramList[`prod_hist${index + 1}_bins`].map(item => {
-                if (
-                  item.Variable === this.results1?.simpleList[`prod_hist${index + 1}_my_bin`] &&
-                  item.Variable === this.results1?.simpleList[`prod_hist${index + 1}_vurd_bin`]
-                ) {
-                  return chartColors.orangeSolid;
-                }
-
-                if (item.Variable === this.results1?.simpleList[`prod_hist${index + 1}_my_bin`]) {
-                  return chartColors.orange;
-                }
-
-                if (item.Variable === this.results1?.simpleList[`prod_hist${index + 1}_vurd_bin`]) {
-                  return chartColors.blue;
-                }
-
-                return chartColors.green;
-              }), // colors
-              100, // max
-              true, // showXLabels
-              this.results1?.histogramList[`prod_hist${index + 1}_bins`].map(item => {
-                if (item.Variable === this.results1?.simpleList[`prod_hist${index + 1}_my_bin`]) {
-                  return chartColors.orangeSolid;
-                }
-
-                if (item.Variable === this.results1?.simpleList[`prod_hist${index + 1}_vurd_bin`]) {
-                  return chartColors.blueSolid;
-                }
-
-                return chartColors.greenSolid;
-              }), // strokes
-              labels[index], // title
-              true, // tooltipsenabled
-              this.results1?.histogramList[`prod_hist${index + 1}_tooltip`].map(item => item.Value), // tooltips
-              this.results1?.histogramList[`prod_hist${index + 1}_bins`].map(item => {
-                if (
-                  item.Variable === this.results1?.simpleList[`prod_hist${index + 1}_my_bin`] &&
-                  item.Variable === this.results1?.simpleList[`prod_hist${index + 1}_vurd_bin`]
-                ) {
-                  return 'pattern';
-                }
-
-                return 'solid';
-              }), // types
-              '', // xasis
-              this.results1?.simpleList[`prod_hist${index + 1}_text_left`] // yasis
-            )
-          };
-        })
-      },
-      {
-        id: 'prcs',
-        series: [
-          {
-            name: 'Proces',
-            data: [this.results1?.simpleList.prcs_vurd, this.results1?.simpleList.prcs_gruppe, this.results1?.simpleList.prcs_andre]
-          }
-        ],
-        options: barOptions(
-          true,
-          undefined,
-          ['Din vurdering', 'Dit resultat', 'Andre virksomheder'],
-          [chartColors.blue, chartColors.orange, chartColors.green],
-          5,
-          false,
-          [chartColors.blueSolid, chartColors.orangeSolid, chartColors.greenSolid],
-          'Proces',
-          true,
-          undefined,
-          '',
-          ''
-        ),
-        intro:
-          'Nedenfor kan du se, hvor procesinnovativ og automatiseret din virksomhed er sammenlignet med andre danske fremstillingsvirksomheder. Fordelingerne for de enkelte brancher er relativt ens, og derfor er der ingen yderligere opdeling.',
-        expands: [...Array(4)].map((_, index) => {
-          const labels = ['Fremstillingen', 'Pakningen', 'Lagringen', 'Virksomhedens samlede placering'];
-          return {
-            series: [
-              {
-                name: labels[index],
-                data: this.results1?.histogramList[`prcs_hist${index + 1}_bins`].map(item => item.Value)
-              }
-            ],
-            options: barOptions(
-              true, // animationsEnabled
-              [this.results1?.simpleList[`prcs_hist${index + 1}_vurd_bin`], this.results1?.simpleList[`prcs_hist${index + 1}_my_bin`]], // annotation
-              this.results1?.histogramList[`prcs_hist${index + 1}_bins`].map(item => item.Variable), // categories
-              this.results1?.histogramList[`prcs_hist${index + 1}_bins`].map(item => {
-                if (
-                  item.Variable === this.results1?.simpleList[`prcs_hist${index + 1}_my_bin`] &&
-                  item.Variable === this.results1?.simpleList[`prcs_hist${index + 1}_vurd_bin`]
-                ) {
-                  return chartColors.orangeSolid;
-                }
-
-                if (item.Variable === this.results1?.simpleList[`prcs_hist${index + 1}_my_bin`]) {
-                  return chartColors.orange;
-                }
-
-                if (item.Variable === this.results1?.simpleList[`prcs_hist${index + 1}_vurd_bin`]) {
-                  return chartColors.blue;
-                }
-
-                return chartColors.green;
-              }), // colors
-              100, // max
-              true, // showXLabels
-              this.results1?.histogramList[`prcs_hist${index + 1}_bins`].map(item => {
-                if (item.Variable === this.results1?.simpleList[`prcs_hist${index + 1}_my_bin`]) {
-                  return chartColors.orangeSolid;
-                }
-
-                if (item.Variable === this.results1?.simpleList[`prcs_hist${index + 1}_vurd_bin`]) {
-                  return chartColors.blueSolid;
-                }
-
-                return chartColors.greenSolid;
-              }), // strokes
-              labels[index], // title
-              true, // tooltipsenabled
-              this.results1?.histogramList[`prcs_hist${index + 1}_tooltip`].map(item => item.Value), // tooltips
-              this.results1?.histogramList[`prcs_hist${index + 1}_bins`].map(item => {
-                if (
-                  item.Variable === this.results1?.simpleList[`prcs_hist${index + 1}_my_bin`] &&
-                  item.Variable === this.results1?.simpleList[`prcs_hist${index + 1}_vurd_bin`]
-                ) {
-                  return 'pattern';
-                }
-
-                return 'solid';
-              }), // types
-              '', // xasis
-              this.results1?.simpleList[`prcs_hist${index + 1}_text_left`] // yasis
-            )
-          };
-        })
-      },
-      {
-        id: 'org',
-        series: [
-          {
-            name: 'Organisation',
-            data: [this.results1?.simpleList.org_vurd, this.results1?.simpleList.org_gruppe, this.results1?.simpleList.org_andre]
-          }
-        ],
-        options: barOptions(
-          true,
-          undefined,
-          ['Din vurdering', 'Dit resultat', 'Andre virksomheder'],
-          [chartColors.blue, chartColors.orange, chartColors.green],
-          5,
-          false,
-          [chartColors.blueSolid, chartColors.orangeSolid, chartColors.greenSolid],
-          'Organisation',
-          true,
-          undefined,
-          '',
-          ''
-        ),
-        intro:
-          'Nedenfor kan du se, hvor organisatorisk innovativ og decentraliseret din virksomhed er sammenlignet med andre danske fremstillingsvirksomheder. Fordelingerne for de enkelte brancher er relativt ens, og derfor er der ingen yderligere opdeling.',
-        expands: [...Array(4)].map((_, index) => {
-          const labels = ['Løsningsansvar', 'Tidsplanlægning', 'Selvstyrende grupper', 'Virksomhedens samlede placering'];
-          return {
-            series: [
-              {
-                name: labels[index],
-                data: this.results1?.histogramList[`org_hist${index + 1}_bins`].map(item => item.Value)
-              }
-            ],
-            options: barOptions(
-              true, // animationsEnabled
-              [this.results1?.simpleList[`org_hist${index + 1}_vurd_bin`], this.results1?.simpleList[`org_hist${index + 1}_my_bin`]], // annotation
-              this.results1?.histogramList[`org_hist${index + 1}_bins`].map(item => item.Variable), // categories
-              this.results1?.histogramList[`org_hist${index + 1}_bins`].map(item => {
-                if (
-                  item.Variable === this.results1?.simpleList[`org_hist${index + 1}_my_bin`] &&
-                  item.Variable === this.results1?.simpleList[`org_hist${index + 1}_vurd_bin`]
-                ) {
-                  return chartColors.orangeSolid;
-                }
-
-                if (item.Variable === this.results1?.simpleList[`org_hist${index + 1}_my_bin`]) {
-                  return chartColors.orange;
-                }
-
-                if (item.Variable === this.results1?.simpleList[`org_hist${index + 1}_vurd_bin`]) {
-                  return chartColors.blue;
-                }
-
-                return chartColors.green;
-              }), // colors
-              100, // max
-              true, // showXLabels
-              this.results1?.histogramList[`org_hist${index + 1}_bins`].map(item => {
-                if (item.Variable === this.results1?.simpleList[`org_hist${index + 1}_my_bin`]) {
-                  return chartColors.orangeSolid;
-                }
-
-                if (item.Variable === this.results1?.simpleList[`org_hist${index + 1}_vurd_bin`]) {
-                  return chartColors.blueSolid;
-                }
-
-                return chartColors.greenSolid;
-              }), // strokes
-              labels[index], // title
-              true, // tooltipsenabled
-              this.results1?.histogramList[`org_hist${index + 1}_tooltip`].map(item => item.Value), // tooltips
-              this.results1?.histogramList[`org_hist${index + 1}_bins`].map(item => {
-                if (
-                  item.Variable === this.results1?.simpleList[`org_hist${index + 1}_my_bin`] &&
-                  item.Variable === this.results1?.simpleList[`org_hist${index + 1}_vurd_bin`]
-                ) {
-                  return 'pattern';
-                }
-
-                return 'solid';
-              }), // types
-              '', // xasis
-              this.results1?.simpleList[`org_hist${index + 1}_text_left`] // yasis
-            )
-          };
-        })
-      },
-      {
-        id: 'mar',
-        series: [
-          {
-            name: 'Markedsføring',
-            data: [this.results1?.simpleList.mar_vurd, this.results1?.simpleList.mar_gruppe, this.results1?.simpleList.mar_andre]
-          }
-        ],
-        options: barOptions(
-          true,
-          undefined,
-          ['Din vurdering', 'Dit resultat', 'Andre virksomheder'],
-          [chartColors.blue, chartColors.orange, chartColors.green],
-          5,
-          false,
-          [chartColors.blueSolid, chartColors.orangeSolid, chartColors.greenSolid],
-          'Markedsføring',
-          true,
-          undefined,
-          '',
-          ''
-        ),
-        intro:
-          'Nedenfor kan du se, hvor innovativ virksomheden er ifm. introduktion af nye markedsføringstiltag sammenlignet med andre danske fremstillingsvirksomheder. Fordelingerne for de enkelte brancher er relativt ens, og derfor er der ingen yderligere opdeling.',
-        expands: [...Array(7)].map((_, index) => {
-          const labels = [
-            'Produktdesign',
-            'Indpakning',
-            'Markedsføringsstrategier',
-            'Promovering af produkter',
-            'Eksponering',
-            'Prissætning',
-            'Virksomhedens samlede placering'
-          ];
-          return {
-            series: [
-              {
-                name: labels[index],
-                data: this.results1?.histogramList[`mar_hist${index + 1}_bins`].map(item => item.Value)
-              }
-            ],
-            width: index === 6 ? 50 : 25,
-            options: barOptions(
-              true, // animationsEnabled
-              [this.results1?.simpleList[`mar_hist${index + 1}_vurd_bin`], this.results1?.simpleList[`mar_hist${index + 1}_my_bin`]], // annotation
-              this.results1?.histogramList[`mar_hist${index + 1}_bins`].map(item => item.Variable), // categories
-              this.results1?.histogramList[`mar_hist${index + 1}_bins`].map(item => {
-                if (
-                  item.Variable === this.results1?.simpleList[`mar_hist${index + 1}_my_bin`] &&
-                  item.Variable === this.results1?.simpleList[`mar_hist${index + 1}_vurd_bin`]
-                ) {
-                  return chartColors.orangeSolid;
-                }
-
-                if (item.Variable === this.results1?.simpleList[`mar_hist${index + 1}_my_bin`]) {
-                  return chartColors.orange;
-                }
-
-                if (item.Variable === this.results1?.simpleList[`mar_hist${index + 1}_vurd_bin`]) {
-                  return chartColors.blue;
-                }
-
-                return chartColors.green;
-              }), // colors
-              100, // max
-              true, // showXLabels
-              this.results1?.histogramList[`mar_hist${index + 1}_bins`].map(item => {
-                if (item.Variable === this.results1?.simpleList[`mar_hist${index + 1}_my_bin`]) {
-                  return chartColors.orangeSolid;
-                }
-
-                if (item.Variable === this.results1?.simpleList[`mar_hist${index + 1}_vurd_bin`]) {
-                  return chartColors.blueSolid;
-                }
-
-                return chartColors.greenSolid;
-              }), // strokes
-              labels[index], // title
-              true, // tooltipsenabled
-              this.results1?.histogramList[`mar_hist${index + 1}_tooltip`].map(item => item.Value), // tooltips
-              this.results1?.histogramList[`mar_hist${index + 1}_bins`].map(item => {
-                if (
-                  item.Variable === this.results1?.simpleList[`mar_hist${index + 1}_my_bin`] &&
-                  item.Variable === this.results1?.simpleList[`mar_hist${index + 1}_vurd_bin`]
-                ) {
-                  return 'pattern';
-                }
-
-                return 'solid';
-              }), // types
-              '', // xasis
-              this.results1?.simpleList[`mar_hist${index + 1}_text_left`] // yasis
-            )
-          };
-        })
-      }
-    ];
-  }
-
-  get test2BarCharts() {
-    if (!this.results2) {
-      return null;
-    }
-
+  data() {
     return {
-      feature2: [
-        {
-          id: 'hist1_samlet_bins',
-          title: `Alle virksomheder - Din sandsynlighed er ${this.results2.simpleList.din_ssh_samlet}%`,
-          width: 50,
-          subtitle: `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2.simpleList.din_ssh_samlet} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle størrelser og fra alle industrier. Under "Uddybende information" kan du se en sammenligning med virksomheder af din størrelse eller fra din industri (der tages forbehold for, at disse  beregninger forudsætter data af en vis mængde)`,
-          myScore: this.results2.simpleList.hist1_my_bin,
-          series: [
-            {
-              name: `Alle virksomheder - Din sandsynlighed er ${this.results2.simpleList.din_ssh_samlet}%`,
-              data: this.results2.histogramList.hist1_samlet_bins.map(item => item.Value)
+      currentSection: 'frontpage', // frontpage, test1, test2 - initial frontpage
+      currentStep: 1, // initial 1
+      pageCount: 1, // initial 1
+      maxStep: 1,
+      apiBaseUrl: 'https://innovationbenchmark.dk',
+      isLoading: false,
+      error: '',
+      errorHeading: '',
+      sessionId: this.generateId(32),
+      test1: null as Test1 | null,
+      test2: null as Test2 | null,
+      frontPageMatter: null as FrontPageMatter | null,
+      results1: null as Results1 | null,
+      results2: null as Results2 | null,
+      initialValues: {
+        virk_navn: '',
+        industri: 0,
+        navn: '',
+        stilling: '',
+        prod_vurd: 1,
+        prcs_vurd: 1,
+        org_vurd: 1,
+        mar_vurd: 1,
+        prod1: 1,
+        prod2: 1,
+        prod3: 1,
+        prcs1: 0,
+        prcs2: 0,
+        prcs3: 0,
+        org1: 0,
+        org2: 0,
+        org3: 0,
+        mar1: 0,
+        mar2: 0,
+        mar3: 0,
+        mar4: 0,
+        mar5: 0,
+        mar6: 0,
+        feature2_inno: 0,
+        feature2_industri: 0,
+        feature2_storrelse: 0,
+        feature2_kvu: '1',
+        feature2_mlvu: '1'
+      },
+      radarOptions: {
+        colors: [chartColors.blue, chartColors.orange, chartColors.green],
+        chart: {
+          id: 'radar',
+          foreColor: chartColors.textColor,
+          fontFamily: 'IBMPlexSans, system',
+          offsetY: -25,
+          toolbar: {
+            show: false
+          },
+          events: {
+            mounted: function () {
+              const radarPolygon = document.querySelector('.innovationtest .apexcharts-radar-series polygon') as HTMLInputElement;
+              if (radarPolygon) {
+                radarPolygon.style.fill = 'white';
+              }
+              document.querySelectorAll<HTMLElement>('.innovationtest .apexcharts-legend-marker').forEach(marker => {
+                marker.style.borderWidth = '1px';
+                marker.style.marginRight = '8px';
+              });
+            },
+            updated: function () {
+              const radarPolygon = document.querySelector('.innovationtest .apexcharts-radar-series polygon') as HTMLInputElement;
+              if (radarPolygon) {
+                radarPolygon.style.fill = 'white';
+              }
+              document.querySelectorAll<HTMLElement>('.innovationtest .apexcharts-legend-marker').forEach(marker => {
+                marker.style.borderWidth = '1px';
+                marker.style.marginRight = '8px';
+              });
             }
-          ],
-          options: barOptions(
-            true, // annimationenabled
-            [undefined, this.results2.simpleList.hist1_my_bin], // annotation
-            this.results2.histogramList.hist1_samlet_bins.map(item => item.Variable), // categories
-            this.results2.histogramList.hist1_samlet_bins.map(item => {
-              // colors
-              if (item.Variable === this.results2?.simpleList.hist1_my_bin) {
-                return chartColors.orange;
-              }
-              return chartColors.green;
-            }),
-            undefined, // max
-            true, // showXLabels
-            this.results2?.histogramList.hist1_samlet_bins.map(item => {
-              // strokes
-              if (item.Variable === this.results2?.simpleList.hist1_my_bin) {
-                return chartColors.orangeSolid;
-              }
-
-              return chartColors.greenSolid;
-            }),
-            `Alle virksomheder - Din sandsynlighed er ${this.results2?.simpleList.din_ssh_samlet}%`, // title
-            false, // tooltipenabled
-            undefined, // tooltips
-            undefined, // types
-            this.results2?.simpleList.hist1_samlet_text_x_axis, // xaxis,
-            this.results2?.simpleList.hist1_samlet_text_left // yaxis,
-          ),
-          expands: ['hist2_str', 'hist3_industri'].map((chartId, index) => {
-            const labels = [
-              `Samme størrelse - Din sandsynlighed er ${this.results2?.simpleList.din_ssh_str}%`,
-              `Samme industri - Din sandsynlighed er ${this.results2?.simpleList.din_ssh_industri}%`
-            ];
-            const chartPrefix = ['hist2', 'hist3'];
-            return {
-              series: [
-                {
-                  name: labels[index],
-                  data: this.results2?.histogramList[`${chartId}_bins`].map(item => item.Value)
-                }
-              ],
-              subtitle: [
-                `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2?.simpleList.din_ssh_str} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle industrier for din størrelsesgruppe.`,
-                `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2?.simpleList.din_ssh_industri} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle størrelser i din industrigruppe.`
-              ][index],
-              value: this.results2?.simpleList[`${chartPrefix[index]}_my_bin`],
-              options: barOptions(
-                true, // animationsEnabled
-                [undefined, this.results2?.simpleList[`${chartPrefix[index]}_my_bin`]], // annotation
-                this.results2?.histogramList[`${chartId}_bins`].map(item => item.Variable), // categories
-                this.results2?.histogramList[`${chartId}_bins`].map(item => {
-                  if (item.Variable === this.results2?.simpleList[`${chartPrefix[index]}_my_bin`]) {
-                    return chartColors.orange;
-                  }
-
-                  return chartColors.green;
-                }), // colors
-                undefined, // max
-                true, // showXLabels
-                this.results2?.histogramList[`${chartId}_bins`].map(item => {
-                  if (item.Variable === this.results2?.simpleList[`${chartPrefix[index]}_my_bin`]) {
-                    return chartColors.orangeSolid;
-                  }
-
-                  return chartColors.greenSolid;
-                }), // strokes
-                labels[index], // title
-                false, // tooltipsenabled
-                undefined, // tooltips
-                undefined, // types
-                this.results2?.simpleList[`${chartId}_text_x_axis`], // xasis
-                this.results2?.simpleList[`${chartId}_text_left`] // yasis
-              )
-            };
-          })
+          }
+        },
+        stroke: {
+          width: 1,
+          colors: [chartColors.blueSolid, chartColors.orangeSolid, chartColors.greenSolid]
+        },
+        xaxis: {
+          categories: ['Produkt', 'Markedsføring', 'Organisation', 'Proces'],
+          labels: {
+            style: {
+              colors: [chartColors.textColor, chartColors.textColor, chartColors.textColor, chartColors.textColor]
+            }
+          }
+        },
+        yaxis: {
+          labels: {
+            offsetX: 8,
+            style: {
+              colors: [chartColors.textColor],
+              fontWeight: 700,
+              fontSize: 14
+            }
+          }
+        },
+        legend: {
+          fontSize: '14px',
+          itemMargin: {
+            horizontal: 8,
+            vertical: 8
+          },
+          offsetY: -25,
+          markers: {
+            width: 20,
+            height: 20,
+            radius: 5,
+            strokeWidth: 1,
+            strokeColor: [chartColors.blueSolid, chartColors.orangeSolid, chartColors.greenSolid]
+          }
         }
-      ],
-      feature3: [
+      },
+      expandedContent: ''
+    };
+  },
+  computed: {
+    test1BarCharts(): any {
+      if (!this.results1) {
+        return null;
+      }
+
+      return [
         {
-          id: 'hist7_samlet_bins',
-          title: 'Ændring i profit pr. medarbejder',
-          width: 50,
-          subtitle: `Værdien for din virksomhed betyder, at din profit pr. medarbejder er ${this.results2?.histogramList.hist7_samlet_bins
-            .filter(column => column.Variable === this.results2?.simpleList.hist7_my_bin)
-            .map(
-              column => column.Value
-            )} kr. højere efter tre år med innovation end uden. De øvrige søjler viser værdien, hvis andelen af ansatte med videregående uddannelse havde været anderledes. Under "Uddybende information" kan du se en sammenligning med virksomheder af din størrelse eller fra din industri (der tages forbehold for, at disse beregninger forudsætter data af en vis mængde).`,
-          myScore: this.results2?.simpleList.hist7_my_bin,
+          id: 'prod',
           series: [
             {
-              name: 'Ændring i profit pr. medarbejder',
-              data: this.results2?.histogramList.hist7_samlet_bins.map(item => item.Value)
+              name: 'Produkt',
+              data: [this.results1.simpleList.prod_vurd, this.results1.simpleList.prod_gruppe, this.results1.simpleList.prod_andre]
             }
           ],
           options: barOptions(
-            true, // annimationenabled
-            [undefined, this.results2?.simpleList.hist7_my_bin], // annotation
-            this.results2?.histogramList.hist7_samlet_bins.map(item => item.Variable), // categories
-            this.results2?.histogramList.hist7_samlet_bins.map(item => {
-              // colors
-              if (item.Variable === this.results2?.simpleList.hist7_my_bin) {
-                return chartColors.orange;
-              }
-              return chartColors.green;
-            }),
-            undefined, // max
-            true, // showXLabels
-            this.results2?.histogramList.hist7_samlet_bins.map(item => {
-              // strokes
-              if (item.Variable === this.results2?.simpleList.hist7_my_bin) {
-                return chartColors.orangeSolid;
-              }
-
-              return chartColors.greenSolid;
-            }),
-            'Ændring i profit pr. medarbejder', // title
-            false, // tooltipenabled
-            undefined, // tooltips
-            undefined, // types
-            this.results2?.simpleList.hist7_samlet_text_x_axis, // xaxis,
-            this.results2?.simpleList.hist7_samlet_text_left // yaxis,
+            true,
+            undefined,
+            ['Din vurdering', 'Dit resultat', 'Andre virksomheder'],
+            [chartColors.blue, chartColors.orange, chartColors.green],
+            5,
+            false,
+            [chartColors.blueSolid, chartColors.orangeSolid, chartColors.greenSolid],
+            'Produkt',
+            true,
+            undefined,
+            '',
+            ''
           ),
-          expands: ['hist8_str', 'hist9_industri'].map((chartId, index) => {
-            const labels = ['Samme størrelse - Ændring i profit pr. medarbejder', 'Samme industri - Ændring i profit pr. medarbejder'];
-            const chartPrefix = ['hist8', 'hist9'];
+          intro:
+            'Nedenfor kan du se, hvor produktinnovativ din virksomhed er sammenlignet med andre danske fremstillingsvirksomheder. Fordelingerne for de enkelte brancher er relativt ens, og derfor er der ingen yderligere opdeling.',
+          expands: [...Array(4)].map((_, index) => {
+            const labels = [
+              'Produkter, der er nye på verdensplan',
+              'Produkter, der er nye for virksomhedens marked',
+              'Produkter, der er nye for virksomheden',
+              'Virksomhedens samlede placering'
+            ];
             return {
               series: [
                 {
                   name: labels[index],
-                  data: this.results2?.histogramList[`${chartId}_bins`].map(item => item.Value)
+                  data: this.results1?.histogramList[`prod_hist${index + 1}_bins`].map(item => item.Value)
                 }
               ],
-              subtitle: `Værdien for din virksomhed betyder, at din profit pr. medarbejder er ${this.results2?.histogramList[`${chartId}_bins`]
-                .filter(column => column.Variable === this.results2?.simpleList[`${chartId}_my_bin`])
-                .map(
-                  column => column.Value
-                )} kr. højere efter tre år med innovation end uden. De øvrige søjler viser værdien, hvis andelen af ansatte med videregående uddannelse havde været anderledes.`,
-              value: this.results2?.simpleList[`${chartPrefix[index]}_my_bin`],
               options: barOptions(
                 true, // animationsEnabled
-                [undefined, this.results2?.simpleList[`${chartPrefix[index]}_my_bin`]], // annotation
-                this.results2?.histogramList[`${chartId}_bins`].map(item => item.Variable), // categories
-                this.results2?.histogramList[`${chartId}_bins`].map(item => {
-                  if (item.Variable === this.results2?.simpleList[`${chartPrefix[index]}_my_bin`]) {
+                [this.results1?.simpleList[`prod_hist${index + 1}_vurd_bin`], this.results1?.simpleList[`prod_hist${index + 1}_my_bin`]], // annotation
+                this.results1?.histogramList[`prod_hist${index + 1}_bins`].map(item => item.Variable), // categories
+                this.results1?.histogramList[`prod_hist${index + 1}_bins`].map(item => {
+                  if (
+                    item.Variable === this.results1?.simpleList[`prod_hist${index + 1}_my_bin`] &&
+                    item.Variable === this.results1?.simpleList[`prod_hist${index + 1}_vurd_bin`]
+                  ) {
+                    return chartColors.orangeSolid;
+                  }
+
+                  if (item.Variable === this.results1?.simpleList[`prod_hist${index + 1}_my_bin`]) {
                     return chartColors.orange;
+                  }
+
+                  if (item.Variable === this.results1?.simpleList[`prod_hist${index + 1}_vurd_bin`]) {
+                    return chartColors.blue;
                   }
 
                   return chartColors.green;
                 }), // colors
-                undefined, // max
+                100, // max
                 true, // showXLabels
-                this.results2?.histogramList[`${chartId}_bins`].map(item => {
-                  if (item.Variable === this.results2?.simpleList[`${chartPrefix[index]}_my_bin`]) {
+                this.results1?.histogramList[`prod_hist${index + 1}_bins`].map(item => {
+                  if (item.Variable === this.results1?.simpleList[`prod_hist${index + 1}_my_bin`]) {
                     return chartColors.orangeSolid;
+                  }
+
+                  if (item.Variable === this.results1?.simpleList[`prod_hist${index + 1}_vurd_bin`]) {
+                    return chartColors.blueSolid;
                   }
 
                   return chartColors.greenSolid;
                 }), // strokes
                 labels[index], // title
-                false, // tooltipsenabled
-                undefined, // tooltips
-                undefined, // types
-                this.results2?.simpleList[`${chartId}_text_x_axis`], // xasis
-                this.results2?.simpleList[`${chartId}_text_left`] // yasis
+                true, // tooltipsenabled
+                this.results1?.histogramList[`prod_hist${index + 1}_tooltip`].map(item => item.Value), // tooltips
+                this.results1?.histogramList[`prod_hist${index + 1}_bins`].map(item => {
+                  if (
+                    item.Variable === this.results1?.simpleList[`prod_hist${index + 1}_my_bin`] &&
+                    item.Variable === this.results1?.simpleList[`prod_hist${index + 1}_vurd_bin`]
+                  ) {
+                    return 'pattern';
+                  }
+
+                  return 'solid';
+                }), // types
+                '', // xasis
+                this.results1?.simpleList[`prod_hist${index + 1}_text_left`] // yasis
               )
             };
           })
         },
         {
-          id: 'hist4_samlet_bins',
-          title: 'Ændring i produktivitetsvækst',
-          width: 50,
-          subtitle: `Værdien for din virksomhed betyder, at din produktivitetsvækst over tre år ${this.results2?.histogramList.hist4_samlet_bins
-            .filter(column => column.Variable === this.results2?.simpleList.hist4_my_bin)
-            .map(
-              column => column.Value
-            )}%-point med innovation end uden. De øvrige søjler viser værdien, hvis andelen af ansatte med videregående uddannelse havde været anderledes. Under "Uddybende information" kan du se en sammenligning med virksomheder af din størrelse eller fra din industri (der tages forbehold for, at disse beregninger forudsætter data af en vis mængde).`,
-          myScore: this.results2?.simpleList.hist4_my_bin,
+          id: 'prcs',
           series: [
             {
-              name: 'Ændring i produktivitetsvækst',
-              data: this.results2?.histogramList.hist4_samlet_bins.map(item => item.Value)
+              name: 'Proces',
+              data: [this.results1?.simpleList.prcs_vurd, this.results1?.simpleList.prcs_gruppe, this.results1?.simpleList.prcs_andre]
             }
           ],
           options: barOptions(
-            true, // annimationenabled
-            [undefined, this.results2?.simpleList.hist4_my_bin], // annotation
-            this.results2?.histogramList.hist4_samlet_bins.map(item => item.Variable), // categories
-            this.results2?.histogramList.hist4_samlet_bins.map(item => {
-              // colors
-              if (item.Variable === this.results2?.simpleList.hist4_my_bin) {
-                return chartColors.orange;
-              }
-              return chartColors.green;
-            }),
-            undefined, // max
-            true, // showXLabels
-            this.results2?.histogramList.hist4_samlet_bins.map(item => {
-              // strokes
-              if (item.Variable === this.results2?.simpleList.hist4_my_bin) {
-                return chartColors.orangeSolid;
-              }
-
-              return chartColors.greenSolid;
-            }),
-            'Ændring i produktivitetsvækst', // title
-            false, // tooltipenabled
-            undefined, // tooltips
-            undefined, // types
-            this.results2?.simpleList.hist4_samlet_text_x_axis, // xaxis,
-            this.results2?.simpleList.hist4_samlet_text_left // yaxis,
+            true,
+            undefined,
+            ['Din vurdering', 'Dit resultat', 'Andre virksomheder'],
+            [chartColors.blue, chartColors.orange, chartColors.green],
+            5,
+            false,
+            [chartColors.blueSolid, chartColors.orangeSolid, chartColors.greenSolid],
+            'Proces',
+            true,
+            undefined,
+            '',
+            ''
           ),
-          expands: ['hist5_str', 'hist6_industri'].map((chartId, index) => {
-            const labels = ['Samme størrelse - Ændring i produktivitetsvækst', 'Samme industri - Ændring i produktivitetsvækst'];
-            const chartPrefix = ['hist5', 'hist6'];
+          intro:
+            'Nedenfor kan du se, hvor procesinnovativ og automatiseret din virksomhed er sammenlignet med andre danske fremstillingsvirksomheder. Fordelingerne for de enkelte brancher er relativt ens, og derfor er der ingen yderligere opdeling.',
+          expands: [...Array(4)].map((_, index) => {
+            const labels = ['Fremstillingen', 'Pakningen', 'Lagringen', 'Virksomhedens samlede placering'];
             return {
               series: [
                 {
                   name: labels[index],
-                  data: this.results2?.histogramList[`${chartId}_bins`].map(item => item.Value)
+                  data: this.results1?.histogramList[`prcs_hist${index + 1}_bins`].map(item => item.Value)
                 }
               ],
-              subtitle: `Værdien for din virksomhed betyder, at din produktivitetsvækst over tre år er ${this.results2?.histogramList[
-                `${chartId}_bins`
-              ]
-                .filter(column => column.Variable === this.results2?.simpleList[`${chartId}_my_bin`])
-                .map(
-                  column => column.Value
-                )}%-point med innovation end uden. De øvrige søjler viser værdien, hvis andelen af ansatte med videregående uddannelse havde været anderledes.`,
-              value: this.results2?.simpleList[`${chartPrefix[index]}_my_bin`],
               options: barOptions(
                 true, // animationsEnabled
-                [undefined, this.results2?.simpleList[`${chartPrefix[index]}_my_bin`]], // annotation
-                this.results2?.histogramList[`${chartId}_bins`].map(item => item.Variable), // categories
-                this.results2?.histogramList[`${chartId}_bins`].map(item => {
-                  if (item.Variable === this.results2?.simpleList[`${chartPrefix[index]}_my_bin`]) {
+                [this.results1?.simpleList[`prcs_hist${index + 1}_vurd_bin`], this.results1?.simpleList[`prcs_hist${index + 1}_my_bin`]], // annotation
+                this.results1?.histogramList[`prcs_hist${index + 1}_bins`].map(item => item.Variable), // categories
+                this.results1?.histogramList[`prcs_hist${index + 1}_bins`].map(item => {
+                  if (
+                    item.Variable === this.results1?.simpleList[`prcs_hist${index + 1}_my_bin`] &&
+                    item.Variable === this.results1?.simpleList[`prcs_hist${index + 1}_vurd_bin`]
+                  ) {
+                    return chartColors.orangeSolid;
+                  }
+
+                  if (item.Variable === this.results1?.simpleList[`prcs_hist${index + 1}_my_bin`]) {
                     return chartColors.orange;
+                  }
+
+                  if (item.Variable === this.results1?.simpleList[`prcs_hist${index + 1}_vurd_bin`]) {
+                    return chartColors.blue;
                   }
 
                   return chartColors.green;
                 }), // colors
-                undefined, // max
+                100, // max
                 true, // showXLabels
-                this.results2?.histogramList[`${chartId}_bins`].map(item => {
-                  if (item.Variable === this.results2?.simpleList[`${chartPrefix[index]}_my_bin`]) {
+                this.results1?.histogramList[`prcs_hist${index + 1}_bins`].map(item => {
+                  if (item.Variable === this.results1?.simpleList[`prcs_hist${index + 1}_my_bin`]) {
                     return chartColors.orangeSolid;
+                  }
+
+                  if (item.Variable === this.results1?.simpleList[`prcs_hist${index + 1}_vurd_bin`]) {
+                    return chartColors.blueSolid;
                   }
 
                   return chartColors.greenSolid;
                 }), // strokes
                 labels[index], // title
-                false, // tooltipsenabled
-                undefined, // tooltips
-                undefined, // types
-                this.results2?.simpleList[`${chartId}_text_x_axis`], // xasis
-                this.results2?.simpleList[`${chartId}_text_left`] // yasis
+                true, // tooltipsenabled
+                this.results1?.histogramList[`prcs_hist${index + 1}_tooltip`].map(item => item.Value), // tooltips
+                this.results1?.histogramList[`prcs_hist${index + 1}_bins`].map(item => {
+                  if (
+                    item.Variable === this.results1?.simpleList[`prcs_hist${index + 1}_my_bin`] &&
+                    item.Variable === this.results1?.simpleList[`prcs_hist${index + 1}_vurd_bin`]
+                  ) {
+                    return 'pattern';
+                  }
+
+                  return 'solid';
+                }), // types
+                '', // xasis
+                this.results1?.simpleList[`prcs_hist${index + 1}_text_left`] // yasis
+              )
+            };
+          })
+        },
+        {
+          id: 'org',
+          series: [
+            {
+              name: 'Organisation',
+              data: [this.results1?.simpleList.org_vurd, this.results1?.simpleList.org_gruppe, this.results1?.simpleList.org_andre]
+            }
+          ],
+          options: barOptions(
+            true,
+            undefined,
+            ['Din vurdering', 'Dit resultat', 'Andre virksomheder'],
+            [chartColors.blue, chartColors.orange, chartColors.green],
+            5,
+            false,
+            [chartColors.blueSolid, chartColors.orangeSolid, chartColors.greenSolid],
+            'Organisation',
+            true,
+            undefined,
+            '',
+            ''
+          ),
+          intro:
+            'Nedenfor kan du se, hvor organisatorisk innovativ og decentraliseret din virksomhed er sammenlignet med andre danske fremstillingsvirksomheder. Fordelingerne for de enkelte brancher er relativt ens, og derfor er der ingen yderligere opdeling.',
+          expands: [...Array(4)].map((_, index) => {
+            const labels = ['Løsningsansvar', 'Tidsplanlægning', 'Selvstyrende grupper', 'Virksomhedens samlede placering'];
+            return {
+              series: [
+                {
+                  name: labels[index],
+                  data: this.results1?.histogramList[`org_hist${index + 1}_bins`].map(item => item.Value)
+                }
+              ],
+              options: barOptions(
+                true, // animationsEnabled
+                [this.results1?.simpleList[`org_hist${index + 1}_vurd_bin`], this.results1?.simpleList[`org_hist${index + 1}_my_bin`]], // annotation
+                this.results1?.histogramList[`org_hist${index + 1}_bins`].map(item => item.Variable), // categories
+                this.results1?.histogramList[`org_hist${index + 1}_bins`].map(item => {
+                  if (
+                    item.Variable === this.results1?.simpleList[`org_hist${index + 1}_my_bin`] &&
+                    item.Variable === this.results1?.simpleList[`org_hist${index + 1}_vurd_bin`]
+                  ) {
+                    return chartColors.orangeSolid;
+                  }
+
+                  if (item.Variable === this.results1?.simpleList[`org_hist${index + 1}_my_bin`]) {
+                    return chartColors.orange;
+                  }
+
+                  if (item.Variable === this.results1?.simpleList[`org_hist${index + 1}_vurd_bin`]) {
+                    return chartColors.blue;
+                  }
+
+                  return chartColors.green;
+                }), // colors
+                100, // max
+                true, // showXLabels
+                this.results1?.histogramList[`org_hist${index + 1}_bins`].map(item => {
+                  if (item.Variable === this.results1?.simpleList[`org_hist${index + 1}_my_bin`]) {
+                    return chartColors.orangeSolid;
+                  }
+
+                  if (item.Variable === this.results1?.simpleList[`org_hist${index + 1}_vurd_bin`]) {
+                    return chartColors.blueSolid;
+                  }
+
+                  return chartColors.greenSolid;
+                }), // strokes
+                labels[index], // title
+                true, // tooltipsenabled
+                this.results1?.histogramList[`org_hist${index + 1}_tooltip`].map(item => item.Value), // tooltips
+                this.results1?.histogramList[`org_hist${index + 1}_bins`].map(item => {
+                  if (
+                    item.Variable === this.results1?.simpleList[`org_hist${index + 1}_my_bin`] &&
+                    item.Variable === this.results1?.simpleList[`org_hist${index + 1}_vurd_bin`]
+                  ) {
+                    return 'pattern';
+                  }
+
+                  return 'solid';
+                }), // types
+                '', // xasis
+                this.results1?.simpleList[`org_hist${index + 1}_text_left`] // yasis
+              )
+            };
+          })
+        },
+        {
+          id: 'mar',
+          series: [
+            {
+              name: 'Markedsføring',
+              data: [this.results1?.simpleList.mar_vurd, this.results1?.simpleList.mar_gruppe, this.results1?.simpleList.mar_andre]
+            }
+          ],
+          options: barOptions(
+            true,
+            undefined,
+            ['Din vurdering', 'Dit resultat', 'Andre virksomheder'],
+            [chartColors.blue, chartColors.orange, chartColors.green],
+            5,
+            false,
+            [chartColors.blueSolid, chartColors.orangeSolid, chartColors.greenSolid],
+            'Markedsføring',
+            true,
+            undefined,
+            '',
+            ''
+          ),
+          intro:
+            'Nedenfor kan du se, hvor innovativ virksomheden er ifm. introduktion af nye markedsføringstiltag sammenlignet med andre danske fremstillingsvirksomheder. Fordelingerne for de enkelte brancher er relativt ens, og derfor er der ingen yderligere opdeling.',
+          expands: [...Array(7)].map((_, index) => {
+            const labels = [
+              'Produktdesign',
+              'Indpakning',
+              'Markedsføringsstrategier',
+              'Promovering af produkter',
+              'Eksponering',
+              'Prissætning',
+              'Virksomhedens samlede placering'
+            ];
+            return {
+              series: [
+                {
+                  name: labels[index],
+                  data: this.results1?.histogramList[`mar_hist${index + 1}_bins`].map(item => item.Value)
+                }
+              ],
+              width: index === 6 ? 50 : 25,
+              options: barOptions(
+                true, // animationsEnabled
+                [this.results1?.simpleList[`mar_hist${index + 1}_vurd_bin`], this.results1?.simpleList[`mar_hist${index + 1}_my_bin`]], // annotation
+                this.results1?.histogramList[`mar_hist${index + 1}_bins`].map(item => item.Variable), // categories
+                this.results1?.histogramList[`mar_hist${index + 1}_bins`].map(item => {
+                  if (
+                    item.Variable === this.results1?.simpleList[`mar_hist${index + 1}_my_bin`] &&
+                    item.Variable === this.results1?.simpleList[`mar_hist${index + 1}_vurd_bin`]
+                  ) {
+                    return chartColors.orangeSolid;
+                  }
+
+                  if (item.Variable === this.results1?.simpleList[`mar_hist${index + 1}_my_bin`]) {
+                    return chartColors.orange;
+                  }
+
+                  if (item.Variable === this.results1?.simpleList[`mar_hist${index + 1}_vurd_bin`]) {
+                    return chartColors.blue;
+                  }
+
+                  return chartColors.green;
+                }), // colors
+                100, // max
+                true, // showXLabels
+                this.results1?.histogramList[`mar_hist${index + 1}_bins`].map(item => {
+                  if (item.Variable === this.results1?.simpleList[`mar_hist${index + 1}_my_bin`]) {
+                    return chartColors.orangeSolid;
+                  }
+
+                  if (item.Variable === this.results1?.simpleList[`mar_hist${index + 1}_vurd_bin`]) {
+                    return chartColors.blueSolid;
+                  }
+
+                  return chartColors.greenSolid;
+                }), // strokes
+                labels[index], // title
+                true, // tooltipsenabled
+                this.results1?.histogramList[`mar_hist${index + 1}_tooltip`].map(item => item.Value), // tooltips
+                this.results1?.histogramList[`mar_hist${index + 1}_bins`].map(item => {
+                  if (
+                    item.Variable === this.results1?.simpleList[`mar_hist${index + 1}_my_bin`] &&
+                    item.Variable === this.results1?.simpleList[`mar_hist${index + 1}_vurd_bin`]
+                  ) {
+                    return 'pattern';
+                  }
+
+                  return 'solid';
+                }), // types
+                '', // xasis
+                this.results1?.simpleList[`mar_hist${index + 1}_text_left`] // yasis
               )
             };
           })
         }
-      ]
-    };
-  }
+      ];
+    },
+    test2BarCharts(): any {
+      if (!this.results2) {
+        return null;
+      }
 
-  generateId(length: number) {
-    let result = '';
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    const charactersLength = characters.length;
-    for (let i = 0; i < length; i++) {
-      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+      return {
+        feature2: [
+          {
+            id: 'hist1_samlet_bins',
+            title: `Alle virksomheder - Din sandsynlighed er ${this.results2.simpleList.din_ssh_samlet}%`,
+            width: 50,
+            subtitle: `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2.simpleList.din_ssh_samlet} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle størrelser og fra alle industrier. Under "Uddybende information" kan du se en sammenligning med virksomheder af din størrelse eller fra din industri (der tages forbehold for, at disse  beregninger forudsætter data af en vis mængde)`,
+            myScore: this.results2.simpleList.hist1_my_bin,
+            series: [
+              {
+                name: `Alle virksomheder - Din sandsynlighed er ${this.results2.simpleList.din_ssh_samlet}%`,
+                data: this.results2.histogramList.hist1_samlet_bins.map(item => item.Value)
+              }
+            ],
+            options: barOptions(
+              true, // annimationenabled
+              [undefined, this.results2.simpleList.hist1_my_bin], // annotation
+              this.results2.histogramList.hist1_samlet_bins.map(item => item.Variable), // categories
+              this.results2.histogramList.hist1_samlet_bins.map(item => {
+                // colors
+                if (item.Variable === this.results2?.simpleList.hist1_my_bin) {
+                  return chartColors.orange;
+                }
+                return chartColors.green;
+              }),
+              undefined, // max
+              true, // showXLabels
+              this.results2?.histogramList.hist1_samlet_bins.map(item => {
+                // strokes
+                if (item.Variable === this.results2?.simpleList.hist1_my_bin) {
+                  return chartColors.orangeSolid;
+                }
+
+                return chartColors.greenSolid;
+              }),
+              `Alle virksomheder - Din sandsynlighed er ${this.results2?.simpleList.din_ssh_samlet}%`, // title
+              false, // tooltipenabled
+              undefined, // tooltips
+              undefined, // types
+              this.results2?.simpleList.hist1_samlet_text_x_axis, // xaxis,
+              this.results2?.simpleList.hist1_samlet_text_left // yaxis,
+            ),
+            expands: ['hist2_str', 'hist3_industri'].map((chartId, index) => {
+              const labels = [
+                `Samme størrelse - Din sandsynlighed er ${this.results2?.simpleList.din_ssh_str}%`,
+                `Samme industri - Din sandsynlighed er ${this.results2?.simpleList.din_ssh_industri}%`
+              ];
+              const chartPrefix = ['hist2', 'hist3'];
+              return {
+                series: [
+                  {
+                    name: labels[index],
+                    data: this.results2?.histogramList[`${chartId}_bins`].map(item => item.Value)
+                  }
+                ],
+                subtitle: [
+                  `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2?.simpleList.din_ssh_str} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle industrier for din størrelsesgruppe.`,
+                  `Værdien for din virksomhed betyder, at af 100 virksomheder, som ligner din, vil ${this.results2?.simpleList.din_ssh_industri} have innovationsaktiviteter. Sammenligningen er udført med fremstillingsvirksomheder af alle størrelser i din industrigruppe.`
+                ][index],
+                value: this.results2?.simpleList[`${chartPrefix[index]}_my_bin`],
+                options: barOptions(
+                  true, // animationsEnabled
+                  [undefined, this.results2?.simpleList[`${chartPrefix[index]}_my_bin`]], // annotation
+                  this.results2?.histogramList[`${chartId}_bins`].map(item => item.Variable), // categories
+                  this.results2?.histogramList[`${chartId}_bins`].map(item => {
+                    if (item.Variable === this.results2?.simpleList[`${chartPrefix[index]}_my_bin`]) {
+                      return chartColors.orange;
+                    }
+
+                    return chartColors.green;
+                  }), // colors
+                  undefined, // max
+                  true, // showXLabels
+                  this.results2?.histogramList[`${chartId}_bins`].map(item => {
+                    if (item.Variable === this.results2?.simpleList[`${chartPrefix[index]}_my_bin`]) {
+                      return chartColors.orangeSolid;
+                    }
+
+                    return chartColors.greenSolid;
+                  }), // strokes
+                  labels[index], // title
+                  false, // tooltipsenabled
+                  undefined, // tooltips
+                  undefined, // types
+                  this.results2?.simpleList[`${chartId}_text_x_axis`], // xasis
+                  this.results2?.simpleList[`${chartId}_text_left`] // yasis
+                )
+              };
+            })
+          }
+        ],
+        feature3: [
+          {
+            id: 'hist7_samlet_bins',
+            title: 'Ændring i profit pr. medarbejder',
+            width: 50,
+            subtitle: `Værdien for din virksomhed betyder, at din profit pr. medarbejder er ${this.results2?.histogramList.hist7_samlet_bins
+              .filter(column => column.Variable === this.results2?.simpleList.hist7_my_bin)
+              .map(
+                column => column.Value
+              )} kr. højere efter tre år med innovation end uden. De øvrige søjler viser værdien, hvis andelen af ansatte med videregående uddannelse havde været anderledes. Under "Uddybende information" kan du se en sammenligning med virksomheder af din størrelse eller fra din industri (der tages forbehold for, at disse beregninger forudsætter data af en vis mængde).`,
+            myScore: this.results2?.simpleList.hist7_my_bin,
+            series: [
+              {
+                name: 'Ændring i profit pr. medarbejder',
+                data: this.results2?.histogramList.hist7_samlet_bins.map(item => item.Value)
+              }
+            ],
+            options: barOptions(
+              true, // annimationenabled
+              [undefined, this.results2?.simpleList.hist7_my_bin], // annotation
+              this.results2?.histogramList.hist7_samlet_bins.map(item => item.Variable), // categories
+              this.results2?.histogramList.hist7_samlet_bins.map(item => {
+                // colors
+                if (item.Variable === this.results2?.simpleList.hist7_my_bin) {
+                  return chartColors.orange;
+                }
+                return chartColors.green;
+              }),
+              undefined, // max
+              true, // showXLabels
+              this.results2?.histogramList.hist7_samlet_bins.map(item => {
+                // strokes
+                if (item.Variable === this.results2?.simpleList.hist7_my_bin) {
+                  return chartColors.orangeSolid;
+                }
+
+                return chartColors.greenSolid;
+              }),
+              'Ændring i profit pr. medarbejder', // title
+              false, // tooltipenabled
+              undefined, // tooltips
+              undefined, // types
+              this.results2?.simpleList.hist7_samlet_text_x_axis, // xaxis,
+              this.results2?.simpleList.hist7_samlet_text_left // yaxis,
+            ),
+            expands: ['hist8_str', 'hist9_industri'].map((chartId, index) => {
+              const labels = ['Samme størrelse - Ændring i profit pr. medarbejder', 'Samme industri - Ændring i profit pr. medarbejder'];
+              const chartPrefix = ['hist8', 'hist9'];
+              return {
+                series: [
+                  {
+                    name: labels[index],
+                    data: this.results2?.histogramList[`${chartId}_bins`].map(item => item.Value)
+                  }
+                ],
+                subtitle: `Værdien for din virksomhed betyder, at din profit pr. medarbejder er ${this.results2?.histogramList[`${chartId}_bins`]
+                  .filter(column => column.Variable === this.results2?.simpleList[`${chartId}_my_bin`])
+                  .map(
+                    column => column.Value
+                  )} kr. højere efter tre år med innovation end uden. De øvrige søjler viser værdien, hvis andelen af ansatte med videregående uddannelse havde været anderledes.`,
+                value: this.results2?.simpleList[`${chartPrefix[index]}_my_bin`],
+                options: barOptions(
+                  true, // animationsEnabled
+                  [undefined, this.results2?.simpleList[`${chartPrefix[index]}_my_bin`]], // annotation
+                  this.results2?.histogramList[`${chartId}_bins`].map(item => item.Variable), // categories
+                  this.results2?.histogramList[`${chartId}_bins`].map(item => {
+                    if (item.Variable === this.results2?.simpleList[`${chartPrefix[index]}_my_bin`]) {
+                      return chartColors.orange;
+                    }
+
+                    return chartColors.green;
+                  }), // colors
+                  undefined, // max
+                  true, // showXLabels
+                  this.results2?.histogramList[`${chartId}_bins`].map(item => {
+                    if (item.Variable === this.results2?.simpleList[`${chartPrefix[index]}_my_bin`]) {
+                      return chartColors.orangeSolid;
+                    }
+
+                    return chartColors.greenSolid;
+                  }), // strokes
+                  labels[index], // title
+                  false, // tooltipsenabled
+                  undefined, // tooltips
+                  undefined, // types
+                  this.results2?.simpleList[`${chartId}_text_x_axis`], // xasis
+                  this.results2?.simpleList[`${chartId}_text_left`] // yasis
+                )
+              };
+            })
+          },
+          {
+            id: 'hist4_samlet_bins',
+            title: 'Ændring i produktivitetsvækst',
+            width: 50,
+            subtitle: `Værdien for din virksomhed betyder, at din produktivitetsvækst over tre år ${this.results2?.histogramList.hist4_samlet_bins
+              .filter(column => column.Variable === this.results2?.simpleList.hist4_my_bin)
+              .map(
+                column => column.Value
+              )}%-point med innovation end uden. De øvrige søjler viser værdien, hvis andelen af ansatte med videregående uddannelse havde været anderledes. Under "Uddybende information" kan du se en sammenligning med virksomheder af din størrelse eller fra din industri (der tages forbehold for, at disse beregninger forudsætter data af en vis mængde).`,
+            myScore: this.results2?.simpleList.hist4_my_bin,
+            series: [
+              {
+                name: 'Ændring i produktivitetsvækst',
+                data: this.results2?.histogramList.hist4_samlet_bins.map(item => item.Value)
+              }
+            ],
+            options: barOptions(
+              true, // annimationenabled
+              [undefined, this.results2?.simpleList.hist4_my_bin], // annotation
+              this.results2?.histogramList.hist4_samlet_bins.map(item => item.Variable), // categories
+              this.results2?.histogramList.hist4_samlet_bins.map(item => {
+                // colors
+                if (item.Variable === this.results2?.simpleList.hist4_my_bin) {
+                  return chartColors.orange;
+                }
+                return chartColors.green;
+              }),
+              undefined, // max
+              true, // showXLabels
+              this.results2?.histogramList.hist4_samlet_bins.map(item => {
+                // strokes
+                if (item.Variable === this.results2?.simpleList.hist4_my_bin) {
+                  return chartColors.orangeSolid;
+                }
+
+                return chartColors.greenSolid;
+              }),
+              'Ændring i produktivitetsvækst', // title
+              false, // tooltipenabled
+              undefined, // tooltips
+              undefined, // types
+              this.results2?.simpleList.hist4_samlet_text_x_axis, // xaxis,
+              this.results2?.simpleList.hist4_samlet_text_left // yaxis,
+            ),
+            expands: ['hist5_str', 'hist6_industri'].map((chartId, index) => {
+              const labels = ['Samme størrelse - Ændring i produktivitetsvækst', 'Samme industri - Ændring i produktivitetsvækst'];
+              const chartPrefix = ['hist5', 'hist6'];
+              return {
+                series: [
+                  {
+                    name: labels[index],
+                    data: this.results2?.histogramList[`${chartId}_bins`].map(item => item.Value)
+                  }
+                ],
+                subtitle: `Værdien for din virksomhed betyder, at din produktivitetsvækst over tre år er ${this.results2?.histogramList[
+                  `${chartId}_bins`
+                ]
+                  .filter(column => column.Variable === this.results2?.simpleList[`${chartId}_my_bin`])
+                  .map(
+                    column => column.Value
+                  )}%-point med innovation end uden. De øvrige søjler viser værdien, hvis andelen af ansatte med videregående uddannelse havde været anderledes.`,
+                value: this.results2?.simpleList[`${chartPrefix[index]}_my_bin`],
+                options: barOptions(
+                  true, // animationsEnabled
+                  [undefined, this.results2?.simpleList[`${chartPrefix[index]}_my_bin`]], // annotation
+                  this.results2?.histogramList[`${chartId}_bins`].map(item => item.Variable), // categories
+                  this.results2?.histogramList[`${chartId}_bins`].map(item => {
+                    if (item.Variable === this.results2?.simpleList[`${chartPrefix[index]}_my_bin`]) {
+                      return chartColors.orange;
+                    }
+
+                    return chartColors.green;
+                  }), // colors
+                  undefined, // max
+                  true, // showXLabels
+                  this.results2?.histogramList[`${chartId}_bins`].map(item => {
+                    if (item.Variable === this.results2?.simpleList[`${chartPrefix[index]}_my_bin`]) {
+                      return chartColors.orangeSolid;
+                    }
+
+                    return chartColors.greenSolid;
+                  }), // strokes
+                  labels[index], // title
+                  false, // tooltipsenabled
+                  undefined, // tooltips
+                  undefined, // types
+                  this.results2?.simpleList[`${chartId}_text_x_axis`], // xasis
+                  this.results2?.simpleList[`${chartId}_text_left`] // yasis
+                )
+              };
+            })
+          }
+        ]
+      };
     }
-
-    return result;
-  }
-
+  },
   mounted() {
     if (window.location.hash.length > 0) {
       const hashLocation = window.location.hash.replace('#', '');
@@ -1436,8 +1423,7 @@ export default class Applikation extends Vue {
     this.fetchData();
 
     window.scrollTo(0, 0);
-  }
-
+  },
   updated() {
     if (document.querySelectorAll('.innovationtest .calculatingSlider').length > 0) {
       const newElem = document.createElement('div');
@@ -1452,186 +1438,193 @@ export default class Applikation extends Vue {
         position.appendChild(newElem);
       }
     }
-  }
-
-  @Watch('currentStep')
-  @Watch('currentSection')
-  onStepChanged() {
-    window.scrollTo(0, 0);
-    this.maxStep = this.maxStep > this.currentStep ? this.maxStep : this.currentStep;
-    this.error = '';
-    this.errorHeading = '';
-  }
-
-  @Watch('expandedContent')
-  onExpandChanged(value: string) {
-    if (value) {
-      nextTick(() => {
-        const element = this.$refs.expandedContentArea as HTMLElement[];
-        const top = element[0].offsetTop;
-        window.scrollTo(0, top);
-      });
+  },
+  watch: {
+    currentStep(): void {
+      window.scrollTo(0, 0);
+      this.maxStep = this.maxStep > this.currentStep ? this.maxStep : this.currentStep;
+      this.error = '';
+      this.errorHeading = '';
+    },
+    currentSection(): void {
+      window.scrollTo(0, 0);
+      this.maxStep = this.maxStep > this.currentStep ? this.maxStep : this.currentStep;
+      this.error = '';
+      this.errorHeading = '';
+    },
+    expandedContent(value: string): void {
+      if (value) {
+        nextTick(() => {
+          const element = this.$refs.expandedContentArea as HTMLElement[];
+          const top = element[0].offsetTop;
+          window.scrollTo(0, top);
+        });
+      }
     }
-  }
+  },
+  methods: {
+    barOptions,
+    generateId(length: number) {
+      let result = '';
+      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      const charactersLength = characters.length;
+      for (let i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+      }
 
-  goToFrontpage() {
-    this.currentSection = 'frontpage';
-    this.pageCount = 1;
-    this.currentStep = 1;
-  }
+      return result;
+    },
+    goToFrontpage() {
+      this.currentSection = 'frontpage';
+      this.pageCount = 1;
+      this.currentStep = 1;
+    },
+    goToTest1() {
+      this.currentSection = 'test1';
+      this.pageCount = 5;
+      this.currentStep = 1;
+    },
+    goToTest2() {
+      this.currentSection = 'test2';
+      this.pageCount = 1;
+      this.currentStep = 1;
+    },
+    resolveUrl(event: Event) {
+      const target = event.target as HTMLTextAreaElement;
+      const url = target.getAttribute('data-url');
+      if (url && url.includes('http')) {
+        return;
+      }
 
-  goToTest1() {
-    this.currentSection = 'test1';
-    this.pageCount = 5;
-    this.currentStep = 1;
-  }
+      if (url === '/test') {
+        event.preventDefault();
+        this.goToTest1();
+        return;
+      }
 
-  goToTest2() {
-    this.currentSection = 'test2';
-    this.pageCount = 1;
-    this.currentStep = 1;
-  }
+      if (url === '/test2') {
+        event.preventDefault();
+        this.goToTest2();
+        return;
+      }
 
-  resolveUrl(event: Event) {
-    const target = event.target as HTMLTextAreaElement;
-    const url = target.getAttribute('data-url');
-    if (url && url.includes('http')) {
-      return;
-    }
-
-    if (url === '/test') {
+      if (url === '/frontpage') {
+        event.preventDefault();
+        this.goToFrontpage();
+        return;
+      }
+    },
+    getPDF(id: string) {
+      this.isLoading = true;
+      const pdfWindow = window.open('', '_blank');
+      if (pdfWindow && pdfWindow.document) {
+        pdfWindow.document.write('Henter PDF');
+        const body = pdfWindow.document.querySelector('body');
+        if (body) {
+          body.style.cursor = 'wait';
+          axios
+            .post(`${this.apiBaseUrl}/api/pdf`, {
+              method: 'PUT',
+              headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ ...this.initialValues, id, session_id: this.sessionId })
+            })
+            .then((rsp: AxiosResponse) => {
+              if (!rsp.data.error) {
+                const { PDFURL } = rsp.data;
+                pdfWindow.location.href = PDFURL;
+                body.style.cursor = 'auto';
+              }
+              this.isLoading = true;
+            })
+            .catch((error: AxiosError) => {
+              pdfWindow.close();
+            })
+            .finally(() => {
+              this.isLoading = false;
+            });
+        }
+      }
+    },
+    handleNextClick(event: Event) {
       event.preventDefault();
-      this.goToTest1();
-      return;
-    }
-
-    if (url === '/test2') {
+      this.currentStep++;
+    },
+    handlePreviousClick(event: Event) {
       event.preventDefault();
-      this.goToTest2();
-      return;
-    }
-
-    if (url === '/frontpage') {
-      event.preventDefault();
-      this.goToFrontpage();
-      return;
-    }
-  }
-
-  getPDF(id: string) {
-    this.isLoading = true;
-    const pdfWindow = window.open('', '_blank');
-    if (pdfWindow && pdfWindow.document) {
-      pdfWindow.document.write('Henter PDF');
-      const body = pdfWindow.document.querySelector('body');
-      if (body) {
-        body.style.cursor = 'wait';
-        axios
-          .post(`${this.apiBaseUrl}/api/pdf`, {
-            method: 'PUT',
-            headers: {
-              Accept: 'application/json',
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ ...this.initialValues, id, session_id: this.sessionId })
-          })
-          .then((rsp: AxiosResponse) => {
-            if (!rsp.data.error) {
-              const { PDFURL } = rsp.data;
-              pdfWindow.location.href = PDFURL;
-              body.style.cursor = 'auto';
+      this.currentStep--;
+    },
+    handleSubmit() {
+      this.isLoading = true;
+      const url = this.currentSection === 'test1' ? `${this.apiBaseUrl}/api/put` : `${this.apiBaseUrl}/api/put-parathed`;
+      axios
+        .post(url, {
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ ...this.initialValues, session_id: this.sessionId })
+        })
+        .then((rsp: AxiosResponse) => {
+          this.errorHeading = '';
+          this.error = '';
+          this.isLoading = false;
+          if (!rsp.data.error) {
+            if (this.currentSection === 'test1') {
+              this.results1 = rsp.data;
             }
-            this.isLoading = true;
-          })
-          .catch((error: AxiosError) => {
-            pdfWindow.close();
-          })
-          .finally(() => {
+            if (this.currentSection === 'test2') {
+              this.results2 = rsp.data;
+            }
+            this.currentStep = this.pageCount + 1;
             this.isLoading = false;
-          });
+          }
+        })
+        .catch((error: AxiosError) => {
+          this.isLoading = false;
+          this.errorHeading = 'Fejl';
+          this.error = 'Noget gik galt. Prøv venligst igen.';
+        });
+    },
+    sanityBlocks(blocks: SanityBlock[]) {
+      return blocksToHtml({
+        blocks: blocks
+      });
+    },
+    fetchData() {
+      this.isLoading = true;
+      const query = '*[_type == "test1"] | order(order asc)';
+      const query2 = '*[_type == "test2"] | order(order asc)';
+      const frontpageQuery = '*[_type == "frontpage"][0]';
+
+      Promise.all([client.fetch(frontpageQuery), client.fetch(query), client.fetch(query2)])
+        .then(response => {
+          this.isLoading = false;
+          this.frontPageMatter = response[0];
+          this.test1 = response[1];
+          this.test2 = response[2];
+        })
+        .catch((error: AxiosError) => {
+          this.error = error.message;
+        });
+    },
+    calculateSliders(name: string, values: string[], fields: SliderField[], setValue: any) {
+      const sliders = fields.filter(field => field._type === 'slider');
+      const sum = sliders.reduce((accumulator, field: any) => accumulator + (Number(values[field.key]) - 1), 0);
+      if (sum > 10) {
+        (this.initialValues as any)[name] = '1';
+        this.errorHeading = 'Bemærk!';
+        this.error = `Svarprocenten for de ${sliders.length === 3 ? 'tre' : 'to'} spørgsmål må max. give 100% i alt`;
+        window.scrollTo(0, 0);
+      } else {
+        this.errorHeading = '';
+        this.error = '';
       }
     }
   }
-
-  handleNextClick(event: Event) {
-    event.preventDefault();
-    this.currentStep++;
-  }
-  handlePreviousClick(event: Event) {
-    event.preventDefault();
-    this.currentStep--;
-  }
-  handleSubmit() {
-    this.isLoading = true;
-    const url = this.currentSection === 'test1' ? `${this.apiBaseUrl}/api/put` : `${this.apiBaseUrl}/api/put-parathed`;
-    axios
-      .post(url, {
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ ...this.initialValues, session_id: this.sessionId })
-      })
-      .then((rsp: AxiosResponse) => {
-        this.errorHeading = '';
-        this.error = '';
-        this.isLoading = false;
-        if (!rsp.data.error) {
-          if (this.currentSection === 'test1') {
-            this.results1 = rsp.data;
-          }
-          if (this.currentSection === 'test2') {
-            this.results2 = rsp.data;
-          }
-          this.currentStep = this.pageCount + 1;
-          this.isLoading = false;
-        }
-      })
-      .catch((error: AxiosError) => {
-        this.isLoading = false;
-        this.errorHeading = 'Fejl';
-        this.error = 'Noget gik galt. Prøv venligst igen.';
-      });
-  }
-
-  sanityBlocks(blocks: SanityBlock[]) {
-    return blocksToHtml({
-      blocks: blocks
-    });
-  }
-
-  fetchData() {
-    this.isLoading = true;
-    const query = '*[_type == "test1"] | order(order asc)';
-    const query2 = '*[_type == "test2"] | order(order asc)';
-    const frontpageQuery = '*[_type == "frontpage"][0]';
-
-    Promise.all([client.fetch(frontpageQuery), client.fetch(query), client.fetch(query2)])
-      .then(response => {
-        this.isLoading = false;
-        this.frontPageMatter = response[0];
-        this.test1 = response[1];
-        this.test2 = response[2];
-      })
-      .catch((error: AxiosError) => {
-        this.error = error.message;
-      });
-  }
-
-  calculateSliders(name: string, values: string[], fields: SliderField[], setValue: any) {
-    const sliders = fields.filter(field => field._type === 'slider');
-    const sum = sliders.reduce((accumulator, field: any) => accumulator + (Number(values[field.key]) - 1), 0);
-    if (sum > 10) {
-      (this.initialValues as any)[name] = '1';
-      this.errorHeading = 'Bemærk!';
-      this.error = `Svarprocenten for de ${sliders.length === 3 ? 'tre' : 'to'} spørgsmål må max. give 100% i alt`;
-      window.scrollTo(0, 0);
-    } else {
-      this.errorHeading = '';
-      this.error = '';
-    }
-  }
-}
+});
 </script>
 
 <style lang="scss" scoped>
