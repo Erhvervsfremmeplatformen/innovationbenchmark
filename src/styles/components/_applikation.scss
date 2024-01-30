@@ -364,56 +364,11 @@ input[type='range'] {
   }
 }
 
-.button.custom-button {
-  &[disabled] {
-    cursor: wait;
-  }
-
-  &.disabled {
-    opacity: 0.2;
-    cursor: default;
-  }
-
-  &-primary {
-    background-color: $colorPrimary;
-    border: none;
-    color: $colorWhite;
-
-    &:hover,
-    &:active {
-      background-color: $colorHover;
-      color: $colorWhite;
-      box-shadow: 0 0 0 1px $colorHover;
-    }
-
-    &:focus {
-      background-color: $colorPrimary;
-    }
-  }
-
-  &-secondary {
-    background-color: transparent;
-    color: $colorPrimary !important;
-    border-color: $colorPrimary;
-    transition: all 220ms ease-in-out;
-
-    &:hover,
-    &:active {
-      background-color: $colorPrimary;
-      color: $colorWhite !important;
-      border-color: $colorPrimary;
-    }
-
-    &:focus {
-      background-color: transparent;
-    }
-  }
-
-  &-right {
-    margin-right: 0;
-    margin-left: auto;
-    display: block;
-  }
+.custom-button-right {
+  margin-right: 0;
+  margin-left: auto;
+  display: block;
+  background-color: orange !important;
 }
 
 .formWrapper {

@@ -1,7 +1,6 @@
 <template>
   <div>
     <div id="app" class="app-body" tabindex="-1">
-      <GlobalSvgIcons></GlobalSvgIcons>
       <div class="flexgrow container pt-8 pb-8">
         <Applikation />
       </div>
@@ -13,11 +12,9 @@
 import { Options, Vue } from 'vue-property-decorator';
 import * as DKFDS from 'dkfds';
 import Applikation from '@/components/Applikation.vue';
-import GlobalSvgIcons from '@/components/GlobalSvgIcons.vue';
 
 @Options({
   components: {
-    GlobalSvgIcons,
     Applikation
   }
 })

@@ -1,5 +1,6 @@
 <template>
   <div class="applikation-container">
+    <GlobalSvgIcons />
     <div class="innovationtest">
       <h1 class="sr-only">Innovation Benchmark</h1>
       <template v-if="frontPageMatter && currentSection == 'frontpage'">
@@ -46,11 +47,7 @@
                     "
                     :data-url="card.cardButtonUrl"
                     target="_blank"
-                    :class="[
-                      'button',
-                      'custom-button',
-                      [0].includes(index) ? ['button-primary', 'custom-button-primary'] : ['button-secondary', 'custom-button-secondary']
-                    ]"
+                    :class="['button', [0].includes(index) ? ['button-primary'] : ['button-secondary']]"
                     :title="card.cardButtonText === 'Se mere' ? `Se mere om ${card.cardHeadline}` : card.cardButtonText"
                     @click="resolveUrl"
                   >
@@ -311,10 +308,7 @@
                                   <apexchart height="200" type="bar" :options="chart.options" :series="chart.series"></apexchart>
                                 </div>
                               </div>
-                              <button
-                                class="button custom-button button-secondary custom-button-secondary custom-button-right"
-                                @click.prevent="getPDF(chart.id)"
-                              >
+                              <button class="button button-secondary custom-button-right" @click.prevent="getPDF(chart.id)">
                                 <svg class="icon-svg" focusable="false" aria-hidden="true">
                                   <use xlink:href="#download"></use></svg
                                 >Hent PDF-rapport
@@ -531,13 +525,7 @@
                               "
                               :data-url="card.cardButtonUrl"
                               target="_blank"
-                              :class="[
-                                'button',
-                                'custom-button',
-                                currentSection === 'test1' && [0].includes(index)
-                                  ? ['button-primary', 'custom-button-primary']
-                                  : ['button-secondary', 'custom-button-secondary']
-                              ]"
+                              :class="['button', currentSection === 'test1' && [0].includes(index) ? ['button-primary'] : ['button-secondary']]"
                               :title="card.cardButtonText === 'Se mere' ? `Se mere om ${card.cardHeadline}` : card.cardButtonText"
                               @click="resolveUrl"
                             >
@@ -575,11 +563,7 @@
                               "
                               :data-url="frontPageMatter.cards[frontPageMatter.cards.length - 2].cardButtonUrl"
                               target="_blank"
-                              :class="[
-                                'button',
-                                'custom-button',
-                                [0].includes(index) ? ['button-primary', 'custom-button-primary'] : ['button-secondary', 'custom-button-secondary']
-                              ]"
+                              :class="['button', [0].includes(index) ? ['button-primary'] : ['button-secondary']]"
                               @click="resolveUrl"
                             >
                               {{ frontPageMatter.cards[frontPageMatter.cards.length - 2].cardButtonText }}</a
@@ -598,14 +582,8 @@
         <nav>
           <ul v-if="!isLoading && currentStep !== pageCount + 1" class="nav-bottom">
             <li>
-              <button v-if="currentStep < pageCount" class="button button-primary custom-button custom-button-primary" @click="handleNextClick">
-                Næste
-              </button>
-              <button
-                v-else-if="currentStep === pageCount"
-                class="button button-primary custom-button custom-button-primary"
-                @click.prevent="handleSubmit"
-              >
+              <button v-if="currentStep < pageCount" class="button button-primary" @click="handleNextClick">Næste</button>
+              <button v-else-if="currentStep === pageCount" class="button button-primary" @click.prevent="handleSubmit">
                 Næste
                 <span class="spinner" />
               </button>
@@ -613,7 +591,7 @@
             <li></li>
             <li>
               <button
-                class="button button-secondary custom-button custom-button-secondary"
+                class="button button-secondary"
                 :disabled="currentStep === 1"
                 :style="{ visibility: currentStep !== 1 && currentStep <= pageCount ? 'visible' : 'hidden' }"
                 @click="handlePreviousClick"
@@ -633,6 +611,7 @@ import { FrontPageMatter, Results1, Results2, Test1, Test2 } from '@/types/respo
 import { SanityBlock } from '@/types/sanity-block';
 import { SliderField } from '@/types/types';
 import sanityClient from '@sanity/client';
+import GlobalSvgIcons from './GlobalSvgIcons.vue';
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import { nextTick } from 'vue';
 import { Options, Vue, Watch } from 'vue-property-decorator';
@@ -650,6 +629,7 @@ const client = sanityClient({
 @Options({
   name: 'Applikation',
   components: {
+    GlobalSvgIcons,
     apexchart: VueApexCharts
   },
   methods: {
