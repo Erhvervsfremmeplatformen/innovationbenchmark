@@ -13,7 +13,7 @@
     "sourceMap": true,
     "baseUrl": ".",
     "skipLibCheck": true, // TODO: skal være false - venter på ny update fra toasted
-    "types": ["webpack-env"],
+    "types": ["vite/client"],
     "paths": {
       "@/*": ["src/*"]
     },
@@ -23,6 +23,7 @@
     "./public",
     ".eslintrc.js",
     "./src/**/*.ts",
+    "./src/**/*.d.ts",
     "./src/**/*.tsx",
     "./src/**/*.vue",
     "tests/**/*.ts",
