@@ -250,7 +250,7 @@
                           </div>
                         </fieldset>
                         <!-- @vue-ignore -->
-                        <div v-else-if="currentSection == 'test1' && results1 && results1.simpleList">
+                        <div v-else-if="currentSection == 'test1' && results1?.simpleList">
                           <!-- @vue-ignore -->
                           <apexchart
                             v-if="results1.simpleList"
