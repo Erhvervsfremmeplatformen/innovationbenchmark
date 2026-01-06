@@ -336,8 +336,8 @@
                                 @click.prevent="getPDF(chart.id)"
                               >
                                 <svg class="icon-svg" focusable="false" aria-hidden="true">
-                                  <use xlink:href="#download"></use></svg>
-                                  Hent PDF-rapport
+                                <use xlink:href="#download"></use></svg>
+                                Hent PDF-rapport
                               </button>
                             </template>
                           </div>
@@ -578,9 +578,9 @@
                                 focusable="false"
                                 aria-hidden="true"
                               >
-                                <use xlink:href="#open-in-new"></use></svg>
-                                {{ card.cardButtonText }}
-                                </a>
+                                <use xlink:href="#open-in-new"></use>
+                              </svg>{{ card.cardButtonText }}
+                            </a>
                           </div>
                         </div>
                       </div>
@@ -1461,6 +1461,52 @@ export default defineComponent({
       };
     }
   },
+  watch: {
+    currentStep() {
+      this.onStepChanged();
+    },
+    currentSection() {
+      this.onStepChanged();
+    },
+    expandedContent(value: string) {
+      if (value) {
+        nextTick(() => {
+          const element = this.$refs.expandedContentArea as HTMLElement[];
+          const top = element[0].offsetTop;
+          window.scrollTo(0, top);
+        });
+      }
+    }
+  },
+  mounted() {
+    if (window.location.hash.length > 0) {
+      const hashLocation = window.location.hash.replace('#', '');
+      if (hashLocation === 'test1') {
+        this.goToTest1();
+      } else if (hashLocation === 'test2') {
+        this.goToTest2();
+      } else if (hashLocation === 'frontpage') {
+        this.goToFrontpage();
+      }
+    }
+    this.fetchData();
+    window.scrollTo(0, 0);
+  },
+  updated() {
+    if (document.querySelectorAll('.innovationtest .calculatingSlider').length > 0) {
+      const newElem = document.createElement('div');
+      newElem.classList.add('calculatingSliders');
+      const sliderArray: Element[] = [...document.querySelectorAll('.innovationtest .calculatingSlider')];
+      const position = sliderArray[0].parentNode;
+      sliderArray.forEach(item => {
+        newElem.appendChild(item);
+      });
+
+      if (position) {
+        position.appendChild(newElem);
+      }
+    }
+  },
   methods: {
     barOptions,
     generateId(length: number) {
@@ -1636,53 +1682,6 @@ export default defineComponent({
       } else {
         this.errorHeading = '';
         this.error = '';
-      }
-    }
-  },
-  mounted() {
-    if (window.location.hash.length > 0) {
-      const hashLocation = window.location.hash.replace('#', '');
-
-      if (hashLocation === 'test1') {
-        this.goToTest1();
-      } else if (hashLocation === 'test2') {
-        this.goToTest2();
-      } else if (hashLocation === 'frontpage') {
-        this.goToFrontpage();
-      }
-    }
-    this.fetchData();
-    window.scrollTo(0, 0);
-  },
-  updated() {
-    if (document.querySelectorAll('.innovationtest .calculatingSlider').length > 0) {
-      const newElem = document.createElement('div');
-      newElem.classList.add('calculatingSliders');
-      const sliderArray: Element[] = [...document.querySelectorAll('.innovationtest .calculatingSlider')];
-      const position = sliderArray[0].parentNode;
-      sliderArray.forEach(item => {
-        newElem.appendChild(item);
-      });
-
-      if (position) {
-        position.appendChild(newElem);
-      }
-    }
-  },
-  watch: {
-    currentStep() {
-      this.onStepChanged();
-    },
-    currentSection() {
-      this.onStepChanged();
-    },
-    expandedContent(value: string) {
-      if (value) {
-        nextTick(() => {
-          const element = this.$refs.expandedContentArea as HTMLElement[];
-          const top = element[0].offsetTop;
-          window.scrollTo(0, top);
-        });
       }
     }
   }
