@@ -25,12 +25,11 @@
 </template>
 
 <script lang="ts">
-import { Options, Vue } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
-@Options({
+export default defineComponent({
   name: 'GlobalSvgIcons'
-})
-export default class GlobalSvgIcons extends Vue {}
+});
 </script>
 
 <style scoped lang="scss"></style>

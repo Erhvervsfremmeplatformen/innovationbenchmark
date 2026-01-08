@@ -10,23 +10,22 @@
 </template>
 
 <script lang="ts">
-import { Options, Vue } from 'vue-property-decorator';
 import * as DKFDS from 'dkfds';
 import Applikation from '@/components/Applikation.vue';
 import GlobalSvgIcons from '@/components/GlobalSvgIcons.vue';
+import { defineComponent } from 'vue';
 
-@Options({
+export default defineComponent({
   components: {
     GlobalSvgIcons,
     Applikation
-  }
-})
-export default class App extends Vue {
+  },
+
   mounted() {
     DKFDS.init();
   }
-}
+});
 </script>
 <style lang="scss">
-@import 'styles/_app.scss';
+@use 'styles/_app.scss';
 </style>
