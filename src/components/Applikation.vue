@@ -1690,6 +1690,7 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 @use '../styles/components/_applikation.scss';
+@use '@erst-vg/vg-design-wrapper/styles/utility';
 
 // AJP: Hele stylesheet bør importeres under .innovationtest via deep selector, men der er underlig styling, så har kun overskrevet en enkelt klasse.
 :deep(.innovationtest) {

@@ -1,10 +1,9 @@
-@use '../mediaquery-helpers' as *;
-@use 'sass:color';
+@use '@erst-vg/vg-design-wrapper/styles/utility' as *;
 
 // $colorOrange: #d23f1e;
 $colorOrange: #d23617;
 $colorPrimary: $colorOrange;
-$colorHover: color.adjust($colorPrimary, $lightness: -10%);
+$colorHover: darken($colorPrimary, 10%);
 $colorGrey: #d0cfcf;
 $colorBackground: #f5f5f5;
 $colorGrey_light: #fafafa;
