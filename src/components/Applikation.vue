@@ -1,5 +1,5 @@
 <template>
-  <div class="applikation-container">
+  <VgDesignWrapper>
     <div class="innovationtest">
       <h1 class="sr-only">Innovation Benchmark</h1>
       <template v-if="frontPageMatter && currentSection == 'frontpage'">
@@ -56,14 +56,8 @@
                     :title="card.cardButtonText === 'Se mere' ? `Se mere om ${card.cardHeadline}` : card.cardButtonText"
                     @click="resolveUrl"
                   >
-                    <!-- @vue-ignore -->
-                    <svg
-                      v-if="card.cardButtonUrl.includes('http') || card.cardButtonUrl !== '/test'"
-                      class="icon-svg"
-                      focusable="false"
-                      aria-hidden="true"
-                    >
-                      <use xlink:href="#open-in-new"></use></svg>{{ card.cardButtonText }}</a
+                    <VgIcon v-if="card?.cardButtonUrl?.includes('http') || card.cardButtonUrl !== '/test'" icon="openInNew" />
+                    {{ card.cardButtonText }}</a
                   >
                 </div>
               </div>
@@ -88,7 +82,7 @@
                 @click.prevent="index == pageCount ? handleSubmit() : (currentStep = index + 1)"
               >
                 <!-- @vue-ignore -->
-                <svg v-if="currentStep > index + 1" class="icon-svg" focusable="false" aria-hidden="true"><use xlink:href="#check"></use></svg>
+                <VgIcon v-if="currentStep > index + 1" icon="check" />
                 <!-- @vue-ignore -->
                 {{ page.shortTitle }}
               </button>
@@ -304,9 +298,7 @@
                               class="expandButton button button-unstyled"
                               @click.prevent="expandedContent == chart.id ? (expandedContent = '') : (expandedContent = chart.id)"
                             >
-                              <svg class="icon-svg" focusable="false" aria-hidden="true">
-                                <use :xlink:href="expandedContent === chart.id ? '#minus' : '#plus'"></use>
-                              </svg>
+                              <VgIcon :icon="expandedContent === chart.id ? '#minus' : '#plus'" />
                               {{ expandedContent === chart.id ? 'Skjul' : 'Uddybende information' }}
                             </button>
                           </div>
@@ -335,8 +327,7 @@
                                 class="button custom-button button-secondary custom-button-secondary custom-button-right"
                                 @click.prevent="getPDF(chart.id)"
                               >
-                                <svg class="icon-svg" focusable="false" aria-hidden="true">
-                                <use xlink:href="#download"></use></svg>
+                                <VgIcon icon="download" />
                                 Hent PDF-rapport
                               </button>
                             </template>
@@ -378,9 +369,7 @@
                               class="expandButton button button-unstyled"
                               @click.prevent="expandedContent == chart.id ? (expandedContent = '') : (expandedContent = chart.id)"
                             >
-                              <svg class="icon-svg" focusable="false" aria-hidden="true">
-                                <use :xlink:href="expandedContent === chart.id ? '#minus' : '#plus'"></use>
-                              </svg>
+                              <VgIcon :icon="expandedContent === chart.id ? '#minus' : '#plus'" />
                               {{ expandedContent === chart.id ? 'Skjul' : 'Uddybende information' }}
                             </button>
                           </div>
@@ -471,9 +460,7 @@
                               class="expandButton button button-unstyled"
                               @click.prevent="expandedContent == chart.id ? (expandedContent = '') : (expandedContent = chart.id)"
                             >
-                              <svg class="icon-svg" focusable="false" aria-hidden="true">
-                                <use :xlink:href="expandedContent === chart.id ? '#minus' : '#plus'"></use>
-                              </svg>
+                              <VgIcon :icon="expandedContent === chart.id ? '#minus' : '#plus'" />
                               {{ expandedContent === chart.id ? 'Skjul' : 'Uddybende information' }}
                             </button>
                           </div>
@@ -569,17 +556,14 @@
                               :title="card.cardButtonText === 'Se mere' ? `Se mere om ${card.cardHeadline}` : card.cardButtonText"
                               @click="resolveUrl"
                             >
-                              <svg
+                              <VgIcon
                                 v-if="
                                   card.cardButtonUrl.includes('http') ||
                                   (card.cardButtonUrl !== '/test' && card.cardButtonUrl !== '/test2' && card.cardButtonUrl !== '/frontpage')
                                 "
-                                class="icon-svg"
-                                focusable="false"
-                                aria-hidden="true"
-                              >
-                                <use xlink:href="#open-in-new"></use>
-                              </svg>{{ card.cardButtonText }}
+                                icon="openInNew"
+                              />
+                              {{ card.cardButtonText }}
                             </a>
                           </div>
                         </div>
@@ -661,17 +645,18 @@
         </nav>
       </template>
     </div>
-  </div>
+  </VgDesignWrapper>
 </template>
 
 <script lang="ts">
 import { FrontPageMatter, Results1, Results2, Test1, Test2 } from '@/types/response';
 import { SanityBlock } from '@/types/sanity-block';
 import { SliderField } from '@/types/types';
+import { VgDesignWrapper, VgIcon } from '@erst-vg/vg-design-wrapper';
 import blocksToHtml from '@sanity/block-content-to-html';
 import sanityClient from '@sanity/client';
 import axios, { AxiosError, AxiosResponse } from 'axios';
-import { defineComponent, nextTick } from 'vue';
+import { defineComponent, inject, nextTick, provide } from 'vue';
 import VueApexCharts from 'vue3-apexcharts';
 import { barOptions, chartColors } from '../utils/bar-utils';
 
@@ -685,7 +670,15 @@ const client = sanityClient({
 export default defineComponent({
   name: 'Applikation',
   components: {
-    apexchart: VueApexCharts
+    apexchart: VueApexCharts,
+    VgDesignWrapper,
+    VgIcon
+  },
+  setup() {
+    provide('siteIkoner', {
+      // site ikoner fra Virksomhedsguiden
+      ...(inject('siteIkoner') as { [key: string]: string })
+    });
   },
   data() {
     return {
@@ -1690,6 +1683,7 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 @use '../styles/components/_applikation.scss';
+@use '@erst-vg/vg-design-wrapper/styles/utility';
 
 // AJP: Hele stylesheet bør importeres under .innovationtest via deep selector, men der er underlig styling, så har kun overskrevet en enkelt klasse.
 :deep(.innovationtest) {

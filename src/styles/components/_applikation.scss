@@ -1,10 +1,9 @@
-@use '../mediaquery-helpers' as *;
-@use 'sass:color';
+@use '@erst-vg/vg-design-wrapper/styles/utility' as *;
 
 // $colorOrange: #d23f1e;
 $colorOrange: #d23617;
 $colorPrimary: $colorOrange;
-$colorHover: color.adjust($colorPrimary, $lightness: -10%);
+$colorHover: darken($colorPrimary, 10%);
 $colorGrey: #d0cfcf;
 $colorBackground: #f5f5f5;
 $colorGrey_light: #fafafa;
@@ -364,58 +363,6 @@ input[type='range'] {
   input[type='range'] {
     margin: 0;
     /*Edge starts the margin from the thumb, not the track as other browsers do*/
-  }
-}
-
-.button.custom-button {
-  &[disabled] {
-    cursor: wait;
-  }
-
-  &.disabled {
-    opacity: 0.2;
-    cursor: default;
-  }
-
-  &-primary {
-    background-color: $colorPrimary;
-    border: none;
-    color: $colorWhite;
-
-    &:hover,
-    &:active {
-      background-color: $colorHover;
-      color: $colorWhite;
-      box-shadow: 0 0 0 1px $colorHover;
-    }
-
-    &:focus {
-      background-color: $colorPrimary;
-    }
-  }
-
-  &-secondary {
-    background-color: transparent;
-    color: $colorPrimary !important;
-    border-color: $colorPrimary;
-    transition: all 220ms ease-in-out;
-
-    &:hover,
-    &:active {
-      background-color: $colorPrimary;
-      color: $colorWhite !important;
-      border-color: $colorPrimary;
-    }
-
-    &:focus {
-      background-color: transparent;
-    }
-  }
-
-  &-right {
-    margin-right: 0;
-    margin-left: auto;
-    display: block;
   }
 }
 
